@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon">
     <title>Goal Dash - Acompanhe Partidas de Futebol</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="/styles/styles.css">
@@ -17,7 +18,7 @@
                 
                 <div class="flex items-center gap-3 cursor-pointer">
                     <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-lg shadow-sm group hover:opacity-90 transition-opacity">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white transition-all duration-300 transform group-hover:-translate-y-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
                             <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
                             <path d="M4 22h16"></path>
@@ -31,10 +32,10 @@
 
                 <nav class="hidden md:flex items-center">
                     <ul class="flex items-center gap-8 text-gray-600 font-medium">
-                        <li class="hover:text-purple-600 cursor-pointer transition-colors">Partidas</li>
-                        <li class="hover:text-purple-600 cursor-pointer transition-colors">Previsões</li>
-                        <li class="hover:text-purple-600 cursor-pointer transition-colors">Estatísticas</li>
-                        <li class="hover:text-purple-600 cursor-pointer transition-colors">Ligas</li>
+                        <a class="hover:text-purple-600 cursor-pointer transition-colors">Partidas</a>
+                        <a class="hover:text-purple-600 cursor-pointer transition-colors">Previsões</a>
+                        <a class="hover:text-purple-600 cursor-pointer transition-colors">Estatísticas</a>
+                        <a class="hover:text-purple-600 cursor-pointer transition-colors">Ligas</a>
                     </ul>
                 </nav>
 
@@ -50,38 +51,40 @@
             </div>
         </div>
     </header>
-    <main>
-        <section class="relative h-[600px] w-full overflow-hidden bg-black">
-            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-1" style="background-image: url(Images/hugo_souza_faz_defesa_durante_o_classico_com_o_du85.jpg);"></div>
-            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-2 opacity-0" style="background-image: url(Images/championss.jpeg);"></div>
-            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-3 opacity-0" style="background-image: url(Images/stadio.jpeg     );"></div>
+    
+    <!-- Hero Section -->
+    <section class="relative h-[600px] w-full overflow-hidden bg-black">
+        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-1" style="background-image: url(Images/hugo_souza_faz_defesa_durante_o_classico_com_o_du85.jpg);"></div>
+        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-2 opacity-0" style="background-image: url(Images/championss.jpeg);"></div>
+        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-3 opacity-0" style="background-image: url(Images/stadio.jpeg     );"></div>
 
-            <div class="container mx-auto px-4 relative z-10 flex flex-col justify-center h-full text-white">
-                <h1 class="text-5xl md:text-7xl font-bold mb-4 max-w-2xl leading-tight">
-                    Acompanhe o Futebol em Tempo Real
-                </h1>
-                <p class="text-lg md:text-xl mb-8 max-w-xl text-gray-200">
-                    Resultados ao vivo, estatísticas detalhadas e previsões.
-                </p>
-                <div class="flex space-x-4"> <button class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold transition-colors duration-200 
-                   flex items-center gap-2"> <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="12" r="6"></circle>
-            <circle cx="12" cy="12" r="2"></circle>
-        </svg>
-        Fazer Previsão
-    </button>
-
-    <button class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white px-8 py-3 rounded-lg font-bold transition-all duration-200
-                   flex items-center gap-2"> <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-        </svg>
-        Estatísticas
-    </button>
-</div>
+        <div class="container mx-auto px-4 relative z-10 flex flex-col justify-center h-full text-white">
+            <h1 class="text-5xl md:text-7xl font-bold mb-4 max-w-2xl leading-tight">
+                Acompanhe o Futebol em Tempo Real
+            </h1>
+            <p class="text-lg md:text-xl mb-8 max-w-xl text-gray-200">
+                Resultados ao vivo, estatísticas detalhadas e previsões.
+            </p>
+            <div class="flex flex-wrap items-center gap-4 mt-8">
+                <button class="flex items-center gap-2 bg-green-500 hover:bg-[#00a846] px-6 py-3 rounded-xl font-bold">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                    Fazer Previsão
+                </button>
+                <button class="group flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:bg-white hover:text-black">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Ver Estatísticas
+                </button>
             </div>
-        </section>
-        <section class="container mx-auto px-4 py-12">
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
             <aside class="lg:col-span-1">
@@ -210,8 +213,7 @@
                 </div>
             </div>
         </div>
-    </section>
-    </main>
+    
    <footer class="bg-slate-950 pt-16 pb-8 border-t border-slate-900">
     <div class="container mx-auto px-4">
         
