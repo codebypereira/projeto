@@ -10,17 +10,17 @@
 }
 
 .gradient-text {
-    background: linear-gradient(to right, #1D1A31, #9A4C95);
+    background: linear-gradient(to right, #d600bd, #9A4C95);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .gradient-bg {
-    background: linear-gradient(to right, #1D1A31, #9A4C95); 
+    background: linear-gradient(to right, #d600bd, #9A4C95); 
 }
 .color-bg {
-    background-color: #4D2D52 ;
+    background-color: #400c48 ;
 }
 
 @keyframes fadeCarousel {
