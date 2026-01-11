@@ -1,41 +1,39 @@
 // Configurações da API
 const API_KEY = "ff835c0432328c9c077e7ac1b8444cd9";
 
-async function searchMatches(leagueID = "NBA") {
-  const lista = document.getElementById("matches-container");
-  lista.innerHTML =
-    '<div class="text-white text-center py-10">Carregando NBA...</div>';
+async function searchMatches(leagueID = 'NBA') {
+    const lista = document.getElementById('matches-container');
+    lista.innerHTML = `<div class="text-white text-center py-10">Buscando rodada de 11/01/2026...</div>`;
 
-  
-  const date = "2026-01-10";
+    // Data de hoje (Domingo) para pegar os jogos que começam às 20h00 em Portugal
+    const date = '2026-01-12'; 
 
-  try {
-    
-    const url = `https://api.sportsgameodds.com/v2/events?leagueID=${leagueID}&date=${date}`;
+    try {
+        const url = `https://api.sportsgameodds.com/v2/events?leagueID=${leagueID}&date=${date}`;
+        
+        const response = await fetch(url, {
+            headers: { 'X-Api-Key': API_KEY }
+        });
 
-    const response = await fetch(url, {
-      headers: { "X-Api-Key": API_KEY },
-    });
+        const result = await response.json();
+        // Acessa result.data conforme vimos no seu console de sucesso
+        const eventos = result.data || [];
 
-    const result = await response.json();
-    console.log("DADOS DA NBA:", result);
+        if (eventos.length === 0) {
+            lista.innerHTML = `<div class="text-white text-center py-10">Sem jogos novos para hoje (${date}).</div>`;
+            return;
+        }
 
-    
-    const eventos = result.data || [];
+        lista.innerHTML = ''; 
+        eventos.forEach(match => {
+            // Removemos o filtro que causou o erro e apenas renderizamos
+            lista.innerHTML += createCardTemplate(match, leagueID);
+        });
 
-    if (eventos.length === 0) {
-      renderEmptyState(leagueID);
-      return;
+    } catch (error) {
+        console.error("Erro na busca:", error);
+        lista.innerHTML = `<div class="text-red-500 text-center py-10">Erro ao carregar dados.</div>`;
     }
-
-    lista.innerHTML = "";
-    eventos.forEach((match) => {
-      
-      lista.innerHTML += createCardTemplate(match, leagueID);
-    });
-  } catch (error) {
-    console.error("Erro na requisição:", error);
-  }
 }
 
 function createCardTemplate(match, leagueID) {
