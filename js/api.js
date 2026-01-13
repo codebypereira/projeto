@@ -121,7 +121,19 @@ window.openModal = (id, home, away) => {
 };
 
 window.closeModal = () => {
-    document.getElementById('prediction-modal').classList.add('hidden');
+    const modal = document.getElementById('prediction-modal');
+
+    modal.classList.add('hidden');
+
+    document.getElementById('input-home').value = "";
+    document.getElementById('input-away').value = "";
+
+    const userInput = document.getElementById('input-username');
+    if (userInput) {
+        userInput.value = "";
+    }
+
+    document.activeElement.blur();
 };
 
 window.submitPrediction = async() => {
@@ -233,3 +245,9 @@ function renderStatistics() {
         </div>
     `;
 }
+
+document.getElementById('prediction-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'prediction-modal') {
+        closemodal();
+    }
+})
