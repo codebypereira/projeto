@@ -31,3 +31,13 @@ body { background-color: #0f172a; }
 
 .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
 .tab-active { border-bottom: 3px solid #a855f7; color: white; }
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}

@@ -3,7 +3,7 @@ const CONFIG = {
     MOCK_API : 'https://691c83153aaeed735c91269a.mockapi.io/predictions'
 };
 
-let currentLeague = 'NBA';
+let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
 let activeGame = null;
 
 //Função para buscar as partidas
@@ -14,7 +14,7 @@ async function fetchMatches(leagueID = null) {
     const dateInput = document.getElementById('date-picker');
     let selectedDate = dateInput ? dateInput.value: '';
 
-    if (container) container.innerHTML = '<div class="text-white text-center p-10 font-bold animate-pulse">Carregando ODDS e Escudos...</div>';
+    if (container) container.innerHTML = '<div class="text-white text-center p-10 font-bold animate-pulse">Analisando o VAR e as cores das chuteiras... Quase lá!</div>';
 
     try {
         let url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}&oddsAvailable=true`;
@@ -54,39 +54,56 @@ function renderMatches(matches) {
         const homeText = home?.colors?.primaryContrast || '#ffffff';
 
         const awayColor = away?.colors?.primary || '#334155';
-        const awayText = away?.color?.primaryContrast || '#ffffff';
+        const awayText = away?.colors?.primaryContrast || '#ffffff';
+
+        const homeShort = home?.names?.short;
+        const awayShort = away?.names?.short;
 
         const card = document.createElement('div');
         card.className = "bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group";
-        card.innerHTML =`
-            <div class="flex items-center justify-between gap-4 mb-8 text-center">
-                <div class="flex flex-col items-center flex-1">
-                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110 select-none"
-                         style="background-color: ${homeColor}; color: ${homeText}; border: 4px solid rgba(255, 255, 255, 0.4)">
-                         ${homeName.substring(0, 2).toUpperCase()}
+        card.innerHTML = `
+        <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
+            <div class="flex flex-col items-center flex-1">
+                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                    <div class="absolute inset-0 rounded-2xl blur-xl opacity-20 group-hover:opacity-50 transition-opacity" 
+                         style="background-color: ${homeColor}"></div>
+                    
+                    <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center shadow-2xl border-b-4 border-black/30 transition-all" 
+                         style="background-color: ${homeColor}; color: ${homeText}">
+                        <span class="text-xl font-black tracking-tighter">${homeShort}</span>
                     </div>
-                    <span class="text-[11px] font-black text-white uppercase tracking-tighter">${homeName}</span>
                 </div>
-
-                <div class="flex flex-col items-center">
-                    <span class="text-slate-500 italic font-black text-xs">VS</span>
-                </div>
-
-                <div class="flex flex-col items-center flex-1">
-                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110 select-none"
-                         style="background-color: ${awayColor}; color: ${awayText}; border: 4px solid rgba(255, 255, 255,0.4)">
-                         ${awayName.substring(0, 2).toUpperCase()}
-                    </div>
-                    <span class="text-[11px] font-black text-white uppercase tracking-tighter">${awayName}</span>
-                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors">
+                    ${homeName}
+                </span>
             </div>
 
-            <div class="w-full flex justify-center">
-                <button onclick="openModal('${m.eventID}', '${homeName}', '${awayName}')"
-                    class="px-8 py-3 rounded-3xl text-[10px] font-black text-white uppercase tracking-[3px] bg-white/5 border-white/10 hover:bg-white hover:text-black hover:border-white transition-all duration-300 shadow-xl active:scale-95">
-                    Faça seu palpite
-                </button>
+            <div class="flex flex-col items-center justify-center opacity-30">
+                <span class="text-2xl font-black italic text-slate-500">VS</span>
             </div>
+
+            <div class="flex flex-col items-center flex-1">
+                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                    <div class="absolute inset-0 rounded-2xl blur-xl opacity-20 group-hover:opacity-50 transition-opacity" 
+                         style="background-color: ${awayColor}"></div>
+                    
+                    <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center shadow-2xl border-b-4 border-black/30 transition-all" 
+                         style="background-color: ${awayColor}; color: ${awayText}">
+                        <span class="text-xl font-black tracking-tighter">${awayShort}</span>
+                    </div>
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors">
+                    ${awayName}
+                </span>
+            </div>
+        </div>
+        
+        <button onclick="openModal('${m.eventID}', '${homeName}', '${awayName}')" 
+            class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] 
+            bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600
+            transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
+            Dar meu palpite
+        </button>
         `;
         container.appendChild(card);
     }) 
@@ -96,7 +113,10 @@ function renderMatches(matches) {
 
 window.openModal = (id, home, away) => {
     activeGame = {id, home, away};
-    document.getElementById('modal-teams-title');
+    const titleEl = document.getElementById('modal-teams-title');
+    if (titleEl) {
+        titleEl.innerHTML = `${home} vs ${away}`;
+    }
     document.getElementById('prediction-modal').classList.remove('hidden');
 };
 
@@ -105,15 +125,28 @@ window.closeModal = () => {
 };
 
 window.submitPrediction = async() => {
-    const userName = document.querySelector('input[placeholder="pereira"]')?.value || "Anônimo";
-    const inputs = document.querySelectorAll('#prediction-modal input[type="number"]');
-    const homeScore = inputs[0]?.value;
-    const awayScore = inputs[1]?.value;
+    const userInput = document.getElementById('input-username');
+    const homeInput = document.getElementById('input-home');
+    const awayInput = document.getElementById('away-input');
 
-    if (!homeScore || !awayScore) return alert(`Insira o placar!`);
+    const username = userInput?.value.trim();
+    const homeScore = homeInput?.value;
+    const awayScore = awayInput?.value;
+
+    if (!username) {
+        return alert(`Por favor preencha o seu Nome/Nickname!`);
+    }
+
+    if (homeScore === '' || awayScore === '') {
+        return alert(`Por favor, preencha o placar dos dois times!`);
+    }
+
+    if (parseInt(homeScore) < 0 || parseInt(awayScore) < 0) {
+        return alert(`Não dá pra marcar gols negativos, né?`)
+    }
 
     const data = {
-        userName,
+        userInput,
         matchTeams : `${activeGame.home} vs ${activeGame.away}`,
         prediction : `${homeScore}-${awayScore}`,
         date : new Date().toLocaleString()
@@ -127,9 +160,17 @@ window.submitPrediction = async() => {
         });
 
         if (res.ok) {
-            alert(`🎯 Palpite Enviado!`);
+            alert(`🎯 Palpite enviado com sucesso!`);
+
+            if (userInput) userInput.value = "";
+            if (homeInput) homeInput.value = "0";
+            if (awayInput) awayInput.value = "0";
+
             closeModal();
+        } else {
+            throw new Error();
         }
+
     } catch (e) { alert(`Erro ao enviar palpite`); }
 };
 
