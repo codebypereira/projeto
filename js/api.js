@@ -179,6 +179,11 @@ window.changeSport = (id) => fetchMatches(id);
 
 //Menu Dropdown
 document.addEventListener('DOMContentLoaded', () => {
+
+    const statsContainer = document.getElementById('statistics-container');
+    if (statsContainer) {
+        statsContainer.innerHTML = renderStatistics();
+    }
     const userBtn = document.getElementById('user-menu-btn');
     const userDropdown = document.getElementById('user-dropdown');
 
@@ -196,3 +201,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+function renderStatistics() {
+    // Dados Mock (substituir depois por dados reais)
+    const stats = [
+        { title: "Previsões Hoje", value: "12,543", trend: "+23%", icon: "🚀", color: "text-emerald-500 bg-emerald-100" },
+        { title: "Utilizadores Ativos", value: "45,892", trend: "+12%", icon: "👥", color: "text-blue-500 bg-blue-100" },
+        { title: "Taxa de Acerto", value: "68.5%", trend: "+5%", icon: "🎯", color: "text-purple-500 bg-purple-100" },
+        { title: "Partidas Hoje", value: "127", trend: "+8%", icon: "⚽", color: "text-orange-500 bg-orange-100" }
+    ];
+
+    const cardsHtml = stats.map(stat => `
+        <div class="stat-card bg-white rounded-xl shadow-lg border border-gray-100 p-5 md:p-6 transition-all hover:shadow-xl transform hover:-translate-y-0.5">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-2 rounded-lg ${stat.color}">
+                    <span class="text-xl">${stat.icon}</span>
+                </div>
+                <span class="text-xs font-bold ${stat.color} p-1 rounded-full">${stat.trend}</span>
+            </div>
+            <p class="text-3xl font-extrabold text-gray-900 leading-none">${stat.value}</p>
+            <p class="mt-1 text-sm font-medium text-gray-500">${stat.title}</p>
+        </div>
+    `).join('');
+
+    return `
+        <div class="mb-10 pt-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-white mb-2 text-center">Estatísticas em Tempo Real</h2>
+            <p class="text-gray-400 mb-6 text-center">Acompanhe os números da nossa comunidade</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                ${cardsHtml}
+            </div>
+        </div>
+    `;
+}
