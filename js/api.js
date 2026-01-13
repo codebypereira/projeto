@@ -61,11 +61,11 @@ function renderMatches(matches) {
         card.innerHTML =`
             <div class="flex items-center justify-between gap-4 mb-8 text-center">
                 <div class="flex flex-col items-center flex-1">
-                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110"
+                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110 select-none"
                          style="background-color: ${homeColor}; color: ${homeText}; border: 4px solid rgba(255, 255, 255, 0.4)">
                          ${homeName.substring(0, 2).toUpperCase()}
                     </div>
-                    <span class="text-[11px] font-black text-white uppercase tracking-tighter cursor-pointer    ">${homeName}</span>
+                    <span class="text-[11px] font-black text-white uppercase tracking-tighter">${homeName}</span>
                 </div>
 
                 <div class="flex flex-col items-center">
@@ -73,7 +73,7 @@ function renderMatches(matches) {
                 </div>
 
                 <div class="flex flex-col items-center flex-1">
-                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110"
+                    <div class="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black shadow-2xl transition-transform group hover:scale-110 select-none"
                          style="background-color: ${awayColor}; color: ${awayText}; border: 4px solid rgba(255, 255, 255,0.4)">
                          ${awayName.substring(0, 2).toUpperCase()}
                     </div>
@@ -135,3 +135,23 @@ window.submitPrediction = async() => {
 
 document.addEventListener('DOMContentLoaded', () => fetchMatches());
 window.changeSport = (id) => fetchMatches(id);
+
+//Menu Dropdown
+document.addEventListener('DOMContentLoaded', () => {
+    const userBtn = document.getElementById('user-menu-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    if (userBtn && userDropdown) {
+        userBtn.addEventListener('click', (e) =>{
+            e.stopPropagation();
+
+            userDropdown.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', () => {
+            if (!userDropdown.classList.contains('hidden')) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    }
+});
