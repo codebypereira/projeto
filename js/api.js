@@ -291,3 +291,16 @@ function renderStatistics() {
         </div>
     `;
 }
+
+//Animação de botão ativo para nav (mobile)
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        //Remover a classe de ativo
+        document.querySelectorAll(nav-item).forEach(i =>
+            i.classList.remove('nav-active'));
+        //Adicionar apenas no que foi clicado
+        this.classList.add('nav-active');
+    });
+})
+
+document.getElementById('nav-home').classList.add('nav-active');
