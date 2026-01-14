@@ -6,7 +6,7 @@ const CONFIG = {
 let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
 let activeGame = null;
 
-// --- 1. GESTÃO DA INTERFACE ---
+// --- 1. GESTÃO DA INTERFACE E AUTH ---
 
 function updateUserUI() {
     const authArea = document.getElementById('auth-area');
@@ -24,7 +24,7 @@ function updateUserUI() {
                 </button>
                 <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                     <div class="px-4 py-3 border-b bg-gray-50"><p class="text-sm font-medium text-gray-900">${loggedUser}</p></div>
-                    <div class="py-1"><a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors">Histórico</a></div>
+                    <div class="py-1"><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors">Histórico</a></div>
                     <div class="border-t py-1"><button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer">Sair</button></div>
                 </div>
             </div>`;
@@ -33,12 +33,15 @@ function updateUserUI() {
     }
 }
 
-// --- 2. LÓGICA DE PARTIDAS ---
+// --- 2. LÓGICA DE PARTIDAS (INDEX) ---
 
 async function fetchMatches(leagueID = null) {
     if (leagueID) currentLeague = leagueID;
     const container = document.getElementById('matches-container');
-    if (container) container.innerHTML = '<div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">A carregar confrontos...</div>';
+    // Verifica se estamos no index.html (se o container existe)
+    if (!container || document.title.includes("Ao Vivo")) return;
+
+    container.innerHTML = '<div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">A carregar confrontos...</div>';
 
     try {
         const response = await fetch(`https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}&oddsAvailable=true`);
@@ -46,7 +49,7 @@ async function fetchMatches(leagueID = null) {
         renderMatches(result.data || []);
     } catch (error) {
         console.error("Erro na requisição:", error);
-        if (container) container.innerHTML = '<p class="text-red-500 text-center col-span-full">Erro ao conectar à API.</p>';
+        container.innerHTML = '<p class="text-red-500 text-center col-span-full">Erro ao conectar à API.</p>';
     }
 }
 
@@ -58,12 +61,8 @@ function renderMatches(matches) {
     matches.forEach(m => {
         const home = m.teams?.home;
         const away = m.teams?.away;
-        
-        // Campo confirmado via consola
         const rawDate = m.status?.startsAt || m.startsAt; 
-
-        let day = "--/--";
-        let time = "--:--";
+        let day = "--/--", time = "--:--";
 
         if (rawDate) {
             const gameDate = new Date(rawDate);
@@ -74,13 +73,10 @@ function renderMatches(matches) {
         }
 
         const homeColor = home?.colors?.primary || '#334155';
-        const homeText = home?.colors?.primaryContrast || '#ffffff';
         const awayColor = away?.colors?.primary || '#334155';
-        const awayText = away?.colors?.primaryContrast || '#ffffff';
 
         const card = document.createElement('div');
         card.className = "match-card bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
-        
         card.innerHTML = `
             <div class="flex justify-center mb-6">
                 <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
@@ -89,51 +85,47 @@ function renderMatches(matches) {
                     <span class="text-sm font-black text-white tracking-tight">${time}</span>
                 </div>
             </div>
-
             <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
                 <div class="flex flex-col items-center flex-1">
                     <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
                         <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${homeColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${homeColor}; color: ${homeText}">
+                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${homeColor}; color: white">
                             <span class="text-xl font-black tracking-tighter">${home?.names?.short || 'H'}</span>
                         </div>
                     </div>
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${home?.names?.medium || 'Casa'}</span>
                 </div>
-
-                <div class="flex flex-col items-center justify-center opacity-30">
-                    <span class="text-2xl font-black italic text-white">VS</span>
-                </div>
-
+                <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
                 <div class="flex flex-col items-center flex-1">
                     <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
                         <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${awayColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${awayColor}; color: ${awayText}">
+                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${awayColor}; color: white">
                             <span class="text-xl font-black tracking-tighter">${away?.names?.short || 'A'}</span>
                         </div>
                     </div>
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${away?.names?.medium || 'Fora'}</span>
                 </div>
             </div>
-
             <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium}', '${away?.names?.medium}')" 
                 class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
                 Dar meu palpite
-            </button>
-        `;
+            </button>`;
         container.appendChild(card);
     });
 }
 
-// --- 3. GESTÃO DE PALPITES ---
+// --- 3. GESTÃO DE PALPITES & MODAIS ---
 
 window.handlePalpiteClick = (id, home, away) => {
     if (!localStorage.getItem('goalDash_username')) return openAuthModal();
     activeGame = { id, home, away };
     const modal = document.getElementById('prediction-modal');
-    if (document.getElementById('modal-teams-title')) document.getElementById('modal-teams-title').innerText = `${home} vs ${away}`;
+    const title = document.getElementById('modal-teams-title');
+    if (title) title.innerText = `${home} vs ${away}`;
     modal?.classList.remove('hidden');
 };
+
+window.closeModal = () => document.getElementById('prediction-modal')?.classList.add('hidden');
 
 window.submitPrediction = async () => {
     const h = parseInt(document.getElementById('input-home').value);
@@ -146,7 +138,6 @@ window.submitPrediction = async () => {
         Winner: h > a ? activeGame.home : (a > h ? activeGame.away : "Empate"),
         homeScore: h,
         awayScore: a,
-        confidence: 100,
         createdAt: new Date().toISOString()
     };
 
@@ -158,12 +149,18 @@ window.submitPrediction = async () => {
         });
         if (res.ok) { 
             alert("🎯 Palpite Salvo!"); 
-            document.getElementById('prediction-modal').classList.add('hidden'); 
+            window.closeModal(); 
         }
     } catch (e) { alert("Erro ao salvar."); }
 };
 
-// --- 4. INICIALIZAÇÃO ---
+// --- 4. INICIALIZAÇÃO E EXPORTS ---
+
+window.changeSport = (leagueID) => fetchMatches(leagueID);
+window.toggleDropdown = (e) => { e.stopPropagation(); document.getElementById('user-dropdown')?.classList.toggle('hidden'); };
+window.logout = () => { localStorage.removeItem('goalDash_username'); window.location.reload(); };
+window.openAuthModal = () => document.getElementById('auth-modal')?.classList.remove('hidden');
+window.closeAuthModal = () => document.getElementById('auth-modal')?.classList.add('hidden');
 
 document.addEventListener('DOMContentLoaded', () => {
     updateUserUI();
@@ -175,8 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) { 
             localStorage.setItem('goalDash_username', user); 
             updateUserUI(); 
-            document.getElementById('auth-modal').classList.add('hidden'); 
+            window.closeAuthModal();
         }
     });
+
+    // Fechar dropdown ao clicar fora
+    window.addEventListener('click', () => document.getElementById('user-dropdown')?.classList.add('hidden'));
 });
-window.changeSport = (id) => fetchMatches(id);
