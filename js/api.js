@@ -206,8 +206,34 @@ document.addEventListener('DOMContentLoaded', () => {
         userBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             userDropdown.classList.toggle('hidden');
+
+            if (mainNav) mainNav.classList.add('hidden');
         });
     }
+    
+    //Menu hambúrguer (mobile)
+    const menuBtn = document.getElementById('menu-toggle');
+    const mainNav = document.getElementById('main-nav');
+
+    if (menuBtn && mainNav) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mainNav.classList.toggle('hidden');
+            mainNav.classList.toggle('flex');
+
+            //Fechar menu caso clique para abrir o de links
+            if (userDropdown) userDropdown.classList.add('hidden');
+        });
+    }
+
+    //Fechar tudo caso clique fora
+    window.addEventListener('click', () => {
+        if(userDropdown) userDropdown.classList.add('hidden');
+        if(mainNav) {
+            mainNav.classList.add('hidden');
+            mainNav.classList.remove('flex');
+        }
+    });
 
     // Fechar modais ao clicar fora
     window.addEventListener('click', (e) => {
