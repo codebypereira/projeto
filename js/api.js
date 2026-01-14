@@ -157,9 +157,6 @@ window.submitPrediction = async () => {
 // --- 4. INICIALIZAÇÃO E EXPORTS ---
 
 window.changeSport = (leagueID) => fetchMatches(leagueID);
-window.toggleDropdown = (e) => { e.stopPropagation(); document.getElementById('user-dropdown')?.classList.toggle('hidden'); };
-window.logout = () => { localStorage.removeItem('goalDash_username'); window.location.reload(); };
-window.openAuthModal = () => document.getElementById('auth-modal')?.classList.remove('hidden');
 window.closeAuthModal = () => document.getElementById('auth-modal')?.classList.add('hidden');
 
 document.addEventListener('DOMContentLoaded', () => {
