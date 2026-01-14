@@ -50,13 +50,18 @@
           <!--Barra de navegação-->
           <nav class="hidden md:flex items-center">
             <ul class="flex items-center gap-8 text-gray-600 font-medium">
-              <li><a href="index.html" class="hover:text-purple-600 cursor-pointer transition-colors">Partidas</a></li>
+              <li><a href="index.html" class="hover:text-purple-600 cursor-pointer transition-colors">Ao Vivo</a></li>
               <li><a class="hover:text-purple-600 cursor-pointer transition-colors">Estatísticas</a></li>
               <li><a class="hover:text-purple-600 cursor-pointer transition-colors">Ligas</a></li>
             </ul>
           </nav>
 
           <!--Área do utilizador-->
+          <div id="user-section">
+    <button onclick="openAuthModal()" id="login-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-700 transition-all">
+        Entrar
+    </button>   
+</div>
           <div class="relative ml-4">
             <button id="user-menu-btn" class="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all focus:ring-2 focus:ring-purple-200">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -70,7 +75,6 @@
                   clip-rule="evenodd"/>
               </svg>
             </button>
-
             <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
               <div class="px-4 py-3 border-b border-gray-50 bg-gray-50">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">
@@ -80,7 +84,6 @@
                   user@exemplo.com
                 </p>
               </div>
-
               <div class="py-1">
                 <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,12 +313,20 @@
               </div>
             </div>
           </aside>
-
           <div class="lg:col-span-3">
             <h2 id="confrontos" class="text-3xl font-extrabold text-white mb-6 border-b border-white/20 pb-4 scroll-mt-24">
               Próximos Confrontos:
             </h2>
-
+            <div class="max-w-md mx-auto mb-8">
+    <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </span>
+        <input type="text" id="search-input" 
+               class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent sm:text-sm shadow-sm" 
+               placeholder="Pesquisar equipas (ex: Celtics, Lakers...)">
+    </div>
+</div>
             <div
               id="matches-container"
               class="grid grid-cols-1 md:grid-cols-2 gap-6"
@@ -328,9 +339,6 @@
     <div id="statistics-container">
         </div>
     <div class="mb-6 flex justify-center space-x-4">
-        </div>
-
-    <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         </div>
       </section>
     </main>
@@ -509,5 +517,34 @@
         </div>
       </div>
     </div>
+   <div id="auth-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Entrar na Comunidade</h3>
+                <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="auth-user" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="auth-email" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="auth-pass" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition-colors shadow-lg">
+                    Criar Conta & Login
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
   </body>
 </html>
