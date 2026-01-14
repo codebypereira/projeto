@@ -168,33 +168,42 @@ window.closeModal = () => {
 };
 
 window.submitPrediction = async () => {
-    const homeScore = document.getElementById('input-home').value;
-    const awayScore = document.getElementById('input-away').value;
+    const homeScore = parseInt(document.getElementById('input-home').value);
+    const awayScore = parseInt(document.getElementById('input-away').value);
     const username = localStorage.getItem('goalDash_username');
 
-    if (!homeScore || !awayScore) return alert("Por favor, preencha o placar!");
+    if (isNaN(homeScore) || isNaN(awayScore)) return alert("Preencha o placar!");
 
+    // O objeto deve seguir exatamente o Schema da tua imagem
     const payload = {
-        userName: username,
-        matchTeams: `${activeGame.home} vs ${activeGame.away}`,
-        prediction: `${homeScore}-${awayScore}`,
-        date: new Date().toLocaleString('pt-PT')
+        matchId: activeGame.id,       // Nome no Schema: matchId
+        username: username,           // Nome no Schema: username (minúsculo)
+        Winner: homeScore > awayScore ? activeGame.home : (awayScore > homeScore ? activeGame.away : "Empate"),
+        homeScore: homeScore,         // Nome no Schema: homeScore
+        awayScore: awayScore,         // Nome no Schema: awayScore
+        confidence: 100,              // Campo obrigatório no teu Schema
+        createdAt: new Date().toISOString() // Campo Date no teu Schema
     };
 
     try {
-        const response = await fetch(CONFIG.MOCK_API, {
+        // Usa o URL que aparece na tua imagem (image_255783.png)
+        const response = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+
         if (response.ok) {
-            alert("🎯 Palpite enviado com sucesso!");
+            alert("🎯 Guardado na MockAPI!");
             closeModal();
+            // Opcional: recarregar o histórico se estiver na página dele
+            if (window.loadPredictionHistory) loadPredictionHistory();
         }
     } catch (e) {
-        alert("Erro ao ligar à Mock API.");
+        alert("Erro ao conectar à API.");
     }
 };
+
 
 // --- 4. INICIALIZAÇÃO ---
 
