@@ -1,6 +1,6 @@
 // js/details.js
 
-const API_KEY = "ff835c0432328c9c077e7ac1b8444cd9";
+const API_KEY = "af7afc4eab9aa5ab16421caefd7aea25";
 // ⚠️ ATENÇÃO: SUBSTITUI PELO TEU LINK REAL DO MOCKAPI.IO!
 const MOCK_API_BASE_URL = "https://696278a1d9d64c761987fe9a.mockapi.io/api/predictions"; 
 
