@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon" />
@@ -8,171 +8,152 @@
     <script src="js/api.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="/styles/styles.css" />
-  </head>
-  <body class="color-bg min-h-screen flex flex-col text-white">
-    
+</head>
+<body class="color-bg min-h-screen flex flex-col text-white">
+
     <header class="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div class="container mx-auto sm:px-4 px-2 py-3">
-        <div class="flex items-center justify-between gap-2">
-          
-          <a href="index.html" class="flex items-center gap-2 shrink-0 group">
-            <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-1.5 rounded-lg shadow-sm group-hover:opacity-90 transition-opacity">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white transition-all duration-300 transform group-hover:-translate-y-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                <path d="M4 22h16"></path>
-                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-              </svg>
+        <div class="container mx-auto sm:px-4 px-2 py-3">
+            <div class="flex items-center justify-between gap-2">
+                <a href="index.html" class="flex items-center gap-2 shrink-0 group">
+                    <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-1.5 rounded-lg shadow-sm group-hover:opacity-90 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white transition-all duration-300 transform group-hover:-translate-y-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                            <path d="M4 22h16"></path>
+                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg md:text-[1.4em] sm:text-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text font-bold tracking-tighter">Goal Dash</span>
+                </a>
+
+                <nav class="flex-1">
+                    <ul class="flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold capitalize tracking-tight sm:normal-case sm:font-medium">
+                        <li><a href="live.html" class="hover:text-purple-600 transition-colors whitespace-nowrap">Ao Vivo</a></li>
+                        <li><a href="#" class="hover:text-purple-600 transition-colors whitespace-nowrap">Estatísticas</a></li>
+                        <li><a href="#" class="hover:text-purple-600 transition-colors whitespace-nowrap">Ligas</a></li>
+                    </ul>
+                </nav>
+
+                <div id="auth-area" class="flex items-center gap-3"></div>
             </div>
-            <span class="text-lg md:text-[1.4em] sm:text-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text font-bold tracking-tighter">Goal Dash</span>
-          </a>
-
-          <nav class="flex-1">
-            <ul class="flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold capitalize tracking-tight sm:normal-case sm:font-medium">
-              <li><a href="index.html" class="hover:text-purple-600 transition-colors whitespace-nowrap">Ao Vivo</a></li>
-              <li><a href="#" class="hover:text-purple-600 transition-colors whitespace-nowrap">Estatísticas</a></li>
-              <li><a href="#" class="hover:text-purple-600 transition-colors whitespace-nowrap">Ligas</a></li>
-            </ul>
-          </nav>
-
-          <div id="auth-area" class="flex items-center gap-3">
-             </div>
-
         </div>
-      </div>
     </header>
 
     <main class="flex-grow">
-      <section class="relative h-[600px] w-full overflow-hidden bg-black">
-        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-1" style="background-image: url(Images/hugo_souza_faz_defesa_durante_o_classico_com_o_du85.jpg)"></div>
-        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-2 opacity-0" style="background-image: url(Images/championss.jpeg)"></div>
-        <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-3 opacity-0" style="background-image: url(Images/stadio.jpeg)"></div>
-        <div class="container mx-auto px-4 relative z-10 flex flex-col justify-center h-full text-white">
-          <h1 class="text-5xl md:text-7xl font-bold mb-4 max-w-2xl leading-tight">Acompanhe o Futebol em Tempo Real</h1>
-          <p class="text-lg md:text-xl mb-8 max-w-xl text-gray-200">Resultados ao vivo, estatísticas detalhadas e previsões.</p>
-          <div class="flex flex-wrap items-center gap-4 mt-8">
-            <a href="#confrontos" class="flex items-center gap-2 bg-green-500 hover:bg-[#00a846] px-6 py-3 rounded-xl font-bold transition-all">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
-              </svg>
-              Fazer Previsão
-            </a>
-            <button class="group flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white hover:text-black px-6 py-3 rounded-xl font-bold text-white transition-all duration-300">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-              Ver Estatísticas
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="container mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
-          <aside class="lg:col-span-1">
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 sticky top-24">
-              <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path d="M4 21V9a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v12"></path><circle cx="12" cy="5" r="3"></circle><path d="M12 21v-4"></path>
-                </svg>
-                Filtros e Ligas
-              </h2>
-              <div class="space-y-2">
-                <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-slate-600 hover:text-purple-700 transition-all border border-transparent hover:border-purple-100 group">
-                   <span class="text-sm font-bold">Champions League</span>
-                </button>
-                <button onclick="changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-slate-600 hover:text-purple-700 transition-all border border-transparent hover:border-purple-100">
-                   <span class="text-sm font-bold">Premier League</span>
-                </button>
-                <button onclick="changeSport('LA_LIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-slate-600 hover:text-purple-700 transition-all border border-transparent hover:border-purple-100">
-                   <span class="text-sm font-bold">La Liga</span>
-                </button>
-                <button onclick="changeSport('BUNDESLIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-slate-600 hover:text-purple-700 transition-all border border-transparent hover:border-purple-100">
-                   <span class="text-sm font-bold">Bundesliga</span>
-                </button>
-              </div>
+        <section class="relative h-[600px] w-full overflow-hidden bg-black">
+            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-1" style="background-image: url(Images/hugo_souza_faz_defesa_durante_o_classico_com_o_du85.jpg)"></div>
+            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-2 opacity-0" style="background-image: url(Images/championss.jpeg)"></div>
+            <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-3 opacity-0" style="background-image: url(Images/stadio.jpeg)"></div>
+            <div class="container mx-auto px-4 relative z-10 flex flex-col justify-center h-full text-white">
+                <h1 class="text-5xl md:text-7xl font-bold mb-4 max-w-2xl leading-tight">Acompanhe o Futebol em Tempo Real</h1>
+                <p class="text-lg md:text-xl mb-8 max-w-xl text-gray-200">Resultados ao vivo, estatísticas detalhadas e previsões.</p>
+                <div class="flex flex-wrap items-center gap-4 mt-8">
+                    <a href="#confrontos" class="flex items-center gap-2 bg-green-500 hover:bg-[#00a846] px-6 py-3 rounded-xl font-bold transition-all">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                        Fazer Previsão
+                    </a>
+                    <button class="group flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white hover:text-black px-6 py-3 rounded-xl font-bold text-white transition-all duration-300">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        Ver Estatísticas
+                    </button>
+                </div>
             </div>
-          </aside>
+        </section>
 
-          <div class="lg:col-span-3">
-            <h2 id="confrontos" class="text-3xl font-extrabold text-white mb-6 border-b border-white/20 pb-4 scroll-mt-24">Próximos Confrontos:</h2>
-            
-            <div class="max-w-md mx-auto mb-8">
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                </span>
-                <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none shadow-sm" placeholder="Pesquisar equipes..." />
-              </div>
+        <section class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <aside class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 sticky top-24">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3 uppercase italic">Filtros e Ligas</h2>
+                        <div class="space-y-2 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                          <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">Champions League</button>
+                            <button onclick="changeSport('EPL')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Premier League</button>
+                            <button onclick="changeSport('LA_LIGA')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">La Liga</button>
+                            <button onclick="changeSport('BUNDESLIGA')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Bundesliga</button>
+                            <div class="border-t border-gray-100 my-2 pt-2"></div>
+                            <button onclick="changeSport('BR_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Brasileirão Série A</button>
+                            <button onclick="changeSport('FR_LIGUE_1')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Ligue 1</button>
+                            <button onclick="changeSport('IT_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Serie A Itália</button>
+                            <button onclick="changeSport('MLS')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">MLS (EUA)</button>
+                            <button onclick="changeSport('LIGA_MX')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Liga MX</button>
+                            <button onclick="changeSport('INTL_FOOTBALL')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Internacional</button>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="lg:col-span-3">
+                    <h2 id="confrontos" class="text-3xl font-extrabold text-white mb-6 border-b border-white/20 pb-4 scroll-mt-24">Próximos Confrontos:</h2>
+                    <div class="max-w-md mx-auto mb-8">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </span>
+                            <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none shadow-sm" placeholder="Pesquisar equipes..." />
+                        </div>
+                    </div>
+                    <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
             </div>
-
-            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-               </div>
-          </div>
-
-        </div>
-      </section>
+        </section>
     </main>
 
     <footer class="bg-slate-950 pt-16 pb-8 border-t border-slate-900 w-full mt-auto">
-      <div class="container mx-auto px-4 text-center">
-        <p class="text-slate-500 text-sm">&copy; 2026 Goal Dash. Todos os direitos reservados.</p>
-      </div>
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">&copy; 2026 Goal Dash. Todos os direitos reservados.</p>
+        </div>
     </footer>
 
     <div id="prediction-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-      <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl max-w-sm w-full">
-        <h3 class="text-xl font-bold mb-2 text-center text-white italic">TEU PALPITE</h3>
-        <p id="modal-teams-title" class="text-center text-gray-500 text-[10px] mb-6 uppercase tracking-widest font-black"></p>
-        
-        <div class="mb-6">
-          <label class="text-[10px] text-gray-400 uppercase font-bold mb-2 block">Confirmar Utilizador</label>
-          <input type="text" id="input-username" readonly class="w-full bg-slate-800 border border-white/10 rounded-xl py-3 px-4 text-gray-400 outline-none" />
+        <div class="bg-slate-900 border border-white/10 p-8 rounded-3xl max-w-sm w-full">
+            <h3 class="text-xl font-bold mb-2 text-center text-white italic">TEU PALPITE</h3>
+            <p id="modal-teams-title" class="text-center text-gray-500 text-[10px] mb-6 uppercase tracking-widest font-black"></p>
+            <div class="mb-6">
+                <label class="text-[10px] text-gray-400 uppercase font-bold mb-2 block">Confirmar Utilizador</label>
+                <input type="text" id="input-username" readonly class="w-full bg-slate-800 border border-white/10 rounded-xl py-3 px-4 text-gray-400 outline-none" />
+            </div>
+            <div class="flex items-center justify-center gap-4 mb-8">
+                <input type="number" id="input-home" class="w-20 h-20 text-3xl text-center bg-slate-800 border border-white/10 rounded-2xl text-white font-black" min="0" />
+                <span class="text-2xl font-black text-slate-700 italic">X</span>
+                <input type="number" id="input-away" class="w-20 h-20 text-3xl text-center bg-slate-800 border border-white/10 rounded-2xl text-white font-black" min="0" />
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 text-xs font-bold text-gray-500 hover:text-white uppercase cursor-pointer">Cancelar</button>
+                <button onclick="submitPrediction()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-xs font-black text-white uppercase shadow-lg cursor-pointer">Enviar</button>
+            </div>
         </div>
-
-        <div class="flex items-center justify-center gap-4 mb-8">
-          <input type="number" id="input-home" class="w-20 h-20 text-3xl text-center bg-slate-800 border border-white/10 rounded-2xl text-white font-black" min="0" />
-          <span class="text-2xl font-black text-slate-700 italic">X</span>
-          <input type="number" id="input-away" class="w-20 h-20 text-3xl text-center bg-slate-800 border border-white/10 rounded-2xl text-white font-black" min="0" />
-        </div>
-
-        <div class="flex gap-3">
-          <button onclick="closeModal()" class="flex-1 py-4 text-xs font-bold text-gray-500 hover:text-white uppercase cursor-pointer">Cancelar</button>
-          <button onclick="submitPrediction()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-xs font-black text-white uppercase shadow-lg cursor-pointer">Enviar</button>
-        </div>
-      </div>
     </div>
 
     <div id="auth-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden text-gray-800">
-        <div class="p-8">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold">Entrar na Comunidade</h3>
-            <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-          <form id="auth-form" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium">Username</label>
-              <input type="text" id="auth-user" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="Como queres ser chamado?" />
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden text-gray-800">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">Entrar na Comunidade</h3>
+                    <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <form id="auth-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium">Username</label>
+                        <input type="text" id="auth-user" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="Como queres ser chamado?" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Email</label>
+                        <input type="email" id="auth-email" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="teu@email.com" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Senha</label>
+                        <input type="password" id="auth-pass" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="••••••••" />
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition-shadow shadow-lg cursor-pointer">Criar Conta & Login</button>
+                </form>
             </div>
-            <div>
-              <label class="block text-sm font-medium">Email</label>
-              <input type="email" id="auth-email" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="teu@email.com" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium">Senha</label>
-              <input type="password" id="auth-pass" required class="w-full border border-gray-300 rounded-lg p-3 mt-1 outline-none focus:ring-2 focus:ring-purple-500" placeholder="••••••••" />
-            </div>
-            <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition-shadow shadow-lg cursor-pointer">
-              Criar Conta & Login
-            </button>
-          </form>
         </div>
-      </div>
     </div>
 
-  </body>
+</body>
 </html>
