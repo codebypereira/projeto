@@ -114,9 +114,17 @@ function renderMatches(matches) {
 window.openModal = (id, home, away) => {
     activeGame = {id, home, away};
     const titleEl = document.getElementById('modal-teams-title');
+    const userInput = document.getElementById('input-username');
+
     if (titleEl) {
         titleEl.innerHTML = `${home} vs ${away}`;
     }
+
+    const savedName = localStorage.getItem('goalDash_username');
+    if (savedName && userInput) {
+        userInput.value = savedName
+    }
+
     document.getElementById('prediction-modal').classList.remove('hidden');
 };
 
@@ -139,7 +147,7 @@ window.closeModal = () => {
 window.submitPrediction = async() => {
     const userInput = document.getElementById('input-username');
     const homeInput = document.getElementById('input-home');
-    const awayInput = document.getElementById('away-input');
+    const awayInput = document.getElementById('input-away');
 
     const username = userInput?.value.trim();
     const homeScore = homeInput?.value;
@@ -158,7 +166,7 @@ window.submitPrediction = async() => {
     }
 
     const data = {
-        userInput,
+        userName : username,
         matchTeams : `${activeGame.home} vs ${activeGame.away}`,
         prediction : `${homeScore}-${awayScore}`,
         date : new Date().toLocaleString()
@@ -172,6 +180,7 @@ window.submitPrediction = async() => {
         });
 
         if (res.ok) {
+            localStorage.setItem('goalDash_username', username)
             alert(`🎯 Palpite enviado com sucesso!`);
 
             if (userInput) userInput.value = "";
@@ -214,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 function renderStatistics() {
-    // Dados Mock (substituir depois por dados reais)
+    
     const stats = [
         { title: "Previsões Hoje", value: "12,543", trend: "+23%", icon: "🚀", color: "text-emerald-500 bg-emerald-100" },
         { title: "Utilizadores Ativos", value: "45,892", trend: "+12%", icon: "👥", color: "text-blue-500 bg-blue-100" },
@@ -248,6 +257,6 @@ function renderStatistics() {
 
 document.getElementById('prediction-modal').addEventListener('click', (e) => {
     if (e.target.id === 'prediction-modal') {
-        closemodal();
+        closeModal();
     }
 })
