@@ -1,6 +1,6 @@
 function loadLayout() {
     const footerMenu  = `
-    <div class="lg:hidden fixed bottom-4 left-4 right-4 bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-3 z-[100] flex justify-between items-center rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+    <div class="md:hidden fixed bottom-4 left-4 right-4 bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-3 z-[100] flex justify-between items-center rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
       <a href="#" id="nav-home" class="nav-item flex flex-col items-center gap-1 text-gray-300 transition-all active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -48,5 +48,47 @@ function initNav() {
         homeBtn.classList.add('nav-active');
     }
 }
+
+//Funçao para abrir modal de autenticação
+function openAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+//Função para fechar modal de autenticação
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+  }
+}
+
+window.onclick = function(event) {
+  if (!event.target.matches('#user-menu-btn') && !event.target.closest('#user-menu-btn')) {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+      dropdown.classList.add('hidden');
+    }
+  }
+}
+
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+
+window.toggleDropdown = (e) => {
+  e.stopPropagation();
+  document.getElementById('user-dropdown')?.classList.toggle('hidden');
+};
+
+window.logout = () => {
+  localStorage.removeItem('goalDash_username');
+  window.location.reload()
+};
 
 document.addEventListener('DOMContentLoaded', loadLayout);

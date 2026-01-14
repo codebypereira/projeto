@@ -179,8 +179,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-window.toggleDropdown = (e) => { e.stopPropagation(); document.getElementById('user-dropdown')?.classList.toggle('hidden'); };
-window.logout = () => { localStorage.removeItem('goalDash_username'); window.location.reload(); };
-window.openAuthModal = () => document.getElementById('auth-modal')?.classList.remove('hidden');
 window.changeSport = (id) => fetchMatches(id);
