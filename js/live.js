@@ -106,9 +106,12 @@ function renderLiveCards(matches) {
         card.className = `bg-slate-900/90 border border-white/10 p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] transition-all duration-700 ${flash} w-full`;
         
         card.innerHTML = `
-            <div class="flex justify-center mb-4 md:mb-6">
-                <span class="bg-red-600 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black text-white flex items-center gap-2">
-                    <span class="w-1 h-1 bg-white rounded-full animate-ping"></span>
+            <div class="flex justify-center items-center mb-6 w-full">
+                <span class="bg-red-600 px-4 py-1 rounded-full text-[10px] font-black text-white flex items-center justify-center gap-2 mx-auto">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
                     ${m.status.clock || 'LIVE'}
                 </span>
             </div>
@@ -124,9 +127,9 @@ function renderLiveCards(matches) {
                 
                 <div class="flex flex-col items-center px-1 md:px-4">
                     <div class="flex items-center gap-1 md:gap-4">
-                        <span class="text-3xl md:text-5xl font-black italic text-white tracking-tighter">${hScore}</span>
+                        <span class="text-3xl md:text-5xl font-black italic text-white font-mono tracking-tighter">${hScore}</span>
                         <span class="text-xl md:text-2xl font-bold text-white/10">:</span>
-                        <span class="text-3xl md:text-5xl font-black italic text-white tracking-tighter">${aScore}</span>
+                        <span class="text-3xl md:text-5xl font-black italic text-white font-mono tracking-tighter">${aScore}</span>
                     </div>
                     <span class="text-[10px] text-purple-500 font-black uppercase mt-2 tracking-[2px]">${m.status.displayShort || ""}</span>
                 </div>

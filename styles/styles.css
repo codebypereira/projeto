@@ -7,13 +7,31 @@
 body {
     padding-top: 65px;
     overflow: auto !important;
+    background-color: #1a1033 !important;
+    background-image: radial-gradient(circle at top right, #2d1b5d, #1a1033);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 body.modal-open {
     overflow: hidden !important;
     height: 100vh;
+    
 }
 
+.score-number, 
+.timer-clock, 
+.odds-value {
+    font-family: 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+h1, h2, .logo-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.05em;
+}
 .color-bg {
     background-color: #400c48 ;
 }
