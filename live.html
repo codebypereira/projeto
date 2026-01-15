@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon" />
     <title>Goal Dash - Ao Vivo</title>
+    <script src="js/global.js" defer></script>
     <script src="js/api.js" defer></script>
     <script src="js/live.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -16,35 +17,7 @@
 </head>
 <body class="color-bg min-h-screen flex flex-col text-white">
 
-    <header class="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="container mx-auto sm:px-4 px-2 py-3">
-            <div class="flex items-center justify-between gap-2">
-                <a href="index.html" class="flex items-center gap-2 shrink-0 group">
-                    <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-1.5 rounded-lg shadow-sm group-hover:opacity-90 transition-opacity">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white transition-all duration-300 transform group-hover:-translate-y-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                            <path d="M4 22h16"></path>
-                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                        </svg>
-                    </div>
-                    <span class="text-lg md:text-[1.4em] sm:text-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text font-bold tracking-tighter">Goal Dash</span>
-                </a>
-
-                <nav class="flex-1">
-                    <ul class="flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold">
-                        <li><a href="index.html" class="hover:text-purple-600 transition-colors">Início</a></li>
-                        <li><a href="live.html" class="text-purple-600 border-b-2 border-purple-600 transition-colors">Ao Vivo</a></li>
-                        <li><a href="#" class="hover:text-purple-600 transition-colors">Estatísticas</a></li>
-                    </ul>
-                </nav>
-
-                <div id="auth-area" class="flex items-center gap-3"></div>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-grow">
+    <main class="flex-grow ">
         <section class="container mx-auto px-4 py-12">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 
@@ -64,7 +37,8 @@
                             <button onclick="changeSport('IT_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">Serie A Itália</button>
                             <button onclick="changeSport('MLS')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">MLS (EUA)</button>
                             <button onclick="changeSport('LIGA_MX')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">Liga MX</button>
-                            <button onclick="changeSport('INTL_FOOTBALL')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">Internacional</button>
+                            <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">Internacional</button>
+                            <button onclick="changeSport('NBA')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold text-sm transition-all">NBA</button>
                         </div>
                     </div>
                 </aside>
@@ -78,7 +52,7 @@
                         PLACAR AO VIVO
                     </h2>
                     
-                    <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="live-matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         </div>
                 </div>
             </div>

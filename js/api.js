@@ -24,7 +24,7 @@ function updateUserUI() {
                 </button>
                 <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                     <div class="px-4 py-3 border-b bg-gray-50"><p class="text-sm font-medium text-gray-900">${loggedUser}</p></div>
-                    <div class="py-1"><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors">Histórico</a></div>
+                    <div class="py-1"><a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors">Histórico</a></div>
                     <div class="border-t py-1"><button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer">Sair</button></div>
                 </div>
             </div>`;
@@ -39,7 +39,7 @@ async function fetchMatches(leagueID = null) {
     if (leagueID) currentLeague = leagueID;
     const container = document.getElementById('matches-container');
     // Verifica se estamos no index.html (se o container existe)
-    if (!container || document.title.includes("Ao Vivo")) return;
+    if (!container) return;
 
     container.innerHTML = '<div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">A carregar confrontos...</div>';
 
@@ -53,18 +53,66 @@ async function fetchMatches(leagueID = null) {
     }
 }
 
-function renderMatches(matches) {
-    const container = document.getElementById('matches-container');
+async function fetchLiveMatches() {
+    const container = document.getElementById('live-matches-container');
+    if (!container) {
+        console.error(`ERRO: O container 'live-matches-container' não existe no HTML.`);
+        return;
+    }
+
+
+    console.log(`Buscando jogos ao vivo para NBA...`)
+    container.innerHTML = `<div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">Buscando enterradas ao vivo...</div>`;
+
+    try {
+        const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&live=true&leagueID=NBA`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        console.log("Dados: ", result);
+
+        if (!result.data || result.data.length === 0) {
+            container.innerHTML = '<p>Não há jogos ao vivo no momento.</p>';
+            return;
+        }
+
+        renderMatches(result.data, 'live-matches-container');
+    } catch (error) {
+        console.error(`Erro no Live: ${error}`);
+        container.innerHTML = '<p>Erro ao carregar transmissões</p>'
+    }
+}
+
+/**
+ * Renderizar os cards de partidas de forma dinâmica
+ * @param {Array} matches - Lista de jogos vinda da API
+ * @param {String} containerID - O ID do elemento HTML onde os cards serão inseridos
+ */
+
+function renderMatches(matches, containerID) {
+    const container = document.getElementById(containerID);
     if (!container) return;
+
     container.innerHTML = '';
+
+    if (matches.length === 0) {
+        container.innerHTML = '<p>Nenhuma partida encontrada</p>';
+        return;
+    }
 
     matches.forEach(m => {
         const home = m.teams?.home;
         const away = m.teams?.away;
+
+        const isLive = m.live === true || ( m.status && m.status.live === true);
+
+        const homeScore = isLive ? (m.scores?.home ?? 0) : null;
+        const awayScore = isLive ? (m.scores?.away ?? 0) : null;
+
         const rawDate = m.status?.startsAt || m.startsAt; 
         let day = "--/--", time = "--:--";
 
-        if (rawDate) {
+        if (rawDate && !isLive) {
             const gameDate = new Date(rawDate);
             if (!isNaN(gameDate.getTime())) {
                 day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
@@ -79,33 +127,50 @@ function renderMatches(matches) {
         card.className = "match-card bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
         card.innerHTML = `
             <div class="flex justify-center mb-6">
-                <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                    <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
-                    <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                    <span class="text-sm font-black text-white tracking-tight">${time}</span>
+                <div class="${isLive ? 'bg-red-600 animate-pulse' : 'bg-white/10'} border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                    ${isLive 
+                        ? '<span class="text-[10px] font-black text-white uppercase tracking-[2px]">● AO VIVO</span>' 
+                        : `<span class="text-xs font-black text-purple-400 uppercase">${day}</span>
+                           <div class="w-1 h-1 bg-white/30 rounded-full"></div>
+                           <span class="text-xs font-black text-white">${time}</span>`
+                    }
                 </div>
             </div>
-            <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
+
+            <div class="flex items-center justify-between w-full gap-2 mb-10 text-center">
                 <div class="flex flex-col items-center flex-1">
                     <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
                         <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${homeColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${homeColor}; color: white">
+                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30 shadow-inner" style="background-color: ${homeColor}; color: white">
                             <span class="text-xl font-black tracking-tighter">${home?.names?.short || 'H'}</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${home?.names?.medium || 'Casa'}</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider line-clamp-1">${home?.names?.medium || 'Casa'}</span>
                 </div>
-                <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
+
+                <div class="flex flex-col items-center px-2">
+                    ${isLive ? `
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl font-black text-white">${homeScore}</span>
+                            <span class="text-lg font-bold text-white/20">-</span>
+                            <span class="text-3xl font-black text-white">${awayScore}</span>
+                        </div>
+                    ` : `
+                        <span class="text-2xl font-black italic text-white/20">VS</span>
+                    `}
+                </div>
+
                 <div class="flex flex-col items-center flex-1">
                     <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
                         <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${awayColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${awayColor}; color: white">
+                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30 shadow-inner" style="background-color: ${awayColor}; color: white">
                             <span class="text-xl font-black tracking-tighter">${away?.names?.short || 'A'}</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${away?.names?.medium || 'Fora'}</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider line-clamp-1">${away?.names?.medium || 'Fora'}</span>
                 </div>
             </div>
+
             <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium}', '${away?.names?.medium}')" 
                 class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
                 Dar meu palpite
@@ -118,14 +183,24 @@ function renderMatches(matches) {
 
 window.handlePalpiteClick = (id, home, away) => {
     if (!localStorage.getItem('goalDash_username')) return openAuthModal();
+
     activeGame = { id, home, away };
     const modal = document.getElementById('prediction-modal');
     const title = document.getElementById('modal-teams-title');
-    if (title) title.innerText = `${home} vs ${away}`;
-    modal?.classList.remove('hidden');
-};
 
-window.closeModal = () => document.getElementById('prediction-modal')?.classList.add('hidden');
+    if (title) title.innerText = `${home} vs ${away}`;
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10)
+        
+        document.body.classList.add('modal-open');
+    }
+};
 
 window.submitPrediction = async () => {
     const h = parseInt(document.getElementById('input-home').value);
@@ -154,14 +229,32 @@ window.submitPrediction = async () => {
     } catch (e) { alert("Erro ao salvar."); }
 };
 
+window.closeModal = () => {
+    const modal = document.getElementById('prediction-modal');
+    if (modal) {
+        modal.classList.remove('active');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove()
+        }, 300);
+    }
+}
+
 // --- 4. INICIALIZAÇÃO E EXPORTS ---
 
 window.changeSport = (leagueID) => fetchMatches(leagueID);
-window.closeAuthModal = () => document.getElementById('auth-modal')?.classList.add('hidden');
 
 document.addEventListener('DOMContentLoaded', () => {
     updateUserUI();
-    fetchMatches();
+
+    if (window.location.pathname.includes('live.html') || document.getElementById('live-matches-container')) {
+        fetchLiveMatches();
+        setInterval(fetchLiveMatches, 30000);
+    } else {
+        fetchMatches();
+    }
     
     document.getElementById('auth-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
