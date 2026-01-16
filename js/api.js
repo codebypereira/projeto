@@ -3,7 +3,7 @@ const CONFIG = {
     MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
-let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
+let currentLeague = 'LA_LIGA';
 let activeGame = null;
 
 // --- 1. GESTÃO DA INTERFACE E AUTH ---
@@ -61,6 +61,10 @@ function renderMatches(matches) {
     matches.forEach(m => {
         const home = m.teams?.home;
         const away = m.teams?.away;
+
+        const homeLogo = getTeamLogo(home?.names?.short || '');
+        const awayLogo = getTeamLogo(away?.names?.short || '');
+
         const rawDate = m.status?.startsAt || m.startsAt; 
         let day = "--/--", time = "--:--";
 
@@ -79,37 +83,39 @@ function renderMatches(matches) {
         card.className = "match-card bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
         card.innerHTML = `
             <div class="flex justify-center mb-6">
-                <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                    <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
-                    <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                    <span class="text-sm font-black text-white tracking-tight">${time}</span>
-                </div>
+            <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
+                <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+                <span class="text-sm font-black text-white tracking-tight">${time}</span>
             </div>
-            <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
-                <div class="flex flex-col items-center flex-1">
-                    <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                        <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${homeColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${homeColor}; color: white">
-                            <span class="text-xl font-black tracking-tighter">${home?.names?.short || 'H'}</span>
-                        </div>
-                    </div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${home?.names?.medium || 'Casa'}</span>
+        </div>
+        <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
+            <div class="flex flex-col items-center flex-1">
+                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                    <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
+                    <img src="${homeLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="home">
                 </div>
-                <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
-                <div class="flex flex-col items-center flex-1">
-                    <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                        <div class="absolute inset-0 rounded-2xl blur-xl opacity-20" style="background-color: ${awayColor}"></div>
-                        <div class="relative w-16 h-20 rounded-t-2xl rounded-b-[2rem] flex items-center justify-center border-b-4 border-black/30" style="background-color: ${awayColor}; color: white">
-                            <span class="text-xl font-black tracking-tighter">${away?.names?.short || 'A'}</span>
-                        </div>
-                    </div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${away?.names?.medium || 'Fora'}</span>
-                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                    ${home?.names?.medium || 'Casa'}
+                </span>
             </div>
-            <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium}', '${away?.names?.medium}')" 
-                class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
-                Dar meu palpite
-            </button>`;
+
+            <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
+
+            <div class="flex flex-col items-center flex-1">
+                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                    <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
+                    <img src="${awayLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="away">
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                    ${away?.names?.medium || 'Fora'}
+                </span>
+            </div>
+        </div>
+        <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium}', '${away?.names?.medium}')" 
+            class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
+            Dar meu palpite
+        </button>`;
         container.appendChild(card);
     });
 }

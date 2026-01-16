@@ -10,10 +10,31 @@
 
     <title>Goal Dash - Acompanhe Partidas de Futebol</title>
     <script src="js/global.js" defer></script>
+    <script src="js/teams.js" defer></script>
     <script src="js/api.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <link rel="stylesheet" href="/styles/styles.css" />
+    <link rel="stylesheet" href="/styles/styles.css"/>
+    <style>
+      .custom-scrollbar::-webkit-scrollbar {
+            width: 5px; /* Deixa ela bem fininha e elegante */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05); /* Fundo quase invisível */
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #a855f7; /* Roxo neon (purple-500) */
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); /* Brilho sutil */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #c084fc; /* Roxo mais claro no hover */
+        }
+    </style>
   </head>
   <body class="color-bg min-h-screen flex flex-col text-white overflow-x-hidden w-screen max-w-full">
     <!--Hero Section-->
@@ -45,29 +66,27 @@
       <section class="container mx-auto px-4 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside class="lg:col-span-1">
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 sticky top-24">
-              <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3 uppercase italic">Filtros e Ligas</h2>
+            <div class="bg-black/30 p-6 rounded-[2rem] backdrop-blur-xl shadow-2xl border border-white/5 sticky top-24">
+              <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-white/10 uppercase italic tracking-wider bg-gradient-to-r from-purple-400 to-fuchisia-500 bg-clip-text text-transparent">Filtros e Ligas</h2>
 
               <div class="space-y-2 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Champions League</button>
+                <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Champions League</button>
 
-                <button onclick="changeSport('EPL')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Premier League</button>
+                <button onclick="changeSport('EPL')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Premier League</button>
 
-                <button onclick="changeSport('LA_LIGA')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">La Liga</button>
+                <button onclick="changeSport('LA_LIGA')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">La Liga</button>
 
-                <button onclick="changeSport('BUNDESLIGA')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Bundesliga</button>
+                <button onclick="changeSport('BUNDESLIGA')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Bundesliga</button>
 
-                <button onclick="changeSport('BR_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Brasileirão Série A</button>
+                <button onclick="changeSport('FR_LIGUE_1')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Ligue 1</button>
 
-                <button onclick="changeSport('FR_LIGUE_1')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Ligue 1</button>
+                <button onclick="changeSport('IT_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Serie A Itália</button>
 
-                <button onclick="changeSport('IT_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Serie A Itália</button>
+                <button onclick="changeSport('MLS')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">MLS (EUA)</button>
 
-                <button onclick="changeSport('MLS')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">MLS (EUA)</button>
+                <button onclick="changeSport('LIGA_MX')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Liga MX</button>
 
-                <button onclick="changeSport('LIGA_MX')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Liga MX</button>
-
-                <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full text-left p-3 rounded-xl hover:bg-purple-50 text-slate-600 font-bold hover:text-purple-700 transition-all border border-transparent">Internacional</button>
+                <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Internacional</button>
               </div>
             </div>
           </aside>
