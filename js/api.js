@@ -3,7 +3,7 @@ const CONFIG = {
     MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
-let currentLeague = 'LA_LIGA';
+let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
 let activeGame = null;
 
 // --- 1. GESTÃO DA INTERFACE E AUTH ---
@@ -62,8 +62,8 @@ function renderMatches(matches) {
         const home = m.teams?.home;
         const away = m.teams?.away;
 
-        const homeLogo = getTeamLogo(home?.names?.short || '');
-        const awayLogo = getTeamLogo(away?.names?.short || '');
+        const homeLogo = getTeamLogo(home?.names?.short || home?.names?.medium || home?.names?.full || '');
+        const awayLogo = getTeamLogo(away?.names?.short || away?.names?.medium || away?.names?.full  || '');
 
         const rawDate = m.status?.startsAt || m.startsAt; 
         let day = "--/--", time = "--:--";
@@ -75,9 +75,6 @@ function renderMatches(matches) {
                 time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
             }
         }
-
-        const homeColor = home?.colors?.primary || '#334155';
-        const awayColor = away?.colors?.primary || '#334155';
 
         const card = document.createElement('div');
         card.className = "match-card bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
@@ -96,7 +93,7 @@ function renderMatches(matches) {
                     <img src="${homeLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="home">
                 </div>
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                    ${home?.names?.medium || 'Casa'}
+                    ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
                 </span>
             </div>
 
@@ -108,11 +105,11 @@ function renderMatches(matches) {
                     <img src="${awayLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="away">
                 </div>
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                    ${away?.names?.medium || 'Fora'}
+                    ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
                 </span>
             </div>
         </div>
-        <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium}', '${away?.names?.medium}')" 
+        <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium || home?.names?.full || 'Casa'}', '${away?.names?.medium || away?.names?.full || 'Fora'}')" 
             class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
             Dar meu palpite
         </button>`;

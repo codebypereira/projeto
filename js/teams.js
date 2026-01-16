@@ -1,102 +1,78 @@
 //Arquivo utilizado para buscar logo dos times de futebol
-
 const TEAM_IDS = {
-    // --- PREMIER LEAGUE (ING) ---
-    "MCI": 50, "MNC": 50, "MCY": 50, // Man City
-    "ARS": 42, "AFC": 42,           // Arsenal
-    "NEW": 34, "NWC": 34,           // Newcastle
-    "FUL": 36,                      // Fulham
-    "BRE": 55, "BRF": 55,           // Brentford
-    "WHU": 48,                      // West Ham
-    "BUR": 44,                      // Burnley
-    "CRY": 52, "PAL": 52,           // Crystal Palace
-    "LEE": 37,                      // Leeds
-    "SUN": 746,                     // Sunderland
-    "MUN": 33,                      // Man Utd
-    "CHE": 49,                      // Chelsea
-    "TOT": 47,                      // Tottenham
-    "LIV": 40,                      // Liverpool
-    "NFO": 65,                      // Nottingham Forest
-    "WOL": 39,                      // Wolves
-    "AVL": 66,                      // Aston Villa
-    "EVE": 45,                      // Everton
+    // --- PREMIER LEAGUE ---
+    "MCI": 50, "ARS": 42, "NEW": 34, "FUL": 36, "BRE": 55, "WHU": 48, "BUR": 44, 
+    "CRY": 52, "LEE": 37, "SUN": 746, "MUN": 33, "CHE": 49, "TOT": 47, "LIV": 40, 
+    "NFO": 65, "WOL": 39, "AVL": 66, "EVE": 45,
 
+    // --- BUNDESLIGA ---
+    "B04": 168, "BVB": 165, "RBL": 173, "SVW": 162, "SGE": 169, "KOE": 192, 
+    "M05": 164, "WOB": 161, "SCH": 174, "TSG": 167, "STP": 186, "HSV": 175, 
+    "BMG": 163, "FCB": 157, "VFB": 170, "FCU": 182, "FCA": 172, "SCF": 160,
 
-    //--- Champions League ---
-    "RMA": 541, "BAR": 529, "BAY": 157, "BVB": 165, "INT": 505, "MIL": 489, "JUV": 496, 
-    "PSG": 85, "SLB": 190, "POR": 212, "SCP": 197, "AJA": 194, "PSV": 197, "LEV": 168, "ATM": 530,
+    // --- LA LIGA ---
+    "RMA": 541, "BAR": 529, "ATM": 530, "VIL": 533, "VAL": 532, "SEV": 536, 
+    "RSO": 548, "BET": 543, "ATH": 531, "GIR": 547, "OSA": 542, "MLL": 539, 
+    "RAY": 554, "CEL": 538, "ALA": 544, "GET": 546, "LEV": 545, "ESP": 540,
 
-    // --- LA LIGA (ESP) ---
-    "ESP": 540,  // Espanyol (Clube - Chega de bandeira da Espanha!)
-    "GIR": 547,  // Girona
-    "RMA": 541,  // Real Madrid
-    "LEV": 545,  // Levante (Clube Espanhol - Chega de Leverkusen!)
-    "MLL": 539,  // Mallorca
-    "ATH": 531,  // Athletic Bilbao
-    "OSA": 542,  // Osasuna
-    "OVI": 551,  // Real Oviedo
-    "BET": 543,  // Real Betis
-    "VIL": 533,  // Villarreal
-    "GET": 546,  // Getafe
-    "VAL": 532,  // Valencia
-    "ATM": 530,  // Atlético de Madrid
-    "ALA": 544,  // Alavés
-    "CEL": 538,  // Celta de Vigo
-    "RAY": 554,  // Rayo Vallecano (ID 554, o 546 é o Getafe)
-    "RSO": 548,  // Real Sociedad
-    "BAR": 529,  // Barcelona
-    "ELC": 534,  // Elche
-    "SEV": 536,  // Sevilla
+    // --- SERIE A (ITA) ---
+    "ACM": 489, "ASR": 497, "LAZ": 487, "INT": 505, "JUV": 496, "NAP": 492, 
+    "ATA": 499, "BOL": 500, "FIO": 502, "TOR": 503, "UDI": 494, "GEN": 495, 
+    "LEC": 488, "VER": 504, "CAG": 490, "PAR": 501, "COM": 512,
 
-    // --- BUNDESLIGA (GER) ---
-    "BAY": 157, "BVB": 165, "LEV": 168, "RBL": 173, "STU": 170, "FRA": 169, "HOF": 167,
-    "FRI": 162, "WOL": 161, "BRE": 162, "AUG": 172, "GLA": 163, "MAI": 164, "BER": 182,
+    // --- LIGUE 1 ---
+    "PSG": 85, "OM": 81, "OL": 80, "LIL": 79, "ASM": 91, "RCL": 116, "OGC": 84, 
+    "SR": 94, "FCN": 83, "TFC": 96, "STR": 95, "AUX": 108,
 
-    //--- Serie A Tim ---
-    "ACM": 489,  // Milan (Apareceu ACM no console)
-    "ASR": 497,  // Roma (Apareceu ASR no console)
-    "LAZ": 487,  // Lazio
-    "INT": 505,  // Inter de Milão
-    "JUV": 496,  // Juventus
-    "NAP": 492,  // Napoli
-    "ATA": 499,  // Atalanta
-    "BOL": 500,  // Bologna
-    "FIO": 502,  // Fiorentina
-    "TOR": 503,  // Torino
-    "UDI": 494,  // Udinese
-    "GEN": 495,  // Genoa
-    "LEC": 488,  // Lecce
-    "VER": 504,  // Hellas Verona
-    "CAG": 490,  // Cagliari
-    "SAS": 491,  // Sassuolo
-    "PAR": 501,  // Parma
-    "COM": 512, // Como
-    "CRE": 498,  // Cremonese
-    "PIS": 514,  // Pisa
+    // --- CHAMPIONS (IDs DE ESCUDO CORRETOS) ---
+    "BRU": 569,   // Club Brugge (Volta pro 569, o erro de undefined era falta no código)
+    "ALM": 1244,  // Kairat Almaty
+    "BOG": 5455,  // Bodø/Glimt
+    "AJA": 194,   // Ajax
+    "SCP": 211,   // Sporting CP
+    "OLY": 1530,  // Olympiacos
+    "GAL": 610,   // Galatasaray
+    "FCK": 400, "PSV": 197, "SLB": 190, "POR": 212,
 
-    // --- LIGUE 1 (FRA) ---
-    "PSG": 85, "MON": 91, "LYO": 80, "MAR": 81, "LEN": 116, "LIL": 79, "REN": 94,
-    "NIC": 84, "REI": 93, "STR": 95, "TOU": 96, "MON": 82, "NAN": 83,
+    // --- INTERNACIONAL ---
+    "BRA": 6, "ARG": 26, "FRA-S": 2, "GER": 25, "ENG": 10, "POR-S": 27, "ESP-S": 9,
+    "ITA-S": 30, "NED": 15, "BEL": 1, "URU": 7, "COL": 8, "CRO": 3,
 
-    // --- MLS (USA) ---
-    "MIA": 1605, "LAF": 1602, "LAG": 1132, "ORL": 1126, "NYC": 1127, "RBN": 1121, "SEA": 1114,
-    "CLB": 1125, "CIN": 1133, "PHI": 1129, "DAL": 1115, "HOU": 1111, "ATL": 1128,
+    // --- OUTROS ---
+    "MIA": 1605, "LAF": 1602, "LAG": 1132,
 
-    // --- LIGA MX (MEX) ---
-    "AME": 2287, "GLA": 2284, "TIG": 2289, "MON": 2285, "CRU": 2281, "TOL": 2290, "PAC": 2283,
-    "LEO": 2282, "UNA": 2288, "SAN": 2286, "ATL": 2278, "TIJ": 2291, "QUE": 2279,
-
-    // --- INTERNACIONAL (Seleções) ---
-    "BRA": 6, "ARG": 26, "FRA": 2, "GER": 25, "ENG": 10, "POR": 27, "ESP": 9, "ITA": 30,
-    "NED": 15, "BEL": 1, "URU": 7, "COL": 8, "CRO": 3, "MAR": 31, "USA": 11, "MEX": 16,
-    "JPN": 12, "KOR": 17, "SEN": 13, "NGA": 19
+    // --- LIGA MX (MÉXICO) ---
+    "MON": 2291, // Monterrey
+    "NEC": 2296, // Necaxa
+    "ATL": 2282, // Atlas
+    "UAN": 2289, // Tigres UANL
+    "TOL": 2293, // Toluca
+    "CRU": 2283, // Cruz Azul
+    "PUE": 2295, // Puebla
+    "CLU": 2287, // Club América (A API mandou CLU para o América)
+    "ASL": 2313, // Atlético San Luis
+    "UNA": 2290, // Pumas UNAM
+    "SAN": 2292, // Santos Laguna
+    "PAC": 2288 // Pachuca   
 };
 
 // Função que você vai chamar em qualquer página do site
 function getTeamLogo(name) {
     if (!name) return "https://ui-avatars.com/api/?name=??&background=ff2d85&color=fff";
 
-    const cleanName = name.toUpperCase().trim();
+    const cleanName = String(name).trim().toUpperCase();
+    const manualLogos = {
+        "BOG": "https://images.fotmob.com/image_resources/logo/teamlogo/8402.png",
+        "ALM": "https://images.fotmob.com/image_resources/logo/teamlogo/8037.png",
+        "SCP": "https://images.fotmob.com/image_resources/logo/teamlogo/9768.png",
+        "OLY": "https://images.fotmob.com/image_resources/logo/teamlogo/8638.png",
+        "GAL": "https://images.fotmob.com/image_resources/logo/teamlogo/8637.png"
+    };
+
+    if (manualLogos[cleanName]) {
+        return manualLogos[cleanName]; // Retorna a logo perfeita sem erro da API
+    }
+    
     const id = TEAM_IDS[cleanName];
 
     console.log(`API mandou: "${cleanName}" | ID encontrado: ${id}`)
