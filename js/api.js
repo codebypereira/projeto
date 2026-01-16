@@ -3,6 +3,19 @@ const CONFIG = {
     MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
+const LEAGUE_NAMES = {
+    'UEFA_EUROPA_LEAGUE' : 'Europa League',
+    'UEFA_CHAMPIONS_LEAGUE' : 'Champions League',
+    'EPL' : 'Premier League',
+    'LA_LIGA' : 'La Liga',
+    'BUNDESLIGA' : 'Bundesliga',
+    'IT_SERIE_A' : 'Serie A Itália',
+    'FR_LIGUE_1' : 'Ligue 1',
+    'MLS' : 'MLS (EUA)',
+    'LIGA_MX' : 'Liga MX',
+    'INTERNATIONAL_SOCCER' : 'Copa do Mundo 2026'
+}
+
 let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
 let activeGame = null;
 
@@ -37,6 +50,13 @@ function updateUserUI() {
 
 async function fetchMatches(leagueID = null) {
     if (leagueID) currentLeague = leagueID;
+
+    //Mostrar o nome da liga escolhida
+    const nameDisplay = document.getElementById('current-league-name');
+    if (nameDisplay) {
+        nameDisplay.innerText = LEAGUE_NAMES[currentLeague] || currentLeague;
+    }
+
     const container = document.getElementById('matches-container');
     // Verifica se estamos no index.html (se o container existe)
     if (!container || document.title.includes("Ao Vivo")) return;

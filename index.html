@@ -44,10 +44,10 @@
         <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-2 opacity-0" style="background-image: url(Images/championss.jpeg)"></div>
         <div class="absolute inset-0 z-0 bg-cover bg-center brightness-50 animate-carousel-3 opacity-0" style="background-image: url(Images/stadio.jpeg)"></div>
         <div class="container mx-auto px-4 relative z-10 flex flex-col justify-center h-full text-white">
-          <h1 class="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 max-w-2xl leading-tight break-words">Acompanhe o Futebol em Tempo Real</h1>
+          <h1 class="text-3xl md:text-7xl font-black italic text-white leading-[1.1] tracking-tight">Acompanhe o Futebol <br class="hidden sm:block lg:block">em Tempo Real</h1>
           <p class="text-lg md:text-xl mb-8 max-w-xl text-gray-200">Resultados ao vivo, estatísticas detalhadas e previsões.</p>
           <div class="flex flex-wrap items-center gap-4 mt-8">
-            <a href="#confrontos" class="group flex items-center sm:w-auto justify-center gap-2 bg-green-500 hover:bg-[#00a846] px-6 py-3 rounded-xl font-bold transition-all w-full md:w-ful">
+            <a href="#next-matches" class="group flex items-center sm:w-auto justify-center gap-2 bg-green-500 hover:bg-[#00a846] px-6 py-3 rounded-xl font-bold transition-all w-full md:w-ful">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <circle cx="12" cy="12" r="6"></circle>
@@ -70,29 +70,69 @@
               <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-white/10 uppercase italic tracking-wider bg-gradient-to-r from-purple-400 to-fuchisia-500 bg-clip-text text-transparent">Filtros e Ligas</h2>
 
               <div class="space-y-2 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Champions League</button>
+                
+                  <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      <span class="text-sm font-weight:500;">Champions League</span>
+                      <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
+                  </button>
 
-                <button onclick="changeSport('EPL')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Premier League</button>
+                  <button onclick="changeSport('UEFA_EUROPA_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M6 9H18M12 9V21M12 21H7M12 21H17M5 5V9C5 12.866 8.134 16 12 16C15.866 16 19 12.866 19 9V5H5Z"/>
+                      </svg>
+                      <span class="text-sm font-weight:500">Europa League</span>
+                      <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
+                  </button>
 
-                <button onclick="changeSport('LA_LIGA')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">La Liga</button>
+                  <button onclick="changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                      <span class="text-sm font-weight:500;">Premier League</span>
+                  </button>
 
-                <button onclick="changeSport('BUNDESLIGA')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Bundesliga</button>
+                  <button onclick="changeSport('LA_LIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
+                      <span class="text-sm font-weight:500;">La Liga</span>
+                  </button>
 
-                <button onclick="changeSport('FR_LIGUE_1')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Ligue 1</button>
+                  <button onclick="changeSport('BUNDESLIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
+                      <span class="text-sm font-weight:500;">Bundesliga</span>
+                  </button>
 
-                <button onclick="changeSport('IT_SERIE_A')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Serie A Itália</button>
+                  <button onclick="changeSport('IT_SERIE_A')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <span class="text-sm font-weight:500;">Serie A Itália</span>
+                  </button>
 
-                <button onclick="changeSport('MLS')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">MLS (EUA)</button>
+                  <button onclick="changeSport('FR_LIGUE_1')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+                      <span class="text-sm font-weight:500;">Ligue 1</span>
+                  </button>
 
-                <button onclick="changeSport('LIGA_MX')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Liga MX</button>
+                  <button onclick="changeSport('MLS')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg>
+                      <span class="text-sm font-weight:500;">MLS (EUA)</span>
+                  </button>
 
-                <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full text-left p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">Internacional</button>
+                  <button onclick="changeSport('LIGA_MX')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      <span class="text-sm font-weight:500;">Liga MX</span>
+                  </button>
+
+                  <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+                      <span class="text-sm font-weight: 500;">Copa do Mundo 2026</span>
+                  </button>
               </div>
             </div>
           </aside>
 
           <div class="lg:col-span-3">
-            <h2 id="confrontos" class="text-3xl font-extrabold text-white mb-6 border-b border-white/20 pb-4 scroll-mt-24">Próximos Confrontos:</h2>
+            <h2 id="next-matches" class="text-3xl font-extrabold text-white mb-6 border-b border-white/20 pb-4 scroll-mt-24">
+              Próximos Confrontos:
+              <span id="current-league-name" class="text-purple-500 uppercase ml-2 text-2xl opacity-80"></span>
+            </h2>
 
             <div class="max-w-md mx-auto mb-8">
               <div class="relative">
