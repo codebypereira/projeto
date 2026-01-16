@@ -25,7 +25,7 @@ function loadLayout() {
                     <ul class="flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold">
                         <li><a href="index.html" class="hover:text-purple-600 transition-colors">Início</a></li>
                         <li><a href="live.html" class="hover:text-purple-600 transition-colors">Ao Vivo</a></li>
-                        <li><a href="#" class="hover:text-purple-600 transition-colors">Estatísticas</a></li>
+                        <li><a href="stats.html" class="hover:text-purple-600 transition-colors">Estatísticas</a></li>
                     </ul>
                 </nav>
 
@@ -65,7 +65,7 @@ function loadLayout() {
         </svg>
         <span class="text-[10px] font-bold uppercase tracking-tighter">Ao Vivo</span>
       </a>
-      <a href="#" id="nav-stats" class="nav-item flex flex-col items-center gap-1 text-gray-300 hover:text-white transition-all active:scale-95">
+      <a href="stats.html" id="nav-stats" class="nav-item flex flex-col items-center gap-1 text-gray-300 hover:text-white transition-all active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
