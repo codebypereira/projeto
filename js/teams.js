@@ -35,8 +35,45 @@ const TEAM_IDS = {
     "FCK": 400, "PSV": 197, "SLB": 190, "POR": 212,
 
     // --- INTERNACIONAL ---
-    "BRA": 6, "ARG": 26, "FRA-S": 2, "GER": 25, "ENG": 10, "POR-S": 27, "ESP-S": 9,
-    "ITA-S": 30, "NED": 15, "BEL": 1, "URU": 7, "COL": 8, "CRO": 3,
+    "USA": 2384, // Estados Unidos
+    "MEX": 16,   // México (Diferente do 'CLU' ou 'MON' da Liga MX)
+    "CAN": 5529, // Canadá
+
+    // --- AMÉRICA DO SUL (CONMEBOL) ---
+    "BRA": 6,    // Brasil
+    "ARG": 26,   // Argentina
+    "URU": 7,    // Uruguai
+    "COL": 8,    // Colômbia
+    "ECU": 2382, // Equador
+    "PAR-S" : 1552,
+
+    // --- EUROPA (UEFA) ---
+    "FRA": 2,    // França
+    "ENG": 10,   // Inglaterra
+    "GER": 25,   // Alemanha
+    "ESP": 9,    // Espanha
+    "POR": 27,   // Portugal
+    "ITA": 768,  // Itália
+    "NED": 1118, // Holanda
+    "BEL": 1,    // Bélgica
+
+    // --- ÁFRICA E ÁSIA ---
+    "MAR": 31,   // Marrocos
+    "SEN": 1504, // Senegal
+    "JPN": 12,   // Japão
+    "KOR": 17,   // Coreia do Sul
+    "EGY": 32,   // Egito
+    "TUN": 28,   // Tunísia
+    "OMA": 1572, // Omã
+    "SDN": 1506, // Sudão
+    "RSA": 1568,   // África do Sul
+    "QAT": 1570, // Catar
+    "SUI": 15,   // Suíça
+    "MOR": 31,   // Marrocos
+    "HAI": 5519, // Haiti
+    "SCO": 1111, // Escócia
+    "CUR": 5537, // Curaçao
+    "CIV": 29,   // Costa do Marfim
 
     // --- OUTROS ---
     "MIA": 1605, "LAF": 1602, "LAG": 1132,

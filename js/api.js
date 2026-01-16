@@ -16,7 +16,7 @@ const LEAGUE_NAMES = {
     'INTERNATIONAL_SOCCER' : 'Copa do Mundo 2026'
 }
 
-let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
+let currentLeague = 'INTERNATIONAL_SOCCER';
 let activeGame = null;
 
 // --- 1. GESTÃO DA INTERFACE E AUTH ---
