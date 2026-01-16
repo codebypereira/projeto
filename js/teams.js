@@ -66,7 +66,7 @@ const TEAM_IDS = {
     "TUN": 28,   // Tunísia
     "OMA": 1572, // Omã
     "SDN": 1506, // Sudão
-    "RSA": 1568,   // África do Sul
+    "RSA": 1568, // África do Sul
     "QAT": 1570, // Catar
     "SUI": 15,   // Suíça
     "MOR": 31,   // Marrocos
