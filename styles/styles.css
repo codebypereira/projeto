@@ -84,3 +84,34 @@ input[type=number] {
     animation: fadeCarousel 15s infinite;
     animation-delay: 10s;
 }
+.soccer-field {
+    background: #22c55e;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 2px, transparent 2px);
+    background-size: 100% 10%, 10% 100%;
+    position: relative;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 1rem;
+    aspect-ratio: 3/4; /* Campo vertical para mobile */
+    overflow: hidden;
+}
+
+.player-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    /* Linha corrigida abaixo */
+    align-items: center; 
+}
+
+.rating-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 900;
+    color: white;
+    /* Adicionado para garantir visibilidade da nota sobre o jogador */
+    z-index: 10;
+}
