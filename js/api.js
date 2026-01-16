@@ -58,7 +58,6 @@ async function fetchMatches(leagueID = null) {
     }
 
     const container = document.getElementById('matches-container');
-    // Verifica se estamos no index.html (se o container existe)
     if (!container || document.title.includes("Ao Vivo")) return;
 
     container.innerHTML = '<div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">A carregar confrontos...</div>';
@@ -82,6 +81,7 @@ function renderMatches(matches) {
         const home = m.teams?.home;
         const away = m.teams?.away;
 
+        // MANTIDO: Sua lógica original de logos
         const homeLogo = getTeamLogo(home?.names?.short || home?.names?.medium || home?.names?.full || '');
         const awayLogo = getTeamLogo(away?.names?.short || away?.names?.medium || away?.names?.full  || '');
 
@@ -97,42 +97,49 @@ function renderMatches(matches) {
         }
 
         const card = document.createElement('div');
-        card.className = "match-card bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
+        card.className = "match-card bg-slate-900/50 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
+        
+        // INJETADO: Link para matchdetails.html envolvendo a parte visual
         card.innerHTML = `
-            <div class="flex justify-center mb-6">
-            <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
-                <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                <span class="text-sm font-black text-white tracking-tight">${time}</span>
-            </div>
-        </div>
-        <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
-            <div class="flex flex-col items-center flex-1">
-                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                    <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
-                    <img src="${homeLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="home">
+            <a href="matchdetails.html?id=${m.eventID}" class="block p-6">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                        <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
+                        <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+                        <span class="text-sm font-black text-white tracking-tight">${time}</span>
+                    </div>
                 </div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                    ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
-                </span>
-            </div>
+                <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
+                            <img src="${homeLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="home">
+                        </div>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                            ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
+                        </span>
+                    </div>
 
-            <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
+                    <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
 
-            <div class="flex flex-col items-center flex-1">
-                <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                    <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
-                    <img src="${awayLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="away">
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
+                            <img src="${awayLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" alt="away">
+                        </div>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                            ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
+                        </span>
+                    </div>
                 </div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                    ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
-                </span>
-            </div>
-        </div>
-        <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium || home?.names?.full || 'Casa'}', '${away?.names?.medium || away?.names?.full || 'Fora'}')" 
-            class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer">
-            Dar meu palpite
-        </button>`;
+            </a>
+            
+            <div class="px-6 pb-6">
+                <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium || home?.names?.full || 'Casa'}', '${away?.names?.medium || away?.names?.full || 'Fora'}')" 
+                    class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer relative z-20">
+                    Dar meu palpite
+                </button>
+            </div>`;
         container.appendChild(card);
     });
 }
@@ -151,11 +158,7 @@ window.handlePalpiteClick = (id, home, away) => {
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
-        setTimeout(() => {
-            modal.classList.add('active');
-        }, 10)
-        
+        setTimeout(() => { modal.classList.add('active'); }, 10);
         document.body.classList.add('modal-open');
     }
 };
@@ -191,14 +194,13 @@ window.closeModal = () => {
     const modal = document.getElementById('prediction-modal');
     if (modal) {
         modal.classList.remove('active');
-
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-            document.body.classList.remove('modal-open')
+            document.body.classList.remove('modal-open');
         }, 300);
     }
-}
+};
 
 // --- 4. INICIALIZAÇÃO E EXPORTS ---
 
@@ -218,6 +220,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Fechar dropdown ao clicar fora
     window.addEventListener('click', () => document.getElementById('user-dropdown')?.classList.add('hidden'));
 });
