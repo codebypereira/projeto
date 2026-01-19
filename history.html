@@ -4,17 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon" />
-    <title>Histórico de Previsões</title>
+    <title>Goal Dash | Histórico de Previsões</title>
+
     <script src="js/global.js" defer></script>
     <script src="js/history.js" defer></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
     <link rel="stylesheet" href="./styles/styles.css" />
-    <style></style>
   </head>
+
   <body class="min-h-screen flex flex-col">
     <main class="pt-24 max-w-4xl mx-auto p-6 mt-10">
+      
       <div class="mb-10">
-        <a href="index.html" target="_self" rel="internal" class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all group">
+        <a href="index.html" 
+           target="_self" 
+           rel="internal" 
+           class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all group">
+          
           <div class="bg-white/10 p-2 rounded-lg group-hover:bg-purple-500/40 transition-all flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5">
               <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
@@ -26,22 +34,33 @@
 
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 border-b border-white/10 pb-8">
         <h1 class="text-5xl font-black italic uppercase tracking-tighter">Meu histórico</h1>
-        <span class="text-purple-300/50 text-xs font-bold uppercase tracking-widest mt-2"> LISTA DE PALPITES </span>
+        <span class="text-purple-300/50 text-xs font-bold uppercase tracking-widest mt-2"> 
+          Lista de Palpites Efetuados 
+        </span>
       </div>
 
-      <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-3 mb-4">
+      <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-3 mb-4 w-fit">
         <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-        <span class="text-[11px] font-black uppercase tracking-tighter text-white/40">Dados atualizados</span>
+        <span class="text-[11px] font-black uppercase tracking-tighter text-white/40">Sincronizado com o Servidor</span>
       </div>
 
       <div id="history-container" class="grid gap-4">
+        
         <div class="text-center py-20">
-          <p class="text-white/20 animate-pulse font-black uppercase tracking-widest text-xs">Buscando palpites no servidor</p>
+          <p class="text-white/20 animate-pulse font-black uppercase tracking-widest text-xs">
+            A recuperar os teus palpites...
+          </p>
         </div>
+        
       </div>
     </main>
 
     <script>
+      /**
+       * Monitorização do DOM:
+       * Dispara a função de carga de dados assim que a estrutura HTML está pronta,
+       * garantindo que o history-container está disponível para manipulação.
+       */
       document.addEventListener("DOMContentLoaded", () => {
         if (window.loadPredictionHistory) {
           window.loadPredictionHistory();

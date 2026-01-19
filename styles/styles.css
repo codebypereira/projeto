@@ -1,24 +1,44 @@
+/**
+ * FOLHA DE ESTILO: Goal Dash UI System
+ * CONCEITO: Glassmorphism & High-Contrast Neon
+ * DESCRIÇÃO: Define a identidade visual do projeto, focando-se em legibilidade 
+ * de dados desportivos, profundidade visual com desfoque de fundo (backdrop-filter)
+ * e tipografia técnica.
+ */
+
+/* ============================================================================
+   1. IMPORTAÇÕES E CONFIGURAÇÃO GLOBAL
+   ============================================================================ */
 @charset "UTF-8";
 
-
+/* Inter: Utilizada para UI e texto geral | Roboto Mono: Utilizada para dados numéricos */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 body {
-    padding-top: 65px;
+    padding-top: 65px; /* Compensa a Navbar fixa */
     overflow: auto !important;
     background-color: #1a1033 !important;
+    /* Gradiente Radial para criar profundidade no fundo da página */
     background-image: radial-gradient(circle at top right, #2d1b5d, #1a1033);
     font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased; /* Suavização de fontes em browsers Webkit */
 }
 
+/* Bloqueio de scroll quando modais estão ativos */
 body.modal-open {
     overflow: hidden !important;
     height: 100vh;
-    
 }
 
+/* ============================================================================
+   2. TIPOGRAFIA TÉCNICA (Data Display)
+   ============================================================================ */
+
+/** * Design Decision: Uso de fontes Monoespaçadas para números.
+ * Garante que os dígitos tenham a mesma largura (tabular-nums), evitando que
+ * a interface "trema" quando os scores ou odds mudam.
+ */
 .score-number, 
 .timer-clock, 
 .odds-value {
@@ -26,16 +46,42 @@ body.modal-open {
     font-variant-numeric: tabular-nums;
 }
 
+/* Títulos com estilo "Racing/Sport" - Negrito, Itálico e Tracking apertado */
 h1, h2, .logo-text {
     font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-style: italic;
     letter-spacing: -0.05em;
 }
+
+/* ============================================================================
+   3. COMPONENTES DE INTERFACE (UI)
+   ============================================================================ */
+
+/* Efeito Glassmorphism: Transparência + Desfoque de Fundo */
+.glass { 
+    background: rgba(30, 41, 59, 0.7); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px);
+}
+
 .color-bg {
     background-color: #400c48 ;
 }
 
+/* Estados de Navegação e Tabs */
+.tab-active { 
+    border-bottom: 3px solid #a855f7; 
+    color: white; 
+}
+
+.nav-active {
+    color: #ec4899;
+    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
+    transform: translateY(-2px);
+}
+
+/* Gestão de Modais */
 .modal-overlay {
     opacity: 0;
     pointer-events: none;
@@ -47,9 +93,7 @@ h1, h2, .logo-text {
     pointer-events: auto;
 }
 
-.glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
-.tab-active { border-bottom: 3px solid #a855f7; color: white; }
-
+/* Reset de inputs numéricos (remove setas padrão dos browsers) */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -60,58 +104,58 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-.nav-active {
-    color: #ec4899;
-    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
-    transform: translateY(-2px);
-}
+/* ============================================================================
+   4. ANIMAÇÕES (Micro-interactions)
+   ============================================================================ */
 
+/* Animação de Ciclo para o Carrossel de Destaques */
 @keyframes fadeCarousel {
-    0%, 33.33% { opacity: 1}
-    38%, 95% { opacity: 0}
-    100% { opacity: 1}
+    0%, 33.33% { opacity: 1 }
+    38%, 95% { opacity: 0 }
+    100% { opacity: 1 }
 }
 
-.animate-carousel-1 {
-    animation: fadeCarousel 15s infinite;
-}
+.animate-carousel-1 { animation: fadeCarousel 15s infinite; }
+.animate-carousel-2 { animation: fadeCarousel 15s infinite; animation-delay: 6s; }
+.animate-carousel-3 { animation: fadeCarousel 15s infinite; animation-delay: 10s; }
 
-.animate-carousel-2 {
-    animation: fadeCarousel 15s infinite;
-    animation-delay: 6s;
-}
-.animate-carousel-3 {
-    animation: fadeCarousel 15s infinite;
-    animation-delay: 10s;
-}
+/* ============================================================================
+   5. VISUALIZAÇÃO TÁTICA (Soccer Field)
+   ============================================================================ */
+
+/**
+ * .soccer-field
+ * Representação geométrica de um campo utilizando gradientes lineares
+ * para simular as linhas de marcação e o padrão da relva.
+ */
 .soccer-field {
     background: #22c55e;
     background-image: 
         linear-gradient(rgba(255,255,255,0.1) 2px, transparent 2px),
         linear-gradient(90deg, rgba(255,255,255,0.1) 2px, transparent 2px);
-    background-size: 100% 10%, 10% 100%;
+    background-size: 100% 10%, 10% 100%; /* Cria a grelha do campo */
     position: relative;
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 1rem;
-    aspect-ratio: 3/4; /* Campo vertical para mobile */
+    aspect-ratio: 3/4; /* Otimizado para visualização vertical em mobile */
     overflow: hidden;
 }
 
+/* Posicionamento absoluto dos nós (jogadores) no campo */
 .player-node {
     position: absolute;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    /* Linha corrigida abaixo */
     align-items: center; 
 }
 
+/* Badge de Performance (Rating do Jogador) */
 .rating-badge {
     font-size: 8px;
     padding: 1px 4px;
     border-radius: 3px;
     font-weight: 900;
     color: white;
-    /* Adicionado para garantir visibilidade da nota sobre o jogador */
     z-index: 10;
 }
