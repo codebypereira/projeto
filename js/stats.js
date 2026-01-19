@@ -1,4 +1,4 @@
-const API_KEY = 'af7afc4eab9aa5ab16421caefd7aea25';
+const API_KEY = 'cc48942721f415ae287937399dd882c7';
 const BASE_LOGO_URL = 'https://media.api-sports.io/football/';
 const BASE_URL = 'https://api.sportsgameodds.com/v2'
 
@@ -43,6 +43,7 @@ function setupSearch() {
     });
 }
 
+//Função para 
 async function searchTeamByName(query) {
     toggleLoading(true);
     try {

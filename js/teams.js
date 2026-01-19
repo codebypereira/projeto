@@ -25,7 +25,7 @@ const TEAM_IDS = {
     "SR": 94, "FCN": 83, "TFC": 96, "STR": 95, "AUX": 108,
 
     // --- CHAMPIONS (IDs DE ESCUDO CORRETOS) ---
-    "BRU": 569,   // Club Brugge (Volta pro 569, o erro de undefined era falta no código)
+    "BRU": 569,   // Club Brugge
     "ALM": 1244,  // Kairat Almaty
     "BOG": 5455,  // Bodø/Glimt
     "AJA": 194,   // Ajax
@@ -36,7 +36,7 @@ const TEAM_IDS = {
 
     // --- INTERNACIONAL ---
     "USA": 2384, // Estados Unidos
-    "MEX": 16,   // México (Diferente do 'CLU' ou 'MON' da Liga MX)
+    "MEX": 16,   // México
     "CAN": 5529, // Canadá
 
     // --- AMÉRICA DO SUL (CONMEBOL) ---
@@ -93,7 +93,7 @@ const TEAM_IDS = {
     "PAC": 2288 // Pachuca   
 };
 
-// Função que você vai chamar em qualquer página do site
+
 function getTeamLogo(name) {
     if (!name) return "https://ui-avatars.com/api/?name=??&background=ff2d85&color=fff";
 
@@ -107,7 +107,7 @@ function getTeamLogo(name) {
     };
 
     if (manualLogos[cleanName]) {
-        return manualLogos[cleanName]; // Retorna a logo perfeita sem erro da API
+        return manualLogos[cleanName];
     }
     
     const id = TEAM_IDS[cleanName];
@@ -118,6 +118,6 @@ function getTeamLogo(name) {
         return `https://media.api-sports.io/football/teams/${id}.png`;
     }
     
-    // Fallback Rosa Neon (Goal Dash Style) se não achar o time
+    
     return `https://ui-avatars.com/api/?name=${cleanName}&background=ff2d85&color=fff&bold=true`;
 }

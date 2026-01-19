@@ -1,5 +1,5 @@
 const CONFIG = {
-    API_KEY: 'af7afc4eab9aa5ab16421caefd7aea25',
+    API_KEY: 'cc48942721f415ae287937399dd882c7',
     MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
