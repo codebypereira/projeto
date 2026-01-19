@@ -1,30 +1,55 @@
-// js/live.js
+/**
+ * MÓDULO: Gestor de Eventos em Tempo Real (Live Scores)
+ * DESCRIÇÃO: Este script gere a atualização dinâmica dos jogos em curso.
+ * Implementa um sistema de "Polling" para manter a interface sincronizada com a API,
+ * além de um sistema de tracking de estado para efeitos visuais (Flash Updates).
+ */
 
+// Estado Global: Armazena pontuações da ronda anterior para deteção de alterações
 let previousScores = {};
 
+
+/**
+ * Função: changeSport
+ * Altera o contexto da liga e força uma atualização imediata dos dados.
+ */
 window.changeSport = function(leagueID) {
     fetchLiveMatches(leagueID);
 };
 
+/**
+ * Função: fetchLiveMatches
+ * Realiza o consumo da API de eventos em direto. 
+ * Implementa filtragem de segurança para garantir que apenas jogos 'live' são processados.
+ */
 async function fetchLiveMatches(leagueID = 'NBA') {
     const container = document.getElementById('live-matches-container');
     if (!container) return;
+
     try {
         const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${leagueID}&live=true`;
         const response = await fetch(url);
         const result = await response.json();
+        
+        // Filtra eventos que possuem o status explícito de 'live'
         const liveMatches = (result.data || []).filter(m => m.status && m.status.live === true);
 
         if (liveMatches.length === 0) {
             container.innerHTML = `<p class="text-white col-span-full text-center py-20 font-black uppercase">Sem jogos ao vivo.</p>`;
             return;
         }
+
         renderLiveCards(liveMatches);
     } catch (error) {
-        console.error("Erro na API:", error);
+        console.error("Erro na comunicação com a Sports API:", error);
     }
 }
 
+/**
+ * Função: renderLiveCards
+ * Camada de visualização que processa dados brutos e gera a interface.
+ * Inclui lógica de cálculo acumulativo de pontos para ligas americanas (NBA).
+ */
 function renderLiveCards(matches) {
     const container = document.getElementById('live-matches-container');
     container.innerHTML = '';
@@ -33,8 +58,10 @@ function renderLiveCards(matches) {
         const home = m.teams.home;
         const away = m.teams.away;
 
-        // --- LÓGICA DE SOMA (NBA RESULTS) ---
-        let hScore = 0; let aScore = 0;
+        // --- LÓGICA DE AGREGAÇÃO DE SCORE ---
+        // Itera sobre os períodos (quartos) para calcular o total acumulado
+        let hScore = 0; 
+        let aScore = 0;
         if (m.results) {
             Object.values(m.results).forEach(q => {
                 if (q.home?.points) hScore += q.home.points;
@@ -42,8 +69,7 @@ function renderLiveCards(matches) {
             });
         }
 
-        // --- LÓGICA DE LOGOS (MAPA OU INICIAIS) ---
-        // Se o nome curto (ex: "PACERS") estiver no mapa, usa a imagem. Se não, mostra iniciais.
+        // --- GESTÃO DE ASSETS (LOGOS) ---
         const hName = home.names.short.toUpperCase();
         const aName = away.names.short.toUpperCase();
         
@@ -55,7 +81,8 @@ function renderLiveCards(matches) {
             ? `<img src="${TEAM_LOGOS[aName]}" class="relative z-10 w-full h-full object-contain p-2">`
             : `<span class="relative z-10 text-white font-black text-xl">${away.names.short}</span>`;
 
-        // Sistema de Flash
+        // --- SISTEMA DE FLASH (DETEÇÃO DE GOLO/PONTO) ---
+        // Compara a pontuação atual com o estado anterior para disparar animação CSS
         const eventID = m.eventID;
         const last = previousScores[eventID];
         let flash = (last && (last.h !== hScore || last.a !== aScore)) ? "ring-4 ring-yellow-400 animate-pulse" : "";
@@ -110,7 +137,14 @@ function renderLiveCards(matches) {
     });
 }
 
+/**
+ * Inicialização e Ciclo de Polling:
+ * Configura um intervalo de 15 segundos para atualizar os dados sem necessidade
+ * de recarregar a página, otimizando a experiência de visualização live.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     fetchLiveMatches('NBA');
+    
+    // Configura o Polling (15000ms = 15s)
     setInterval(() => fetchLiveMatches('NBA'), 15000);
 });

@@ -1,21 +1,49 @@
+/**
+ * MÓDULO: Gestor de Histórico de Palpites
+ * PROJETO: GoalDash - Programação Web
+ * * DESCRIÇÃO:
+ * Este script é responsável pela recuperação e exibição dos palpites personalizados
+ * de cada utilizador. Implementa lógica de filtragem no lado do cliente (Client-side filtering)
+ * e manipulação de objetos Date para formatação temporal.
+ */
+
+// ============================================================================
+// 1. CONFIGURAÇÃO E ENDPOINTS
+// ============================================================================
+
 const CONFIG = {
-    // URL exato do teu projeto que aparece na imagem
+    /** * Endpoint da MockAPI: Armazena a persistência de dados dos palpites.
+     * O Schema esperado contém: matchId, username, homeScore, awayScore e createdAt.
+     */
     MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
-// 1. FUNÇÃO PRINCIPAL: CARREGAR HISTÓRICO
+// ============================================================================
+// 2. LÓGICA DE RECUPERAÇÃO DE DADOS (Data Retrieval)
+// ============================================================================
+
+/**
+ * Função Assíncrona: loadPredictionHistory
+ * Orquestra o ciclo de vida da página de histórico:
+ * 1. Valida a sessão do utilizador via LocalStorage.
+ * 2. Consome o payload total da MockAPI.
+ * 3. Filtra os registos correspondentes ao utilizador autenticado.
+ * 4. Inverte a ordem cronológica para exibir o palpite mais recente primeiro.
+ */
 async function loadPredictionHistory() {
     const container = document.getElementById('history-container');
     const loggedUser = localStorage.getItem('goalDash_username');
 
+    // Early Return: Previne erros se o contentor de destino não existir no DOM
     if (!container) return;
 
-    // Atualiza o nome do utilizador no Header (se o elemento existir)
+    // Sincronização da UI: Atualiza o nome do utilizador no Header
     const headerUserSpan = document.querySelector('#user-menu-btn span');
     if (headerUserSpan && loggedUser) {
         headerUserSpan.textContent = loggedUser;
     }
 
+    // Controlo de Acesso: Bloqueia a visualização se não houver sessão ativa
     if (!loggedUser) {
         container.innerHTML = `
             <div class="text-center py-20 bg-red-500/10 border border-red-500/20 rounded-3xl">
@@ -29,13 +57,16 @@ async function loadPredictionHistory() {
     }
 
     try {
-        // Faz a chamada para a MockAPI
+        // Operação de I/O Assíncrona
         const response = await fetch(CONFIG.MOCK_API);
         const allData = await response.json();
 
-        // Filtra os dados: usa "username" (minúsculo) conforme o teu Schema
+        /** * Lógica de Filtragem: Compara o campo 'username' do Schema com a sessão ativa.
+         * Esta abordagem garante que o utilizador apenas visualize os seus próprios dados.
+         */
         const userPredictions = allData.filter(p => p.username === loggedUser);
 
+        // Feedback de Estado Vazio (Zero State)
         if (userPredictions.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10">
@@ -47,24 +78,39 @@ async function loadPredictionHistory() {
             return;
         }
 
-        // Renderiza os cards (Invertendo para mostrar o mais recente primeiro)
+        /** * Renderização: Inverte o Array (.reverse()) para seguir o padrão de UX
+         * de "Last In, First Out" (LIFO) na listagem cronológica.
+         */
         renderCards(userPredictions.reverse());
 
     } catch (error) {
-        console.error("Erro ao carregar MockAPI:", error);
-        container.innerHTML = `<p class="text-center text-red-400">Erro ao carregar dados do servidor.</p>`;
+        console.error("Erro crítico ao consumir MockAPI:", error);
+        container.innerHTML = `<p class="text-center text-red-400 font-bold uppercase text-[10px]">Erro na comunicação com o servidor de dados.</p>`;
     }
 }
 
-// 2. FUNÇÃO PARA GERAR O HTML DOS CARDS
+// ============================================================================
+// 3. CAMADA DE RENDERIZAÇÃO (View Engine)
+// ============================================================================
+
+/**
+ * Função: renderCards
+ * Transforma o Array de objetos em elementos HTML (Cards).
+ * Utiliza o método .map() para gerar uma coleção de strings HTML de forma declarativa.
+ * @param {Array} predictions - Lista filtrada de palpites.
+ */
 function renderCards(predictions) {
     const container = document.getElementById('history-container');
     
     container.innerHTML = predictions.map(pred => {
-        // Tratamento da data (campo createdAt do teu Schema)
+        /**
+         * Normalização Temporal:
+         * Converte o timestamp ISO do servidor para formatos legíveis pt-PT.
+         */
         const dateDisplay = pred.createdAt ? new Date(pred.createdAt).toLocaleDateString('pt-PT') : 'Data n/a';
         const timeDisplay = pred.createdAt ? new Date(pred.createdAt).toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'}) : '';
 
+        // Template Literal: Representação visual do Palpite
         return `
         <div class="glass-card p-6 rounded-3xl flex items-center justify-between transition-all hover:scale-[1.01] hover:bg-white/[0.08] border border-white/5 mb-4">
             <div class="space-y-2">
@@ -93,10 +139,17 @@ function renderCards(predictions) {
             </div>
         </div>
         `;
-    }).join('');
+    }).join(''); // Concatena o array de strings para injeção no innerHTML
 }
 
-// 3. LÓGICA DO MENU DROPDOWN NO HISTÓRICO
+// ============================================================================
+// 4. EVENT LISTENERS E UTILITÁRIOS
+// ============================================================================
+
+/**
+ * Gestão de Eventos: Menu Dropdown
+ * Implementa a abertura/fecho do menu de perfil no contexto do histórico.
+ */
 document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown');
     const menuBtn = document.getElementById('user-menu-btn');
@@ -108,11 +161,14 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// 4. FUNÇÃO DE LOGOUT
+/**
+ * Função: logout
+ * Invalida a sessão local e redireciona para a página principal.
+ */
 window.logout = () => {
     localStorage.removeItem('goalDash_username');
     window.location.href = 'index.html';
 };
 
-// INICIALIZAR
+// Inicialização: Dispara a carga de dados assim que o DOM estiver pronto.
 document.addEventListener('DOMContentLoaded', loadPredictionHistory);

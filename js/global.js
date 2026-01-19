@@ -1,8 +1,23 @@
-function loadLayout() {
-  const loggedUser = localStorage.getItem("goalDash_username");
+/**
+ * MÓDULO: Gestor de Layout e Navegação
+ * DESCRIÇÃO: Centraliza a renderização de componentes globais (Header e Footer Mobile)
+ * e gere estados de interface comuns a todas as páginas do sistema.
+ */
 
-  //Injetar HEADER
-  const headerHTML = `<header class="border-b border-gray-200 bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-[90]">
+/**
+ * Função: loadLayout
+ * Atua como o motor de renderização de componentes transversais.
+ * Utiliza Template Literals para injetar fragmentos de HTML no DOM, garantindo
+ * consistência visual entre diferentes rotas sem redundância de código.
+ */
+function loadLayout() {
+    // Recuperação do estado de autenticação para renderização condicional
+    const loggedUser = localStorage.getItem("goalDash_username");
+
+    // Componente: HEADER (Global)
+    // Implementa efeitos de glassmorfismo e lógica de autenticação integrada.
+    const headerHTML = `
+    <header class="border-b border-gray-200 bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-[90]">
         <div class="container mx-auto sm:px-4 px-2 py-3">
             <div class="flex items-center justify-between gap-2 h-10">
                 <a href="index.html" class="flex items-center gap-2 shrink-0 group">
@@ -38,7 +53,7 @@ function loadLayout() {
                                 </div>
                                 <span class="text-sm font-bold text-gray-700">${loggedUser}</span>
                             </button>
-                            </div>
+                        </div>
                     ` : `
                         <button onclick="openAuthModal()" class="bg-purple-600 text-white px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-purple-700 transition-all cursor-pointer">
                             Entrar
@@ -49,8 +64,9 @@ function loadLayout() {
         </div>
     </header>`;
 
-  //Injetar menu (mobile)
-  const footerMenu = `
+    // Componente: FOOTER MENU (Mobile-First)
+    // Otimizado para UX em dispositivos táteis, utilizando blur de fundo e ícones SVG.
+    const footerMenu = `
     <div class="md:hidden fixed bottom-4 left-4 right-4 bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-3 z-[100] flex justify-between items-center rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)] sm:hidden">
       <a href="index.html" id="nav-home" class="nav-item flex flex-col items-center gap-1 text-gray-300 transition-all active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -65,6 +81,7 @@ function loadLayout() {
         </svg>
         <span class="text-[10px] font-bold uppercase tracking-tighter">Ao Vivo</span>
       </a>
+      
       <a href="stats.html" id="nav-stats" class="nav-item flex flex-col items-center gap-1 text-gray-300 hover:text-white transition-all active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -72,91 +89,122 @@ function loadLayout() {
         <span class="text-[10px] font-bold uppercase tracking-tighter">Estatísticas</span>
       </a>
     </div>`;
-  document.body.insertAdjacentHTML("afterbegin", headerHTML);
-  document.body.insertAdjacentHTML("beforeend", footerMenu);
 
-  initNav();
+    // Injeção de componentes no início e fim do Body
+    document.body.insertAdjacentHTML("afterbegin", headerHTML);
+    document.body.insertAdjacentHTML("beforeend", footerMenu);
+
+    // Inicialização de comportamentos de navegação
+    initNav();
 }
 
-//Animação de botão ativo para nav (mobile)
+/**
+ * Função: initNav
+ * Gere o estado ativo dos itens de navegação mobile e previne comportamentos padrão
+ * em ligações nulas. Implementa lógica de deteção de rota para destaque visual.
+ */
 function initNav() {
-  const items = document.querySelectorAll(".nav-item");
+    const items = document.querySelectorAll(".nav-item");
+    if (items.length === 0) return;
 
-  if (items.length === 0) return;
+    items.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            if (item.getAttribute("href") === "#") e.preventDefault();
 
-  items.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      if (item.getAttribute("href") === "#") e.preventDefault();
-
-      items.forEach((i) => i.classList.remove("nav-active"));
-      item.classList.add("nav-active");
-      console.log(`Botão ativo: ${item.id}`);
+            // Atualização de estado visual (Clean-up de classes)
+            items.forEach((i) => i.classList.remove("nav-active"));
+            item.classList.add("nav-active");
+        });
     });
-  });
 
-  const homeBtn = document.getElementById('nav-home');
-  if (homeBtn && (window.location.pathname.includes('index.html') || window.location.pathname === "/")) {
-    homeBtn.classList.add("nav-active");
-  }
+    // Deteção Automática: Marca o botão 'Início' se o utilizador estiver na Home.
+    const homeBtn = document.getElementById('nav-home');
+    if (homeBtn && (window.location.pathname.includes('index.html') || window.location.pathname === "/")) {
+        homeBtn.classList.add("nav-active");
+    }
 }
 
-//Funçao para abrir modal de autenticação
+// ============================================================================
+// SISTEMA DE MODAIS (Autenticação)
+// ============================================================================
+
+/**
+ * Funções: openAuthModal / closeAuthModal
+ * Gere o ciclo de vida dos modais de autenticação, controlando classes de 
+ * animação (transições CSS) e o estado de scroll do body.
+ */
 function openAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    setTimeout(() => {
-      modal.classList.add('active');
-    }, 10); 
-
-    document.body.classList.add('modal-open');
-  }
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Timeout para garantir o trigger da animação de opacidade após a mudança de display
+        setTimeout(() => { modal.classList.add('active'); }, 10); 
+        document.body.classList.add('modal-open');
+    }
 }
 
-//Função para fechar modal de autenticação
 function closeAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  if (modal) {
-    modal.classList.remove('active');
-
-    setTimeout(() => {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.classList.remove('modal-open')
-    }, 300)
-
-  }
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.remove('active');
+        // Delay para permitir a conclusão da transição visual de saída
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('modal-open');
+        }, 300);
+    }
 }
 
+// ============================================================================
+// EVENT LISTENERS E GESTÃO DE EVENTOS (Global)
+// ============================================================================
+
+/**
+ * Event Delegation: Fecha o modal se o utilizador clicar fora da área de conteúdo.
+ */
 document.addEventListener('click', (e) => {
-  const modal = document.getElementById('auth-modal');
-  if (e.target === modal) {
-    closeAuthModal();
-  }
+    const modal = document.getElementById('auth-modal');
+    if (e.target === modal) closeAuthModal();
 });
 
+/**
+ * Window Event: Gere o fecho de dropdowns de utilizador ao clicar fora do componente.
+ */
 window.onclick = function (event) {
-  if (!event.target.matches("#user-menu-btn") && !event.target.closest("#user-menu-btn")) {
-    const dropdown = document.getElementById("user-dropdown");
-    if (dropdown && !dropdown.classList.contains("hidden")) {
-      dropdown.classList.add("hidden");
+    if (!event.target.matches("#user-menu-btn") && !event.target.closest("#user-menu-btn")) {
+        const dropdown = document.getElementById("user-dropdown");
+        if (dropdown && !dropdown.classList.contains("hidden")) {
+            dropdown.classList.add("hidden");
+        }
     }
-  }
 };
 
+// Exposição de funções para o âmbito global (necessário para onclick em HTML dinâmico)
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
 
+/**
+ * Função: toggleDropdown
+ * Controla a visibilidade do menu de utilizador (Desktop).
+ */
 window.toggleDropdown = (e) => {
-  e.stopPropagation();
-  document.getElementById("user-dropdown")?.classList.toggle("hidden");
+    e.stopPropagation();
+    document.getElementById("user-dropdown")?.classList.toggle("hidden");
 };
 
+/**
+ * Função: logout
+ * Termina a sessão do utilizador limpando o LocalStorage e reiniciando o estado.
+ */
 window.logout = () => {
-  localStorage.removeItem("goalDash_username");
-  window.location.reload();
+    localStorage.removeItem("goalDash_username");
+    window.location.reload();
 };
 
+/**
+ * Bootstrap: Inicializa a construção do layout após o carregamento completo do DOM.
+ */
 document.addEventListener("DOMContentLoaded", loadLayout);
