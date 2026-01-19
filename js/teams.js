@@ -41,20 +41,21 @@ const TEAM_IDS = {
     "OLY": 1530, "GAL": 610, "FCK": 400, "PSV": 197, "SLB": 190, "POR": 212,
 
     // --- EUROPA LEAGUE ---
-    "PAO": 553,   // Panathinaikos
-    "FEY": 197,   // Feyenoord
-    "STU": 209,   // Sturm Graz
+    "PAO": 554,   // PAOK
+    "FEY": 209,   // Feyenoord
+    "STU": 197,   // Sturm Graz
     "YOU": 202,   // Young Boys
-    "LYO": 80,    // Lyon (Ajustado)
+    "LYO": 80,    // Lyon
     "FRE": 160,   // Freiburg
-    "ZAG": 612,   // Dinamo Zagreb
+    "ZAG": 231,   // Dinamo Zagreb
     "STE": 571,   // Slavia Praha
     "UTR": 196,   // Utrecht
     "FER": 558,   // Ferencvaros
-    "PAN": 490,   // Parma (Ajustado)
+    "PAN": 555,   // Pannathinaikos
     "RAN": 257,   // Rangers
     "LUD": 566,   // Ludogorets
     "MID": 397,   // Midtjylland
+    "MAC": 564,   // Maccabi Tel-Aviv
 
     // --- INTERNACIONAL ---
     "USA": 2384, // Estados Unidos
@@ -121,7 +122,9 @@ function getTeamLogo(name) {
         "ALM": "https://images.fotmob.com/image_resources/logo/teamlogo/8037.png",
         "SCP": "https://images.fotmob.com/image_resources/logo/teamlogo/9768.png",
         "OLY": "https://images.fotmob.com/image_resources/logo/teamlogo/8638.png",
-        "GAL": "https://images.fotmob.com/image_resources/logo/teamlogo/8637.png"
+        "GAL": "https://images.fotmob.com/image_resources/logo/teamlogo/8637.png",
+        "PAN": "https://images.fotmob.com/image_resources/logo/teamlogo/10200.png",
+        "PAO": "https://images.fotmob.com/image_resources/logo/teamlogo/8619.png"
     };
 
     // 1. Verificação em Cache Manual
@@ -139,7 +142,7 @@ function getTeamLogo(name) {
 
     if (id) {
         // Retorno da CDN oficial com o ID mapeado
-        return `https://media.api-sports.io/football/teams/${id}.png`;
+        return `https://images.fotmob.com/image_resources/logo/teamlogo/${id}.png`;
     }
     
     /**
