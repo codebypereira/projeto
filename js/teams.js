@@ -34,6 +34,22 @@ const TEAM_IDS = {
     "GAL": 610,   // Galatasaray
     "FCK": 400, "PSV": 197, "SLB": 190, "POR": 212,
 
+    // --- EUROPA LEAGUE ---
+    "PAO": 553,   // Panathinaikos
+    "FEY": 197,   // Feyenoord
+    "STU": 209,   // Sturm Graz
+    "YOU": 202,   // Young Boys
+    "LYO": 80,    // Lyon (Ajustado)
+    "FRE": 160,   // Freiburg
+    "ZAG": 612,   // Dinamo Zagreb
+    "STE": 571,   // Slavia Praha
+    "UTR": 196,   // Utrecht
+    "FER": 558,   // Ferencvaros
+    "PAN": 490,   // Parma (Ajustado)
+    "RAN": 257,   // Rangers
+    "LUD": 566,   // Ludogorets
+    "MID": 397,   // Midtjylland
+
     // --- INTERNACIONAL ---
     "USA": 2384, // Estados Unidos
     "MEX": 16,   // México
@@ -73,24 +89,7 @@ const TEAM_IDS = {
     "HAI": 5519, // Haiti
     "SCO": 1111, // Escócia
     "CUR": 5537, // Curaçao
-    "CIV": 29,   // Costa do Marfim
-
-    // --- OUTROS ---
-    "MIA": 1605, "LAF": 1602, "LAG": 1132,
-
-    // --- LIGA MX (MÉXICO) ---
-    "MON": 2291, // Monterrey
-    "NEC": 2296, // Necaxa
-    "ATL": 2282, // Atlas
-    "UAN": 2289, // Tigres UANL
-    "TOL": 2293, // Toluca
-    "CRU": 2283, // Cruz Azul
-    "PUE": 2295, // Puebla
-    "CLU": 2287, // Club América (A API mandou CLU para o América)
-    "ASL": 2313, // Atlético San Luis
-    "UNA": 2290, // Pumas UNAM
-    "SAN": 2292, // Santos Laguna
-    "PAC": 2288 // Pachuca   
+    "CIV": 29,   // Costa do Marfim 
 };
 
 

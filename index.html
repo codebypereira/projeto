@@ -15,26 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <link rel="stylesheet" href="./styles/styles.css"/>
-    <style>
-      .custom-scrollbar::-webkit-scrollbar {
-            width: 5px; /* Deixa ela bem fininha e elegante */
-        }
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05); /* Fundo quase invisível */
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #a855f7; /* Roxo neon (purple-500) */
-            border-radius: 10px;
-            box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); /* Brilho sutil */
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #c084fc; /* Roxo mais claro no hover */
-        }
-    </style>
   </head>
   <body class="min-h-screen flex flex-col text-white overflow-x-hidden w-screen max-w-full">
     <!--Hero Section-->
@@ -55,10 +36,12 @@
               </svg>
               Fazer Previsão
             </a>
-            <button class="group flex items-center w-full sm:w-auto justify-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:bg-white hover:text-black">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-              Ver Estatísticas
-            </button>
+            <a href="stats.html" target="_self" rel="internal">
+              <button class="group flex items-center w-full sm:w-auto justify-center gap-2 bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:bg-white hover:text-black">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Ver Estatísticas
+              </button>
+            </a>
           </div>
         </div>
       </section>
@@ -83,6 +66,12 @@
                       </svg>
                       <span class="text-sm font-weight:500">Europa League</span>
                       <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
+                  </button>
+
+                  <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+                      <span class="text-sm font-weight: 500;">World Cup 2026</span>
+                      <span class="text-gray-500 text-xs uppercase tracking-tighter">FIFA</span>
                   </button>
 
                   <button onclick="changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
@@ -110,20 +99,7 @@
                       <span class="text-sm font-weight:500;">Ligue 1</span>
                   </button>
 
-                  <button onclick="changeSport('MLS')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
-                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg>
-                      <span class="text-sm font-weight:500;">MLS (EUA)</span>
-                  </button>
-
-                  <button onclick="changeSport('LIGA_MX')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
-                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
-                      <span class="text-sm font-weight:500;">Liga MX</span>
-                  </button>
-
-                  <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
-                      <svg class="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
-                      <span class="text-sm font-weight: 500;">Copa do Mundo 2026</span>
-                  </button>
+                  
               </div>
             </div>
           </aside>
