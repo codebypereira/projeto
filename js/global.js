@@ -37,7 +37,7 @@ function loadLayout() {
                 </a>
 
                 <nav class="flex-1">
-                    <ul class="flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold">
+                    <ul class="hidden md:flex items-center justify-center gap-4 sm:gap-8 text-[14px] sm:text-base text-gray-600 font-bold md:flex">
                         <li><a href="index.html" class="hover:text-purple-600 transition-colors">Início</a></li>
                         <li><a href="live.html" class="hover:text-purple-600 transition-colors">Ao Vivo</a></li>
                         <li><a href="stats.html" class="hover:text-purple-600 transition-colors">Estatísticas</a></li>

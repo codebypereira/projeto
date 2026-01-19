@@ -9,7 +9,7 @@
 // 1. CONFIGURAÇÃO E CONSTANTES
 // ============================================================================
 
-const API_KEY = 'af7afc4eab9aa5ab16421caefd7aea25';
+const API_KEY = 'cc48942721f415ae287937399dd882c7';
 const BASE_LOGO_URL = 'https://media.api-sports.io/football/';
 const BASE_URL = 'https://api.sportsgameodds.com/v2';
 
@@ -171,10 +171,94 @@ function renderPopularTeams() {
     `).join('');
 }
 
-/**
- * Função: renderDashboard
- * Injeta o painel detalhado de resultados no DOM, escondendo a vista inicial.
- */
+function setupSearch() {
+    const input = document.getElementById('teams-search');
+    input.addEventListener('keypress', async (e) => {
+        if (e-key === 'Enter' && e.target.value.length > 2) {
+            searchTeamByName(e.target.value)
+        }
+    });
+}
+
+//Função para 
+async function searchTeamByName(query) {
+    toggleLoading(true);
+    try {
+        const response = await fetch(`https://api.sportsgameodds.com/v1/soccer/teams?search=${query}`, {
+            headers : {'X-Api-Key' : API_KEY}
+        });
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            fetchTeamFullStats(data[0].teamID);
+        } else {
+            alert("Não encontramos esse time no banco de dados, cria!");
+            toggleLoading(false);
+        }
+    } catch (err) {
+        console.log("Erro na busca:", err);
+        toggleLoading(false);
+    }
+}
+
+// Pegar resultados e calcular perfomance recente (V, D, E)
+async function fetchTeamFullStats(teamID) {
+    toggleLoading(true);
+    try {
+        const url = `${BASE_URL}/events?apiKey=${API_KEY}&teamID=${teamID}&ended=true&limit=5`
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Erro ${response.status}: Verifique se o ID ${teamID} existe na v2.`)
+        }
+
+        const result = await response.json();
+
+        const matches = result.data || [];
+
+        if (matches.length === 0) {
+            console.warn("Nenhum jogo finalizado encontrado para este time.");
+            return;
+        }
+
+        // Mapeamento dos últimos 5 jogos
+        const games = matches.slice(0, 5);
+
+        const formArray = games.map(game => {
+            const homeID = game.homeID || game.teams?.home?.id;
+            const hScore = game.homeScore ?? game.scores?.home;
+            const aScore = game.awayScore ?? game.scores?.away;
+
+            const isHome = homeID == teamID;
+            const teamScore = isHome ? hScore : aScore  ;
+            const oppScore = isHome ? aSCORE : hScore;
+
+            if (teamScore > oppScore) return 'V';
+            if (teamScore < oppScore) return 'D';
+            return 'E';
+        });
+
+        const firstMatch = games[0];
+        const teamName = (firstMatch.teams?.home?.id == teamID)
+            ? (firstMatch.teams?.home?.names?.medium || firstMatch.homeName)
+            : (firstMatch.teams?.away?.names?.medium || firstMatch.awayName);
+
+        renderDashboard({
+            id: teamID,
+            name: teamName || "Equipe",
+            league: firstMatch.leagueName || "Liga",
+            form: formArray
+        });
+        } catch (err) {
+            console.error("Erro no status: ", err);
+            alert("Erro ao carregar dados. Verifique o console.");
+        } finally {
+            toggleLoading(false);
+        }
+    }
+
+// Renderização do Dashboard
 function renderDashboard(data) {
     const resultsContainer = document.getElementById('search-results');
     const initialView = document.getElementById('initial-view');
