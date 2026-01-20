@@ -26,9 +26,7 @@ const LEAGUE_NAMES = {
     'BUNDESLIGA': 'Bundesliga',
     'IT_SERIE_A': 'Serie A Itália',
     'FR_LIGUE_1': 'Ligue 1',
-    'MLS': 'MLS (EUA)',
-    'LIGA_MX': 'Liga MX',
-    'INTERNATIONAL_SOCCER': 'Copa do Mundo 2026'
+    'INTERNATIONAL_SOCCER': 'World Cup 2026'
 };
 
 // ============================================================================
@@ -158,12 +156,8 @@ function renderMatches(matches) {
         const away = m.teams?.away;
 
         // Obter logos das equipas
-        const homeLogo = getTeamLogo(
-            home?.names?.short || home?.names?.medium || home?.names?.full || ''
-        );
-        const awayLogo = getTeamLogo(
-            away?.names?.short || away?.names?.medium || away?.names?.full || ''
-        );
+        const homeLogo = getTeamLogo(home?.names?.short, home?.names?.medium);
+        const awayLogo = getTeamLogo(away?.names?.short, away?.names?.medium);
 
         // Formatar data e hora
         const rawDate = m.status?.startsAt || m.startsAt;

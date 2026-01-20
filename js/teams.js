@@ -13,89 +13,40 @@
  */
 const TEAM_IDS = {
     // --- PREMIER LEAGUE (ING) ---
-    "MCI": 50, "ARS": 42, "NEW": 34, "FUL": 36, "BRE": 55, "WHU": 48, "BUR": 44, 
-    "CRY": 52, "LEE": 37, "SUN": 746, "MUN": 33, "CHE": 49, "TOT": 47, "LIV": 40, 
-    "NFO": 65, "WOL": 39, "AVL": 66, "EVE": 45,
+    "MCI": 8456, "ARS": 9825, "NEW": 10261, "FUL": 9879, "BRE": 9937, "WHU": 8654, "BUR": 8191, 
+    "CRY": 9826, "LEE": 8463, "SUN": 8472, "MUN": 10260, "CHE": 8455, "TOT": 8586, "LIV": 8650, 
+    "NFO": 10203, "WOL": 8602, "AVL": 10252, "EVE": 8668,
 
     // --- BUNDESLIGA (GER) ---
-    "B04": 168, "BVB": 165, "RBL": 173, "SVW": 162, "SGE": 169, "KOE": 192, 
-    "M05": 164, "WOB": 161, "SCH": 174, "TSG": 167, "STP": 186, "HSV": 175, 
-    "BMG": 163, "FCB": 157, "VFB": 170, "FCU": 182, "FCA": 172, "SCF": 160,
+    "B04": 8178, "BVB": 9789, "RBL": 178475, "SVW": 8697, "SGE": 9810, "KOE": 8722, 
+    "M05": 9905, "WOB": 8721, "SCH": 94937, "TSG": 8226, "STP": 8152, "HSV": 9790, 
+    "BMG": 9788, "FCB": 9823, "VFB": 10269, "FCU": 8149, "FCA": 8406, "SCF": 8358,
 
     // --- LA LIGA (ESP) ---
-    "RMA": 541, "BAR": 529, "ATM": 530, "VIL": 533, "VAL": 532, "SEV": 536, 
-    "RSO": 548, "BET": 543, "ATH": 531, "GIR": 547, "OSA": 542, "MLL": 539, 
-    "RAY": 554, "CEL": 538, "ALA": 544, "GET": 546, "LEV": 545, "ESP": 540,
+    "RMA": 8633, "BAR": 8634, "ATM": 9906, "VIL": 10205, "VAL": 10267, "SEV": 8302, 
+    "RSO": 8560, "BET": 8603, "ATH": 8315, "GIR": 7732, "OSA": 8371, "MLL": 8661, 
+    "RAY": 8370, "CEL": 9910, "ALA": 9866, "GET": 8305, "LEV": 8581, "ESP": 8558,
 
     // --- SERIE A (ITA) ---
-    "ACM": 489, "ASR": 497, "LAZ": 487, "INT": 505, "JUV": 496, "NAP": 492, 
-    "ATA": 499, "BOL": 500, "FIO": 502, "TOR": 503, "UDI": 494, "GEN": 495, 
-    "LEC": 488, "VER": 504, "CAG": 490, "PAR": 501, "COM": 512,
+    "ACM": 8564, "ASR": 8686, "LAZ": 8543, "INT": 8636, "JUV": 9885, "NAP": 9875, 
+    "ATA": 8524, "BOL": 9857, "FIO": 8535, "TOR": 9804, "UDI": 8600, "GEN": 10233, 
+    "LEC": 9888, "VER": 9876, "CAG": 8529, "PAR": 10167, "COM": 10171, "PIS": 6479,
+    "SAS": 7943, "CRE": 7801,
 
     // --- LIGUE 1 (FRA) ---
-    "PSG": 85, "OM": 81, "OL": 80, "LIL": 79, "ASM": 91, "RCL": 116, "OGC": 84, 
-    "SR": 94, "FCN": 83, "TFC": 96, "STR": 95, "AUX": 108,
+    "PSG": 9847, "OM": 8592, "OL": 9748, "LIL": 8639, "ASM": 9829, "RCL": 8588, "OGC": 9831, "BRE": 8521,
+    "SR": 9851, "FCN": 9830, "TFC": 9941, "STR": 9848, "AJA": 8583, "FCL": 8689, "HAC": 9746, "PFC": 6379, "ANG": 8121, "FCM": 8550,
 
-    // --- COMPETIÇÕES EUROPEIAS E OUTROS ---
-    "BRU": 569, "ALM": 1244, "BOG": 5455, "AJA": 194, "SCP": 211, 
-    "OLY": 1530, "GAL": 610, "FCK": 400, "PSV": 197, "SLB": 190, "POR": 212,
+    // --- CHAMPIONS LEAGUE ---
+    "ALM": 8037, "BRU": 8342, "BOG": 8402, "SCP": 9768, "FCK": 8391, "OLY": 8638, "GAL": 8637,
 
     // --- EUROPA LEAGUE ---
-    "PAO": 553,   // Panathinaikos
-    "FEY": 197,   // Feyenoord
-    "STU": 209,   // Sturm Graz
-    "YOU": 202,   // Young Boys
-    "LYO": 80,    // Lyon (Ajustado)
-    "FRE": 160,   // Freiburg
-    "ZAG": 612,   // Dinamo Zagreb
-    "STE": 571,   // Slavia Praha
-    "UTR": 196,   // Utrecht
-    "FER": 558,   // Ferencvaros
-    "PAN": 490,   // Parma (Ajustado)
-    "RAN": 257,   // Rangers
-    "LUD": 566,   // Ludogorets
-    "MID": 397,   // Midtjylland
+    "PAO": 8619, "FEY": 10235, "STU": 10014, "YOU": 10192, "LYO": 9748, "FRE": 8358, "MAC": 7855, "STE": 9723, "UTR": 9908, "FER": 8222, 
+    "PAN": 10200, "RAN": 8548, "LUD": 210173, "MID": 8113,"ZAG": 10156, "BRA": 8468,    
 
     // --- INTERNACIONAL ---
-    "USA": 2384, // Estados Unidos
-    "MEX": 16,   // México
-    "CAN": 5529, // Canadá
-
-    // --- AMÉRICA DO SUL (CONMEBOL) ---
-    "BRA": 6,    // Brasil
-    "ARG": 26,   // Argentina
-    "URU": 7,    // Uruguai
-    "COL": 8,    // Colômbia
-    "ECU": 2382, // Equador
-    "PAR-S" : 1552,
-
-    // --- EUROPA (UEFA) ---
-    "FRA": 2,    // França
-    "ENG": 10,   // Inglaterra
-    "GER": 25,   // Alemanha
-    "ESP": 9,    // Espanha
-    "POR": 27,   // Portugal
-    "ITA": 768,  // Itália
-    "NED": 1118, // Holanda
-    "BEL": 1,    // Bélgica
-
-    // --- ÁFRICA E ÁSIA ---
-    "MAR": 31,   // Marrocos
-    "SEN": 1504, // Senegal
-    "JPN": 12,   // Japão
-    "KOR": 17,   // Coreia do Sul
-    "EGY": 32,   // Egito
-    "TUN": 28,   // Tunísia
-    "OMA": 1572, // Omã
-    "SDN": 1506, // Sudão
-    "RSA": 1568, // África do Sul
-    "QAT": 1570, // Catar
-    "SUI": 15,   // Suíça
-    "MOR": 31,   // Marrocos
-    "HAI": 5519, // Haiti
-    "SCO": 1111, // Escócia
-    "CUR": 5537, // Curaçao
-    "CIV": 29,   // Costa do Marfim 
+    "EGY": 10255, "TUN": 6719, "OMA": 5824, "SDN": 408231, "MEX": 6710, "RSA": 6316, "USA": 6713, "QAT": 5902, "SUI": 6717, "BRA": 8256, "MOR": 6262, "HAI": 5934, "SCO": 8498, "GER": 8570, "CUR": 287981, 
+    "NED": 6708, "JPN": 6715, "CIV": 6709, "ECU": 6707
 };
 
 /**
@@ -104,12 +55,24 @@ const TEAM_IDS = {
  * * @param {string} name - Sigla ou nome curto da equipa enviado pela API.
  * @returns {string} URL absoluta da imagem ou fallback gerado dinamicamente.
  */
-function getTeamLogo(name) {
+function getTeamLogo(name, fullName = "") {
     // Tratamento de segurança: se o nome for nulo ou vazio, retorna avatar genérico Goal Dash
     if (!name) return "https://ui-avatars.com/api/?name=??&background=ff2d85&color=fff";
 
     // Normalização da string para comparação precisa
     const cleanName = String(name).trim().toUpperCase();
+    const cleanFullName = String(fullName).trim();
+
+    const desempates = {
+        "BRA": cleanFullName.includes("Brasil") ? 8256 : 8468,
+        "AJA": cleanFullName.includes("Ajax") ? 8593 : 8583,
+        "PAR": cleanFullName.includes("Paraguay") ? 6724 : 10167,
+        "BRE": cleanFullName.includes("Brentford") ? 9937 : 8521
+    };
+
+    if (desempates[cleanName]) {
+        return `https://images.fotmob.com/image_resources/logo/teamlogo/${desempates[cleanName]}.png`
+    }
 
     /**
      * Cache de Logos Manuais:
@@ -117,11 +80,6 @@ function getTeamLogo(name) {
      * devido a falhas ou ausência na CDN principal da Sports-IO.
      */
     const manualLogos = {
-        "BOG": "https://images.fotmob.com/image_resources/logo/teamlogo/8402.png",
-        "ALM": "https://images.fotmob.com/image_resources/logo/teamlogo/8037.png",
-        "SCP": "https://images.fotmob.com/image_resources/logo/teamlogo/9768.png",
-        "OLY": "https://images.fotmob.com/image_resources/logo/teamlogo/8638.png",
-        "GAL": "https://images.fotmob.com/image_resources/logo/teamlogo/8637.png"
     };
 
     // 1. Verificação em Cache Manual
@@ -135,11 +93,11 @@ function getTeamLogo(name) {
     /** * Log de Diagnóstico: Útil para identificar equipas novas enviadas pela API 
      * que ainda não foram mapeadas no sistema de IDs.
      */
-    console.log(`[Resolver] API: "${cleanName}" | ID Local: ${id || 'NÃO MAPEADO'}`);
+    console.log(`[Resolver] API: "${"cleanName"} (${cleanFullName}) | ID Local: ${id || 'NÃO MAPEADO'}`);
 
     if (id) {
         // Retorno da CDN oficial com o ID mapeado
-        return `https://media.api-sports.io/football/teams/${id}.png`;
+        return `https://images.fotmob.com/image_resources/logo/teamlogo/${id}.png`;
     }
     
     /**
