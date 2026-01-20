@@ -35,8 +35,9 @@ const LEAGUE_NAMES = {
 // VARIÁVEIS GLOBAIS
 // ============================================================================
 
-let currentLeague = 'INTERNATIONAL_SOCCER';  // Liga atualmente selecionada
+let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';  // Liga atualmente selecionada
 let activeGame = null;  // Jogo para o qual o utilizador está a fazer palpite
+let allLoadedMatches = []; // Guarda todos os jogos para pesquisa instantânea
 
 // ============================================================================
 // AUTENTICAÇÃO
@@ -127,6 +128,15 @@ async function fetchMatches(leagueID = null) {
     } catch (error) {
         console.error("Erro ao carregar jogos:", error);
         container.innerHTML = '<p class="text-red-500 text-center col-span-full">Erro ao conectar à API.</p>';
+    }
+    try {
+        const response = await fetch(`https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}&oddsAvailable=true`);
+        const result = await response.json();
+        
+        allLoadedMatches = result.data || []; // Guarda os dados aqui
+        renderMatches(allLoadedMatches); // Renderiza normalmente
+    } catch (error) {
+        console.error("Erro ao carregar jogos:", error);
     }
 }
 
@@ -321,6 +331,19 @@ window.closeModal = () => {
 
 // Permite mudar de liga através de botões HTML
 window.changeSport = (leagueID) => fetchMatches(leagueID);
+
+window.handleSearch = (query) => {
+    const searchTerm = query.toLowerCase().trim();
+    
+    // Filtra se o termo de pesquisa aparece no nome da equipa da casa ou de fora
+    const filtered = allLoadedMatches.filter(m => {
+        const homeName = m.teams?.home?.names?.medium?.toLowerCase() || "";
+        const awayName = m.teams?.away?.names?.medium?.toLowerCase() || "";
+        return homeName.includes(searchTerm) || awayName.includes(searchTerm);
+    });
+
+    renderMatches(filtered); // Re-renderiza apenas os jogos que coincidem
+};
 
 // ============================================================================
 // INICIALIZAÇÃO
