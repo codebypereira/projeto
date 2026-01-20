@@ -10,18 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="flex flex-col lg:flex-row min-h-screen">
-    <aside class="fixed bottom-0 left-0 w-full bg-[#1a1033]/90 backdrop-blur-lg border-t border-white/10 z-50 lg:static lg:w-64 lg:h-screen lg:border-t-0 lg:border-r lg:bg-black/20 flex lg:flex-col lg:pt-20">
-        <nav class="flex lg:flex-col justify-around lg:justify-start w-full p-2 lg:px-4 lg:space-y-4">
-            <a href="index.html" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 p-3 lg:p-4 rounded-2xl text-gray-400 font-bold transition-all hover:bg-white/5 group">
-                <svg class="w-6 h-6 lg:w-5 lg:h-5 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                <span class="text-[10px] lg:text-sm">Início</span>
-            </a>
-            <a href="stats.html" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 p-3 lg:p-4 rounded-2xl text-gray-400 font-bold transition-all hover:bg-white/5 group">
-                <svg class="w-6 h-6 lg:w-5 lg:h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                <span class="text-[10px] lg:text-sm">Stats</span>
-            </a>
-        </nav>
-    </aside>
 
     <main class="flex-1 p-4 md:p-8 lg:p-12 pb-24 lg:pb-12">
         <div class="max-w-6xl mx-auto">
@@ -39,7 +27,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 md:h-6 md:w-6 text-purple-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <input type="text" id="teams-search" class="block w-full pl-12 md:pl-16 pr-6 py-4 md:py-6 md:text-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-600 outline-none transition-all" placeholder="Pesquise seu time...">
+                <input type="text" id="teams-search" oninput="handleSearch(this.value)" class="block w-full pl-12 md:pl-16 pr-6 py-4 md:py-6 md:text-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-600 outline-none transition-all " placeholder="Pesquise seu time...">
             </div>
 
             <div id="initial-view">
