@@ -34,7 +34,7 @@ const TEAM_IDS = {
     "SAS": 7943, "CRE": 7801,
 
     // --- LIGUE 1 (FRA) ---
-    "PSG": 9847, "OM": 8592, "OL": 9748, "LIL": 8639, "ASM": 9829, "RCL": 8588, "OGC": 9831, 
+    "PSG": 9847, "OM": 8592, "OL": 9748, "LIL": 8639, "ASM": 9829, "RCL": 8588, "OGC": 9831, "BRE": 8521,
     "SR": 9851, "FCN": 9830, "TFC": 9941, "STR": 9848, "AJA": 8583, "FCL": 8689, "HAC": 9746, "PFC": 6379, "ANG": 8121, "FCM": 8550,
 
     // --- CHAMPIONS LEAGUE ---
@@ -42,11 +42,11 @@ const TEAM_IDS = {
 
     // --- EUROPA LEAGUE ---
     "PAO": 8619, "FEY": 10235, "STU": 10014, "YOU": 10192, "LYO": 9748, "FRE": 8358, "MAC": 7855, "STE": 9723, "UTR": 9908, "FER": 8222, 
-    "PAN": 10200, "RAN": 8548, "LUD": 210173, "MID": 8113,"ZAG": 10156,     
+    "PAN": 10200, "RAN": 8548, "LUD": 210173, "MID": 8113,"ZAG": 10156, "BRA": 8468,    
 
     // --- INTERNACIONAL ---
-    "EGY": , "TUN": , "OMA": , "SDN": , "MEX": , "RSA": , "USA": , "QAT": , "SUI": , "BRA": , "MOR": , "HAI": , "SCO": , "GER": , "CUR": , 
-    "NED": , "JPN": , "CIV": , "ECU":
+    "EGY": 10255, "TUN": 6719, "OMA": 5824, "SDN": 408231, "MEX": 6710, "RSA": 6316, "USA": 6713, "QAT": 5902, "SUI": 6717, "BRA": 8256, "MOR": 6262, "HAI": 5934, "SCO": 8498, "GER": 8570, "CUR": 287981, 
+    "NED": 6708, "JPN": 6715, "CIV": 6709, "ECU": 6707
 };
 
 /**
@@ -55,12 +55,24 @@ const TEAM_IDS = {
  * * @param {string} name - Sigla ou nome curto da equipa enviado pela API.
  * @returns {string} URL absoluta da imagem ou fallback gerado dinamicamente.
  */
-function getTeamLogo(name) {
+function getTeamLogo(name, fullName = "") {
     // Tratamento de segurança: se o nome for nulo ou vazio, retorna avatar genérico Goal Dash
     if (!name) return "https://ui-avatars.com/api/?name=??&background=ff2d85&color=fff";
 
     // Normalização da string para comparação precisa
     const cleanName = String(name).trim().toUpperCase();
+    const cleanFullName = String(fullName).trim();
+
+    const desempates = {
+        "BRA": cleanFullName.includes("Brasil") ? 8256 : 8468,
+        "AJA": cleanFullName.includes("Ajax") ? 8593 : 8583,
+        "PAR": cleanFullName.includes("Paraguay") ? 6724 : 10167,
+        "BRE": cleanFullName.includes("Brentford") ? 9937 : 8521
+    };
+
+    if (desempates[cleanName]) {
+        return `https://images.fotmob.com/image_resources/logo/teamlogo/${desempates[cleanName]}.png`
+    }
 
     /**
      * Cache de Logos Manuais:
@@ -81,7 +93,7 @@ function getTeamLogo(name) {
     /** * Log de Diagnóstico: Útil para identificar equipas novas enviadas pela API 
      * que ainda não foram mapeadas no sistema de IDs.
      */
-    console.log(`[Resolver] API: "${cleanName}" | ID Local: ${id || 'NÃO MAPEADO'}`);
+    console.log(`[Resolver] API: "${"cleanName"} (${cleanFullName}) | ID Local: ${id || 'NÃO MAPEADO'}`);
 
     if (id) {
         // Retorno da CDN oficial com o ID mapeado
