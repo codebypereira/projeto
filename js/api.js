@@ -1,367 +1,301 @@
 /**
- * GoalDash - Sistema de Previsões Desportivas
- * Projeto de Programação Web - 2026
- * 
- * Este ficheiro contém a lógica principal da aplicação:
- * - Gestão de autenticação via localStorage
- * - Integração com API SportsGameOdds para obter jogos
- * - Sistema de palpites com persistência em MockAPI
+ * GoalDash - SISTEMA CENTRAL (api.js)
+ * Consolidado: Auth, Matches, Live, Stats e History
  */
 
 // ============================================================================
-// CONFIGURAÇÕES
+// 1. CONFIGURAÇÃO UNIFICADA
 // ============================================================================
-
 const CONFIG = {
     API_KEY: 'cc48942721f415ae287937399dd882c7',
-    MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
+    MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
+    BASE_LOGO_URL: 'https://media.api-sports.io/football/',
+    POPULAR_TEAMS: [
+        { name: 'Real Madrid', id: 541 }, { name: 'Barcelona', id: 529 },
+        { name: 'Man. City', id: 50 }, { name: 'Liverpool', id: 40 },
+        { name: 'Bayern Munich', id: 157 }, { name: 'Paris SG', id: 85 },
+        { name: 'Benfica', id: 211 }, { name: 'Sporting CP', id: 212 },
+        { name: 'FC Porto', id: 217 }, { name: 'Flamengo', id: 127 },
+        { name: 'Palmeiras', id: 121 }, { name: 'Al Nassr', id: 2939 }
+    ]
 };
 
-// Mapeamento de IDs de ligas para nomes exibíveis
-const LEAGUE_NAMES = {
-    'UEFA_EUROPA_LEAGUE': 'Europa League',
-    'UEFA_CHAMPIONS_LEAGUE': 'Champions League',
-    'EPL': 'Premier League',
-    'LA_LIGA': 'La Liga',
-    'BUNDESLIGA': 'Bundesliga',
-    'IT_SERIE_A': 'Serie A Itália',
-    'FR_LIGUE_1': 'Ligue 1',
-    'INTERNATIONAL_SOCCER': 'World Cup 2026'
-};
+// Variáveis de Estado Global
+let allLoadedMatches = [];
+let activeGame = null;     
+let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
+let currentMatchData = null; // Para matchdetails.html
+let previousScores = {};     // Para flash de golos no Live
 
 // ============================================================================
-// VARIÁVEIS GLOBAIS
+// 3. NÚCLEO DA API (GD_API)
 // ============================================================================
-
-let currentLeague = 'UEFA_CHAMPIONS_LEAGUE';  // Liga atualmente selecionada
-let activeGame = null;  // Jogo para o qual o utilizador está a fazer palpite
-let allLoadedMatches = []; // Guarda todos os jogos para pesquisa instantânea
-
-// ============================================================================
-// AUTENTICAÇÃO
-// ============================================================================
-
-/**
- * Atualiza a área de autenticação conforme o estado do utilizador
- * Se autenticado: mostra menu com nome e opções
- * Se não autenticado: mostra botão de login
- */
-function updateUserUI() {
-    const authArea = document.getElementById('auth-area');
-    const loggedUser = localStorage.getItem('goalDash_username');
-    if (!authArea) return;
-
-    if (loggedUser) {
-        // Renderizar menu do utilizador
-        authArea.innerHTML = `
-            <div class="relative shrink-0">
-                <button id="user-menu-btn" onclick="toggleDropdown(event)" 
-                    class="flex items-center gap-2 border border-gray-300 rounded-full py-1.5 px-4 text-gray-700 font-medium hover:bg-gray-50 transition-all cursor-pointer">
-                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
-                        ${loggedUser.charAt(0).toUpperCase()}
-                    </div>
-                    <span class="text-sm font-bold text-slate-800">${loggedUser}</span>
-                </button>
-                <div id="user-dropdown" 
-                    class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                    <div class="px-4 py-3 border-b bg-gray-50">
-                        <p class="text-sm font-medium text-gray-900">${loggedUser}</p>
-                    </div>
-                    <div class="py-1">
-                        <a href="history.html" 
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors">
-                            Histórico
-                        </a>
-                    </div>
-                    <div class="border-t py-1">
-                        <button onclick="logout()" 
-                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
-                            Sair
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-    } else {
-        // Renderizar botão de login
-        authArea.innerHTML = `
-            <button onclick="openAuthModal()" 
-                class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-purple-700 transition-all cursor-pointer">
-                Entrar
-            </button>`;
-    }
-}
-
-// ============================================================================
-// OBTENÇÃO DE JOGOS DA API
-// ============================================================================
-
-/**
- * Carrega os jogos de uma determinada liga
- * @param {string|null} leagueID - ID da liga (se null, usa a liga atual)
- */
-async function fetchMatches(leagueID = null) {
+const GD_API = {
+   
+// Dentro do objeto GD_API no api.js
+async fetchMatches(leagueID = null, leagueName = null) {
     if (leagueID) currentLeague = leagueID;
 
-    // Atualizar nome da liga na interface
-    const nameDisplay = document.getElementById('current-league-name');
-    if (nameDisplay) {
-        nameDisplay.innerText = LEAGUE_NAMES[currentLeague] || currentLeague;
-    }
-
+    // Feedback visual imediato
     const container = document.getElementById('matches-container');
-    if (!container || document.title.includes("Ao Vivo")) return;
-
-    // Mostrar loading
-    container.innerHTML = `
-        <div class="text-white text-center p-10 animate-pulse col-span-full font-bold uppercase tracking-widest">
-            A carregar confrontos...
-        </div>`;
+    if (container && window.UI) window.UI.showLoading('matches-container');
 
     try {
-        const response = await fetch(
-            `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}&oddsAvailable=true`
-        );
-        const result = await response.json();
-        renderMatches(result.data || []);
-    } catch (error) {
-        console.error("Erro ao carregar jogos:", error);
-        container.innerHTML = '<p class="text-red-500 text-center col-span-full">Erro ao conectar à API.</p>';
-    }
-    try {
-        const response = await fetch(`https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}&oddsAvailable=true`);
+        const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${currentLeague}`;
+        const response = await fetch(url);
         const result = await response.json();
         
-        allLoadedMatches = result.data || []; // Guarda os dados aqui
-        renderMatches(allLoadedMatches); // Renderiza normalmente
+        allLoadedMatches = result.data || [];
+
+        // Tenta usar o UI, se falhar, renderiza à força
+        if (window.UI && window.UI.renderMatches) {
+            window.UI.renderMatches('matches-container', allLoadedMatches);
+        } else {
+            // Plano B: Renderização forçada caso o objeto UI tenha dado erro
+            container.innerHTML = allLoadedMatches.map(m => `<div>${m.teams.home.names.medium} VS ${m.teams.away.names.medium}</div>`).join('');
+        }
     } catch (error) {
-        console.error("Erro ao carregar jogos:", error);
+        console.error("Erro fatal:", error);
     }
+},
+
+    async submitPrediction(homeScore, awayScore) {
+        if (!activeGame) return;
+        const payload = {
+            matchId: `${activeGame.home} vs ${activeGame.away}`,
+            username: localStorage.getItem('goalDash_username'),
+            homeScore: homeScore,
+            awayScore: awayScore,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            const res = await fetch(CONFIG.MOCK_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            return res.ok;
+        } catch (e) { return false; }
+    }
+};
+
+// ============================================================================
+// 4. MÓDULO: LIVE & GOLOS
+// ============================================================================
+async function fetchLiveMatches(leagueID = 'LA_LIGA') {
+    const container = document.getElementById('live-matches-container');
+    if (!container) return;
+
+    try {
+        const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${leagueID}&live=true`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        const liveMatches = (result.data || []).filter(m => m.status && m.status.live === true);
+
+        if (liveMatches.length === 0) {
+            container.innerHTML = `<p class="text-white col-span-full text-center py-20 opacity-50">Sem jogos live no momento.</p>`;
+            return;
+        }
+
+        renderLiveCards(liveMatches);
+    } catch (error) { console.error(error); }
 }
 
-// ============================================================================
-// RENDERIZAÇÃO DE JOGOS
-// ============================================================================
-
-/**
- * Renderiza os cards de jogos no ecrã
- * @param {Array} matches - Array de objetos com dados dos jogos
- */
-function renderMatches(matches) {
-    const container = document.getElementById('matches-container');
+function renderLiveCards(matches) {
+    const container = document.getElementById('live-matches-container');
     if (!container) return;
     container.innerHTML = '';
 
     matches.forEach(m => {
-        const home = m.teams?.home;
-        const away = m.teams?.away;
+        let hScore = m.results?.reg?.home?.points ?? 0;
+        let aScore = m.results?.reg?.away?.points ?? 0;
 
-        // Obter logos das equipas
-        const homeLogo = getTeamLogo(home?.names?.short, home?.names?.medium);
-        const awayLogo = getTeamLogo(away?.names?.short, away?.names?.medium);
+        // Animação de Golo
+        const last = previousScores[m.eventID];
+        let flashClass = (last && (last.h !== hScore || last.a !== aScore)) ? "ring-4 ring-purple-500 animate-pulse" : "";
+        previousScores[m.eventID] = { h: hScore, a: aScore };
 
-        // Formatar data e hora
-        const rawDate = m.status?.startsAt || m.startsAt;
-        let day = "--/--", time = "--:--";
+        const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.home.names.short) : "";
+        const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.away.names.short) : "";
 
-        if (rawDate) {
-            const gameDate = new Date(rawDate);
-            if (!isNaN(gameDate.getTime())) {
-                day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-                time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-            }
-        }
-
-        // Criar card do jogo
         const card = document.createElement('div');
-        card.className = "match-card bg-slate-900/50 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
-        
+        card.className = `bg-slate-900/90 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-700 ${flashClass}`;
         card.innerHTML = `
-            <a href="matchdetails.html?id=${m.eventID}" class="block p-6">
-                <!-- Data e hora -->
-                <div class="flex justify-center mb-6">
-                    <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                        <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
-                        <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                        <span class="text-sm font-black text-white tracking-tight">${time}</span>
+            <div class="flex justify-center mb-6">
+                <span class="bg-red-600 px-4 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-2">
+                    <span class="animate-ping h-2 w-2 rounded-full bg-white"></span>
+                    ${m.status.clock ? m.status.clock + "'" : 'LIVE'}
+                </span>
+            </div>
+            <div class="flex items-center justify-between gap-4 mb-8 text-center">
+                <div class="flex-1">
+                    <img src="${hLogo}" class="w-20 h-20 mx-auto mb-3 object-contain">
+                    <span class="text-[11px] font-black text-gray-400 uppercase block">${m.teams.home.names.medium}</span>
+                </div>
+                <div class="flex flex-col items-center px-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-5xl font-black italic text-white">${hScore}</span>
+                        <span class="text-2xl font-bold text-white/10">:</span>
+                        <span class="text-5xl font-black italic text-white">${aScore}</span>
                     </div>
                 </div>
-                
-                <!-- Equipas -->
-                <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
-                    <!-- Equipa Casa -->
-                    <div class="flex flex-col items-center flex-1">
-                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
-                            <img src="${homeLogo}" 
-                                class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
-                                alt="home">
-                        </div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                            ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
-                        </span>
-                    </div>
-
-                    <div class="opacity-30">
-                        <span class="text-2xl font-black italic text-white">VS</span>
-                    </div>
-
-                    <!-- Equipa Fora -->
-                    <div class="flex flex-col items-center flex-1">
-                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
-                            <img src="${awayLogo}" 
-                                class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
-                                alt="away">
-                        </div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                            ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
-                        </span>
-                    </div>
+                <div class="flex-1">
+                    <img src="${aLogo}" class="w-20 h-20 mx-auto mb-3 object-contain">
+                    <span class="text-[11px] font-black text-gray-400 uppercase block">${m.teams.away.names.medium}</span>
                 </div>
-            </a>
-            
-            <!-- Botão de Palpite -->
-            <div class="px-6 pb-6">
-                <button onclick="handlePalpiteClick('${m.eventID}', '${home?.names?.medium || home?.names?.full || 'Casa'}', '${away?.names?.medium || away?.names?.full || 'Fora'}')" 
-                    class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl active:scale-95 cursor-pointer relative z-20">
-                    Dar meu palpite
-                </button>
-            </div>`;
-        
+            </div>
+            <button onclick="window.location.href='matchdetails.html?id=${m.eventID}'" class="w-full py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest bg-white/5 border border-white/10 hover:bg-purple-600 transition-all cursor-pointer">
+                Estatísticas Completas
+            </button>
+        `;
         container.appendChild(card);
     });
 }
 
 // ============================================================================
-// SISTEMA DE PALPITES
+// 5. MÓDULO: DETALHES DO JOGO
 // ============================================================================
+async function fetchMatchDetails(id) {
+    try {
+        const response = await fetch(`https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&eventID=${id}`);
+        const result = await response.json();
+        
+        if (result.data && result.data.length > 0) {
+            currentMatchData = result.data[0];
+            renderHeader();
+            const status = currentMatchData.status?.status;
+            const isNotStarted = (status === 'NS' || status === 'PST' || !currentMatchData.status?.clock);
+            window.showTab(isNotStarted ? 'formacoes' : 'sumario');
+        }
+    } catch (error) { console.error(error); }
+}
 
-/**
- * Abre o modal de palpite para um jogo específico
- * Verifica se o utilizador está autenticado antes
- */
-window.handlePalpiteClick = (id, home, away) => {
-    // Verificar se está autenticado
-    if (!localStorage.getItem('goalDash_username')) {
-        return openAuthModal();
-    }
+function renderHeader() {
+    const m = currentMatchData;
+    const container = document.getElementById('match-header');
+    if (!m || !container) return;
 
-    // Guardar dados do jogo
-    activeGame = { id, home, away };
-    
-    const modal = document.getElementById('prediction-modal');
-    const title = document.getElementById('modal-teams-title');
+    const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.home.names.short) : "";
+    const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.away.names.short) : "";
 
-    if (title) {
-        title.innerText = `${home} vs ${away}`;
-    }
+    container.innerHTML = `
+        <div class="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-10 backdrop-blur-xl text-center">
+            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-purple-500">${m.tournament?.name}</span>
+            <div class="flex flex-row items-center justify-between mt-8">
+                <div class="flex-1"><img src="${hLogo}" class="w-24 h-24 mx-auto mb-4 object-contain"><h2 class="font-black text-white">${m.teams.home.names.medium}</h2></div>
+                <div class="px-10 min-w-[200px]">
+                    <div class="text-6xl font-black text-white italic">
+                        ${m.results?.reg?.home?.points ?? 0} - ${m.results?.reg?.away?.points ?? 0}
+                    </div>
+                </div>
+                <div class="flex-1"><img src="${aLogo}" class="w-24 h-24 mx-auto mb-4 object-contain"><h2 class="font-black text-white">${m.teams.away.names.medium}</h2></div>
+            </div>
+        </div>`;
+}
 
-    // Abrir modal com animação
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => { modal.classList.add('active'); }, 10);
-        document.body.classList.add('modal-open');
-    }
+window.showTab = function(tabName) {
+    const content = document.getElementById('tab-content');
+    if (!currentMatchData || !content) return;
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('text-purple-500', 'border-purple-500'));
+    document.getElementById(`btn-${tabName}`)?.classList.add('text-purple-500', 'border-purple-500');
+
+    if (tabName === 'formacoes') renderLineups(content);
+    else if (tabName === 'sumario') renderSummary(content);
+    else if (tabName === 'estatisticas') renderMatchStats(content);
+    else content.innerHTML = `<div class="py-20 text-center opacity-50">Em breve</div>`;
 };
 
-/**
- * Envia o palpite do utilizador para a API
- * Valida os inputs e determina o vencedor
- */
-window.submitPrediction = async () => {
-    const h = parseInt(document.getElementById('input-home').value);
-    const a = parseInt(document.getElementById('input-away').value);
-    
-    if (isNaN(h) || isNaN(a)) {
-        return alert("Placar inválido!");
-    }
-
-    // Montar dados do palpite
-    const payload = {
-        matchId: `${activeGame.home} vs ${activeGame.away}`,
-        username: localStorage.getItem('goalDash_username'),
-        Winner: h > a ? activeGame.home : (a > h ? activeGame.away : "Empate"),
-        homeScore: h,
-        awayScore: a,
-        createdAt: new Date().toISOString()
-    };
+// ============================================================================
+// 6. MÓDULO: HISTÓRICO
+// ============================================================================
+async function loadPredictionHistory() {
+    const container = document.getElementById('history-container');
+    const user = localStorage.getItem('goalDash_username');
+    if (!container || !user) return;
 
     try {
-        const res = await fetch(CONFIG.MOCK_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+        const response = await fetch(CONFIG.MOCK_API);
+        const all = await response.json();
+        const myData = all.filter(p => p.username === user).reverse();
+        
+        container.innerHTML = myData.map(pred => `
+            <div class="bg-white/5 p-6 rounded-3xl border border-white/5 mb-4 flex justify-between items-center">
+                <div>
+                    <span class="text-[9px] bg-purple-500 px-2 py-1 rounded text-white">${new Date(pred.createdAt).toLocaleDateString()}</span>
+                    <h3 class="text-xl font-black text-white mt-2">${pred.matchId}</h3>
+                </div>
+                <div class="bg-white/10 px-6 py-3 rounded-2xl text-2xl font-black text-white">
+                    ${pred.homeScore} X ${pred.awayScore}
+                </div>
+            </div>`).join('');
+    } catch (e) { container.innerHTML = "Erro ao carregar."; }
+}
+
+// ============================================================================
+// 7. MÓDULO: ANÁLISE DE EQUIPAS (STATS)
+// ============================================================================
+function setupStatsSearch() {
+    const input = document.getElementById('teams-search');
+    input?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.target.value.length > 2) searchTeamByName(e.target.value);
+    });
+}
+
+async function searchTeamByName(query) {
+    toggleStatsLoading(true);
+    try {
+        const res = await fetch(`https://api.sportsgameodds.com/v1/soccer/teams?search=${encodeURIComponent(query)}`, {
+            headers: { 'X-Api-Key': CONFIG.API_KEY }
         });
-        
-        if (res.ok) {
-            alert("🎯 Palpite Salvo!");
-            window.closeModal();
-        }
-    } catch (e) {
-        console.error("Erro ao salvar:", e);
-        alert("Erro ao salvar.");
+        const data = await res.json();
+        const teams = data.data || data;
+        if (teams?.length > 0) fetchTeamFullStats(teams[0].teamID || teams[0].id);
+        else alert("Não encontrado");
+    } catch (e) { console.error(e); } finally { toggleStatsLoading(false); }
+}
+
+function renderPopularTeams() {
+    const grid = document.getElementById('popular-teams-grid');
+    if (!grid) return;
+    grid.innerHTML = CONFIG.POPULAR_TEAMS.map(team => `
+        <div onclick="fetchTeamFullStats(${team.id})" class="bg-white/5 p-4 rounded-3xl flex flex-col items-center cursor-pointer hover:bg-purple-500/10">
+            <img src="${CONFIG.BASE_LOGO_URL}/teams/${team.id}.png" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
+            <span class="text-[10px] font-black text-gray-400 uppercase mt-2">${team.name}</span>
+        </div>`).join('');
+}
+
+// ============================================================================
+// EXPOSIÇÃO GLOBAL
+// ============================================================================
+
+window.fetchLiveMatches = fetchLiveMatches; 
+
+window.changeSport = (leagueID, leagueName) => {
+    previousScores = {};
+    const container = document.getElementById('matches-container');
+    if (container) container.innerHTML = ""; 
+
+    if (window.location.pathname.includes('live')) {
+        window.fetchLiveMatches(leagueID);
+    } else {
+        // Agora passamos ID e NOME para a função core
+        GD_API.fetchMatches(leagueID, leagueName); 
     }
 };
 
-/**
- * Fecha o modal de palpite com animação
- */
-window.closeModal = () => {
-    const modal = document.getElementById('prediction-modal');
-    if (modal) {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.classList.remove('modal-open');
-        }, 300);
-    }
-};
+// Garante que o fetchMatches global também aceite o nome
+window.fetchMatches = (id, name) => GD_API.fetchMatches(id, name);
 
-// ============================================================================
-// FUNÇÕES PÚBLICAS
-// ============================================================================
-
-// Permite mudar de liga através de botões HTML
-window.changeSport = (leagueID) => fetchMatches(leagueID);
-
-window.handleSearch = (query) => {
-    const searchTerm = query.toLowerCase().trim();
-    
-    // Filtra se o termo de pesquisa aparece no nome da equipa da casa ou de fora
-    const filtered = allLoadedMatches.filter(m => {
-        const homeName = m.teams?.home?.names?.medium?.toLowerCase() || "";
-        const awayName = m.teams?.away?.names?.medium?.toLowerCase() || "";
-        return homeName.includes(searchTerm) || awayName.includes(searchTerm);
-    });
-
-    renderMatches(filtered); // Re-renderiza apenas os jogos que coincidem
-};
-
-// ============================================================================
-// INICIALIZAÇÃO
-// ============================================================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Carregar interface inicial
-    updateUserUI();
-    fetchMatches();
-    
-    // Configurar formulário de login
-    document.getElementById('auth-form')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const user = document.getElementById('auth-user').value.trim();
-        
-        if (user) {
-            localStorage.setItem('goalDash_username', user);
-            updateUserUI();
-            window.closeAuthModal();
-        }
-    });
-
-    // Fechar dropdown ao clicar fora
-    window.addEventListener('click', () => {
-        document.getElementById('user-dropdown')?.classList.add('hidden');
-    });
-});
+window.setActiveGame = (game) => { activeGame = game; };
+window.fetchTeamFullStats = fetchTeamFullStats; // Necessário para o onclick
+window.handleSearch = GD_API.search;      // Esta é a que filtra por nome
+window.loadPredictionHistory = loadPredictionHistory;
+window.fetchMatchDetails = fetchMatchDetails;
+window.renderPopularTeams = renderPopularTeams;
+window.setupStatsSearch = setupStatsSearch;
+window.updateUserUI = updateUserUI; // Garante que esta função existe no api.js ou global.js
+// No final do seu api.js, garanta estas linhas:
+window.GD_API = GD_API; 
