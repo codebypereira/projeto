@@ -33,7 +33,7 @@ const LEAGUE_NAMES = {
 // VARIÁVEIS GLOBAIS
 // ============================================================================
 
-let currentLeague = 'UEFA_EUROPA_LEAGUE';  // Liga atualmente selecionada
+let currentLeague = 'INTERNATIONAL_SOCCER';  // Liga atualmente selecionada
 let activeGame = null;  // Jogo para o qual o utilizador está a fazer palpite
 
 // ============================================================================
