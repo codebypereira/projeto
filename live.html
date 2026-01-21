@@ -14,15 +14,17 @@
 
 </head>
 <body class="min-h-screen flex flex-col text-white">
-     <nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
+    <nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
-                <span class="text-xl font-black italic tracking-tighter uppercase text-white">Goal<span class="text-purple-500">Dash</span></span>
-            </div>
+            <a href="index.html">
+                <div class="flex items-center gap-2">
+                    <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
+                    <span class="text-xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent pr-4">Goal Dash</span>
+                </div>
+            </a>
 
             <div class="hidden md:flex items-center gap-10">
-                <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Início</a>
+                <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-purple-400 transition-colors">Início</a>
                 <a href="live.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-purple-400 transition-colors">Ao Vivo</a>
                 <a href="stats.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-purple-400 transition-colors">Estatísticas</a>
             </div>
@@ -49,39 +51,39 @@
                         </h2>
 
                         <div class="space-y-2 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
-                            <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">Champions League</span>
                                 <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
                             </button>
 
-                            <button onclick="changeSport('UEFA_EUROPA_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('UEFA_EUROPA_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                     <path d="M6 9H18M12 9V21M12 21H7M12 21H17M5 5V9C5 12.866 8.134 16 12 16C15.866 16 19 12.866 19 9V5H5Z"/>
                                 </svg>
                                 <span class="text-sm font-weight:500">Europa League</span>
                                 <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
                             </button>
 
-                            <button onclick="changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">Premier League</span>
                             </button>
 
-                            <button onclick="changeSport('LA_LIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('LA_LIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">La Liga</span>
                             </button>
 
-                            <button onclick="changeSport('BUNDESLIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('BUNDESLIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">Bundesliga</span>
                             </button>
 
-                            <button onclick="changeSport('IT_SERIE_A')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('IT_SERIE_A')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">Serie A Itália</span>
                             </button>
 
-                            <button onclick="changeSport('FR_LIGUE_1')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('FR_LIGUE_1')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight:500;">Ligue 1</span>
                             </button>
 
-                            <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                            <button onclick="window.changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
                                 <span class="text-sm font-weight: 500;">World Cup 2026</span>
                             </button>
                         </div>
