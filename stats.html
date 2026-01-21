@@ -6,7 +6,10 @@
     <title>Estatísticas</title>
     <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon">
     <link rel="stylesheet" href="./styles/styles.css">
-    <script src="js/global.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="flex flex-col lg:flex-row min-h-screen">
@@ -27,7 +30,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 md:h-6 md:w-6 text-purple-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <input type="text" id="teams-search" oninput="handleSearch(this.value)" class="block w-full pl-12 md:pl-16 pr-6 py-4 md:py-6 md:text-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-600 outline-none transition-all " placeholder="Pesquise seu time...">
+                <input type="text" id="teams-search" class="block w-full pl-12 md:pl-16 pr-6 py-4 md:py-6 md:text-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-600 outline-none transition-all " placeholder="Pesquise seu time...">
             </div>
 
             <div id="initial-view">
