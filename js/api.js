@@ -162,6 +162,13 @@ if (emailExists) {
         }
     }
 };
+const params = new URLSearchParams(window.location.search);
+const gameId = params.get('id');
+
+if (gameId && window.GD_API) {
+    // Aqui chamarias a tua função da API para carregar esse jogo específico
+    console.log("A carregar dados do jogo ID:", gameId);
+}
 
 // EXPOSIÇÃO GLOBAL (Para o main.js conseguir usar)
 window.GD_API = GD_API;

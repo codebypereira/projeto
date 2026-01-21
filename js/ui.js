@@ -4,6 +4,7 @@
  */
 
 window.UI = {
+    // Exibe o estado de carregamento
     showLoading: (containerId) => {
         const container = document.getElementById(containerId);
         if (container) {
@@ -11,6 +12,7 @@ window.UI = {
         }
     },
 
+    // Renderiza a lista de jogos (Página Inicial)
     renderMatches: (containerId, matches) => {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -32,6 +34,37 @@ window.UI = {
         container.innerHTML = html;
     },
 
+ renderMatchHeader: (match) => {
+    const container = document.getElementById('match-header');
+    if (!container || !match) return;
+
+    const hName = match.teams?.home?.names?.medium || "Casa";
+    const aName = match.teams?.away?.names?.medium || "Fora";
+    const hLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.home?.names?.short, hName) : "";
+    const aLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.away?.names?.short, aName) : "";
+
+    container.innerHTML = `
+        <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden animate-in fade-in duration-500">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                <div class="flex-1 text-center">
+                    <img src="${hLogo}" class="w-20 h-20 mx-auto mb-4 object-contain">
+                    <h1 class="text-xl font-black uppercase italic tracking-tighter text-white">${hName}</h1>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] font-black text-purple-500 uppercase tracking-[3px] mb-2">${match.displayDay || '--/--'}</div>
+                    <div class="text-6xl font-black italic tracking-tighter text-white">${match.status?.score?.home ?? 0} - ${match.status?.score?.away ?? 0}</div>
+                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-[2px] mt-2">${match.displayTime || 'Pendente'}</div>
+                </div>
+                <div class="flex-1 text-center">
+                    <img src="${aLogo}" class="w-20 h-20 mx-auto mb-4 object-contain">
+                    <h1 class="text-xl font-black uppercase italic tracking-tighter text-white">${aName}</h1>
+                </div>
+            </div>
+        </div>
+    `;
+},
+
+    // Renderiza cards de jogos ao vivo (Página Live)
     renderLiveCards: (matches) => {
         const container = document.getElementById('live-matches-container');
         if (!container) return;
@@ -41,15 +74,11 @@ window.UI = {
             let hScore = m.results?.reg?.home?.points ?? 0;
             let aScore = m.results?.reg?.away?.points ?? 0;
 
-            const last = window.previousScores ? window.previousScores[m.eventID] : null;
-            let flashClass = (last && (last.h !== hScore || last.a !== aScore)) ? "ring-4 ring-purple-500 animate-pulse" : "";
-            if (window.previousScores) window.previousScores[m.eventID] = { h: hScore, a: aScore };
-
             const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.home.names.short, m.teams.home.names.medium) : "";
             const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.away.names.short, m.teams.away.names.medium) : "";
 
             const card = document.createElement('div');
-            card.className = `bg-slate-900/90 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-700 ${flashClass}`;
+            card.className = `bg-slate-900/90 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-700`;
             card.innerHTML = `
                 <div class="flex justify-center mb-6">
                     <span class="bg-red-600 px-4 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-2">
@@ -82,40 +111,8 @@ window.UI = {
         });
     },
 
-    renderHeader: () => {
-        const m = window.currentMatchData;
-        const container = document.getElementById('match-header');
-        if (!m || !container) return;
-
-        const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.home.names.short, m.teams.home.names.medium) : "";
-        const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.away.names.short, m.teams.away.names.medium) : "";
-
-        container.innerHTML = `
-            <div class="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-10 backdrop-blur-xl text-center">
-                <span class="text-[10px] font-black uppercase tracking-[0.4em] text-purple-500">${m.tournament?.name}</span>
-                <div class="flex flex-row items-center justify-between mt-8">
-                    <div class="flex-1"><img src="${hLogo}" class="w-24 h-24 mx-auto mb-4 object-contain" onerror="this.src='Images/favi.svg'"><h2 class="font-black text-white">${m.teams.home.names.medium}</h2></div>
-                    <div class="px-10 min-w-[200px]">
-                        <div class="text-6xl font-black text-white italic">
-                            ${m.results?.reg?.home?.points ?? 0} - ${m.results?.reg?.away?.points ?? 0}
-                        </div>
-                    </div>
-                    <div class="flex-1"><img src="${aLogo}" class="w-24 h-24 mx-auto mb-4 object-contain" onerror="this.src='Images/favi.svg'"><h2 class="font-black text-white">${m.teams.away.names.medium}</h2></div>
-                </div>
-            </div>`;
-    },
-
-    renderPopularTeams: () => {
-        const grid = document.getElementById('popular-teams-grid');
-        if (!grid || !window.CONFIG) return;
-        grid.innerHTML = window.CONFIG.POPULAR_TEAMS.map(team => `
-            <div onclick="window.fetchTeamFullStats ? window.fetchTeamFullStats(${team.id}) : alert('Em breve')" class="bg-white/5 p-4 rounded-3xl flex flex-col items-center cursor-pointer hover:bg-purple-500/10">
-                <img src="https://images.fotmob.com/image_resources/logo/teamlogo/${team.id}.png" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
-                <span class="text-[10px] font-black text-gray-400 uppercase mt-2">${team.name}</span>
-            </div>`).join('');
-    },
-
     components: {
+        // Componente do Card de Jogo (Usado na Home e Pesquisa)
         matchCard: (match) => {
             const hName = match.teams?.home?.names?.medium || "Equipa Casa";
             const aName = match.teams?.away?.names?.medium || "Equipa Fora";
@@ -123,9 +120,10 @@ window.UI = {
             const hLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.home?.names?.short, hName) : "";
             const aLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.away?.names?.short, aName) : "";
 
-            // Lógica para renderizar Data/Hora (Estilo image_c6c573.png)
             return `
-                <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500">
+                <div onclick="window.location.href='matchdetails.html?id=${match.eventID}'" 
+                     class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500 cursor-pointer">
+                    
                     <div class="flex justify-center mb-6">
                         <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
                             <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${match.displayDay || '--/--'}</span>
@@ -133,6 +131,7 @@ window.UI = {
                             <span class="text-sm font-black text-white tracking-tight">${match.displayTime || '--:--'}</span>
                         </div>
                     </div>
+
                     <div class="flex items-center justify-between gap-4 mb-10">
                         <div class="flex-1">
                             <div class="relative mb-3 group-hover:-translate-y-1 transition-transform">
@@ -148,7 +147,8 @@ window.UI = {
                             <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${aName}</span>
                         </div>
                     </div>
-                    <button onclick="window.handlePalpiteClick('${match.eventID}', '${hName}', '${aName}')" 
+
+                    <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hName}', '${aName}')" 
                         class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:from-purple-600 hover:to-pink-600 hover:bg-gradient-to-r transition-all duration-500 cursor-pointer">
                         Dar Meu Palpite
                     </button>
@@ -156,5 +156,3 @@ window.UI = {
         }
     }
 };
-
-window.renderPopularTeams = window.UI.renderPopularTeams;
