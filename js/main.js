@@ -3,9 +3,71 @@
  * Versão Final: Registo Blindado + Envio de Palpites
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inicialização da UI e Dados
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inicializa UI comum
     if (window.updateUserUI) window.updateUserUI();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const matchId = urlParams.get('id');
+
+    if (matchId) {
+        // --- PÁGINA DE DETALHES ---
+        if (window.GD_API && window.GD_API.fetchMatches) {
+            try {
+                // Forçamos a busca e aguardamos o resultado
+                const data = await window.GD_API.fetchMatches('UEFA_CHAMPIONS_LEAGUE');
+                
+                // Garantimos que 'data' é um array antes de usar o .find()
+                const matches = Array.isArray(data) ? data : (window.allLoadedMatches || []);
+                
+                const match = matches.find(m => String(m.eventID) === String(matchId));
+                
+                if (match && window.UI && window.UI.renderMatchHeader) {
+                    window.UI.renderMatchHeader(match);
+                } else {
+                    console.error("Jogo não encontrado no array da API");
+                    const header = document.getElementById('match-header');
+                    if (header) header.innerHTML = "<div class='text-center py-10 opacity-50 uppercase text-[10px] font-black tracking-widest'>Jogo não encontrado</div>";
+                }
+            } catch (err) {
+                console.error("Erro ao processar dados da API:", err);
+            }
+        }
+    } else {
+        // --- PÁGINA INICIAL ---
+        if (window.GD_API && window.GD_API.fetchMatches) {
+            await window.GD_API.fetchMatches('UEFA_CHAMPIONS_LEAGUE');
+        }
+    }
+
+    // --- LÓGICA DE LOGIN / REGISTO ---
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            const btn = loginForm.querySelector('button[type="submit"]');
+            btn.innerText = "A ENTRAR...";
+            const res = await window.GD_API.loginUser(user, pass);
+            if (res.success) {
+                localStorage.setItem('goalDash_username', res.username);
+                window.location.reload();
+            } else {
+                alert(res.error);
+                btn.innerText = "Entrar";
+            }
+        };
+    
+
+    // 3. Mandar o UI renderizar
+    if (match && window.UI.renderMatchHeader) {
+        window.UI.renderMatchHeader(match);
+    } else {
+        const loader = document.getElementById('loading-state');
+        if (loader) loader.innerHTML = "Jogo não encontrado.";
+    }
+}
 
     if (window.GD_API && window.GD_API.fetchMatches) {
         window.GD_API.fetchMatches('UEFA_CHAMPIONS_LEAGUE');
