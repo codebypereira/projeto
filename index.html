@@ -32,10 +32,12 @@
 
     <nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
-                <span class="text-xl font-black italic tracking-tighter uppercase text-white">Goal<span class="text-purple-500">Dash</span></span>
-            </div>
+            <a href="index.html">
+                <div class="flex items-center gap-2">
+                    <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
+                    <span class="text-xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent pr-4">Goal Dash</span>
+                </div>
+            </a>
 
             <div class="hidden md:flex items-center gap-10">
                 <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Início</a>
@@ -82,48 +84,48 @@
             Filtros e Ligas
         </h2>
 
-        <div class="space-y-1 overflow-y-auto max-h-[65vh] pr-2 custom-scrollbar">
-            <button onclick="window.fetchMatches('UEFA_CHAMPIONS_LEAGUE', 'Champions League')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Champions League</span>
-                <span class="text-[9px] opacity-30">UEFA</span>
+        <div class="space-y-2 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+            <button onclick="changeSport('UEFA_CHAMPIONS_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">Champions League</span>
+                <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
             </button>
-            <button onclick="window.fetchMatches('UEFA_EUROPA_LEAGUE', 'Europa League')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Europa League</span>
-                <span class="text-[9px] opacity-30">UEFA</span>
-            </button>
-            <button onclick="window.fetchMatches('UEFA_CONFERENCE_LEAGUE', 'Conference League')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Conference League</span>
-                <span class="text-[9px] opacity-30">UEFA</span>
-            </button>
-            
-            <div class="h-px bg-white/5 my-3"></div>
 
-            <button onclick="window.fetchMatches('EPL', 'Premier League')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Premier League</span>
-                <span class="text-[9px] opacity-30">UK</span>
+            <button onclick="changeSport('UEFA_EUROPA_LEAGUE')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                    <path d="M6 9H18M12 9V21M12 21H7M12 21H17M5 5V9C5 12.866 8.134 16 12 16C15.866 16 19 12.866 19 9V5H5Z"/>
+                </svg>
+                <span class="text-sm font-weight:500">Europa League</span>
+                <span class="text-gray-500 text-xs uppercase tracking-tighter">UEFA</span>
             </button>
-            <button onclick="window.fetchMatches('LA_LIGA', 'La Liga')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">La Liga</span>
-                <span class="text-[9px] opacity-30">ES</span>
+
+            <button onclick="changeSport('EPL')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">Premier League</span>
             </button>
-            <button onclick="window.fetchMatches('BUNDESLIGA', 'Bundesliga')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Bundesliga</span>
-                <span class="text-[9px] opacity-30">DE</span>
+
+            <button onclick="changeSport('LA_LIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">La Liga</span>
             </button>
-            <button onclick="window.fetchMatches('IT_SERIE_A', 'Serie A')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Serie A</span>
-                <span class="text-[9px] opacity-30">IT</span>
+
+            <button onclick="changeSport('BUNDESLIGA')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">Bundesliga</span>
             </button>
-            <button onclick="window.fetchMatches('LIGUE_1', 'Ligue 1')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all group">
-                <span class="text-sm">Ligue 1</span>
-                <span class="text-[9px] opacity-30">FR</span>
+
+            <button onclick="changeSport('IT_SERIE_A')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">Serie A Itália</span>
+            </button>
+
+            <button onclick="changeSport('FR_LIGUE_1')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight:500;">Ligue 1</span>
+            </button>
+
+            <button onclick="changeSport('INTERNATIONAL_SOCCER')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 font-bold hover:text-purple-400 transition-all border border-transparent group">
+                <span class="text-sm font-weight: 500;">Internacional</span>
             </button>
         </div>
     </div>
 </aside>
 
-                <div class="lg:col-span-3">
-                    <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 border-b border-white/10 pb-6">
+                <div class="lg:col-span-3 w-full mx-auto max-w-xl lg:w-full lg:max-w-none lg:mx-0">
+                    <div class="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 mb-8 border-b border-white/10 pb-6 text-center md:text-left">
                         <div>
                             <h2 id="next-matches" class="text-3xl font-black italic uppercase">
                                 Próximos Confrontos:
@@ -172,7 +174,7 @@
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden text-gray-800">
             <div class="p-8">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-black italic uppercase tracking-tighter text-slate-900">Comunidade GoalDash</h3>
+                    <h3 class="text-2xl font-black italic uppercase tracking-tighter text-slate-900">Comunidade Goal Dash</h3>
                     <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="text-gray-400 hover:text-black">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
