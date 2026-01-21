@@ -29,8 +29,8 @@ window.UI = {
         if (history.length === 0) {
             container.innerHTML = `
                 <div class="col-span-full text-center py-32 opacity-20">
-                    <div class="text-6xl mb-4">Empty</div>
-                    <p class="font-black uppercase tracking-[0.3em] text-xs">Nenhum palpite encontrado</p>
+                    <div class="text-6xl mb-4 text-white">VAZIO</div>
+                    <p class="font-black text-white uppercase tracking-[0.3em] text-xs">Nenhum palpite encontrado</p>
                 </div>`;
             return;
         }
