@@ -1,3 +1,8 @@
+/**
+ * GoalDash - INTERFACE (ui.js)
+ * FOCO: Renderização de Cards, Modais e Componentes Visuais.
+ */
+
 window.UI = {
     showLoading: (containerId) => {
         const container = document.getElementById(containerId);
@@ -15,7 +20,6 @@ window.UI = {
             return;
         }
 
-        // Usamos um try/catch dentro do map para que, se um card der erro, os outros continuem a aparecer
         const html = matches.map(match => {
             try {
                 return window.UI.components.matchCard(match);
@@ -28,8 +32,6 @@ window.UI = {
         container.innerHTML = html;
     },
 
-    // --- NOVAS FUNÇÕES MIGRADAS DO API.JS ---
-
     renderLiveCards: (matches) => {
         const container = document.getElementById('live-matches-container');
         if (!container) return;
@@ -39,12 +41,10 @@ window.UI = {
             let hScore = m.results?.reg?.home?.points ?? 0;
             let aScore = m.results?.reg?.away?.points ?? 0;
 
-            // Animação de Golo (Usa o estado global previousScores do api.js)
             const last = window.previousScores ? window.previousScores[m.eventID] : null;
             let flashClass = (last && (last.h !== hScore || last.a !== aScore)) ? "ring-4 ring-purple-500 animate-pulse" : "";
             if (window.previousScores) window.previousScores[m.eventID] = { h: hScore, a: aScore };
 
-            // Puxando do Fotmob via data.js
             const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.home.names.short, m.teams.home.names.medium) : "";
             const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams.away.names.short, m.teams.away.names.medium) : "";
 
@@ -83,7 +83,7 @@ window.UI = {
     },
 
     renderHeader: () => {
-        const m = window.currentMatchData; // Vem do api.js
+        const m = window.currentMatchData;
         const container = document.getElementById('match-header');
         if (!m || !container) return;
 
@@ -107,7 +107,7 @@ window.UI = {
 
     renderPopularTeams: () => {
         const grid = document.getElementById('popular-teams-grid');
-        if (!grid || !window.CONFIG) return; // Garante que CONFIG existe
+        if (!grid || !window.CONFIG) return;
         grid.innerHTML = window.CONFIG.POPULAR_TEAMS.map(team => `
             <div onclick="window.fetchTeamFullStats ? window.fetchTeamFullStats(${team.id}) : alert('Em breve')" class="bg-white/5 p-4 rounded-3xl flex flex-col items-center cursor-pointer hover:bg-purple-500/10">
                 <img src="https://images.fotmob.com/image_resources/logo/teamlogo/${team.id}.png" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
@@ -117,35 +117,44 @@ window.UI = {
 
     components: {
         matchCard: (match) => {
-            // SEGURANÇA TOTAL: Se o nome não existir, não quebra o site
-            const hName = match.teams?.home?.names?.medium || match.teams?.home?.name || "Equipa Casa";
-            const aName = match.teams?.away?.names?.medium || match.teams?.away?.name || "Equipa Fora";
+            const hName = match.teams?.home?.names?.medium || "Equipa Casa";
+            const aName = match.teams?.away?.names?.medium || "Equipa Fora";
 
-            // Integração Fotmob via data.js
             const hLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.home?.names?.short, hName) : "";
             const aLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.away?.names?.short, aName) : "";
 
+            // Lógica para renderizar Data/Hora (Estilo image_c6c573.png)
             return `
-                <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center">
-                    <div class="flex justify-center mb-4">
-                        <span class="bg-white/5 px-4 py-1 rounded-full text-[10px] font-bold text-white/50">PRÓXIMO JOGO</span>
+                <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500">
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                            <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${match.displayDay || '--/--'}</span>
+                            <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+                            <span class="text-sm font-black text-white tracking-tight">${match.displayTime || '--:--'}</span>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between gap-4 mb-8">
+                    <div class="flex items-center justify-between gap-4 mb-10">
                         <div class="flex-1">
-                            <img src="${hLogo}" class="w-16 h-16 mx-auto mb-2 object-contain" onerror="this.src='https://via.placeholder.com/60?text=?'">
-                            <span class="text-[10px] font-black text-white uppercase block">${hName}</span>
+                            <div class="relative mb-3 group-hover:-translate-y-1 transition-transform">
+                                <img src="${hLogo}" class="w-16 h-16 mx-auto object-contain relative z-10" onerror="this.src='https://via.placeholder.com/60?text=?'">
+                            </div>
+                            <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${hName}</span>
                         </div>
                         <span class="text-xl font-black italic text-white/10">VS</span>
                         <div class="flex-1">
-                            <img src="${aLogo}" class="w-16 h-16 mx-auto mb-2 object-contain" onerror="this.src='https://via.placeholder.com/60?text=?'">
-                            <span class="text-[10px] font-black text-white uppercase block">${aName}</span>
+                            <div class="relative mb-3 group-hover:-translate-y-1 transition-transform">
+                                <img src="${aLogo}" class="w-16 h-16 mx-auto object-contain relative z-10" onerror="this.src='https://via.placeholder.com/60?text=?'">
+                            </div>
+                            <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${aName}</span>
                         </div>
                     </div>
-                    <button onclick="window.location.href='matchdetails.html?id=${match.eventID}'" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 transition-all">Dar Meu Palpite</button>
+                    <button onclick="window.handlePalpiteClick('${match.eventID}', '${hName}', '${aName}')" 
+                        class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:from-purple-600 hover:to-pink-600 hover:bg-gradient-to-r transition-all duration-500 cursor-pointer">
+                        Dar Meu Palpite
+                    </button>
                 </div>`;
         }
     }
 };
 
-// Vincula funções globais necessárias para UI
 window.renderPopularTeams = window.UI.renderPopularTeams;

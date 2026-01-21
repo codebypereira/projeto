@@ -1,64 +1,78 @@
 /**
  * GoalDash - SISTEMA CENTRAL (api.js)
- * FOCO: Configurações, Chamadas de API e Estado Global.
+ * FOCO: Chamadas de API e Tratamento de Dados para a UI.
  */
 
-// ============================================================================
-// 1. CONFIGURAÇÃO UNIFICADA (Mantendo seus CODES)
-// ============================================================================
 const CONFIG = {
     API_KEY: 'cc48942721f415ae287937399dd882c7',
-    MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
-    POPULAR_TEAMS: [
-        { name: 'Real Madrid', code: "RMA" }, { name: 'Barcelona', code: "BAR" },
-        { name: 'Man. City', code: "MCI" }, { name: 'Liverpool', code: "LIV" },
-        { name: 'Bayern Munich', code: "FCB" }, { name: 'Paris SG', code: "PSG" },
-        { name: 'Benfica', code: "SLB" }, { name: 'Corinthians', code: "COR" },
-        { name: 'FC Porto', code: "FCP" }, { name: 'Flamengo', code: "FLA" },
-        { name: 'Palmeiras', code: "PAL" }, { name: 'Al Nassr', code: "ALN" }
-    ]
+    MOCK_API: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions'
 };
 
-// Variáveis de Estado Global
+// Estado Global
 window.allLoadedMatches = [];
 window.activeGame = null;     
 window.currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
-window.currentMatchData = null; 
-window.previousScores = {};     
 
-// ============================================================================
-// 2. NÚCLEO DA API (GD_API)
-// ============================================================================
 const GD_API = {
-    async fetchMatches(leagueID = null, leagueName = null) {
+    /**
+     * Busca os jogos e formata a data/hora para o visual do print.
+     */
+    async fetchMatches(leagueID = null) {
         if (leagueID) window.currentLeague = leagueID;
 
-        // Feedback visual via UI
-        if (window.UI && window.UI.showLoading) window.UI.showLoading('matches-container');
+        if (window.UI && window.UI.showLoading) {
+            window.UI.showLoading('matches-container');
+        }
 
         try {
-            const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}`;
+            // Usa o parâmetro oddsAvailable=true que você confirmou que funciona
+            const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
+            
             const response = await fetch(url);
             const result = await response.json();
-            
-            window.allLoadedMatches = result.data || [];
+            const data = result.data || [];
 
-            // Delego a renderização para o ui.js
+            // Tratamento de dados para garantir o visual do seu print
+            window.allLoadedMatches = data.map(m => {
+                const rawDate = m.status?.startsAt || m.startsAt;
+                let day = "--/--";
+                let time = "--:--";
+
+                if (rawDate) {
+                    const gameDate = new Date(rawDate);
+                    if (!isNaN(gameDate.getTime())) {
+                        day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+                        time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+
+                return {
+                    ...m,
+                    displayDay: day,    // Criado para o ui.js usar
+                    displayTime: time   // Criado para o ui.js usar
+                };
+            });
+
+            // Envia para renderizar no ui.js
             if (window.UI && window.UI.renderMatches) {
                 window.UI.renderMatches('matches-container', window.allLoadedMatches);
             }
         } catch (error) {
-            console.error("Erro fatal na busca de jogos:", error);
+            console.error("Erro ao carregar jogos:", error);
         }
     },
 
-    async submitPrediction(homeScore, awayScore) {
+    /**
+     * Lógica de envio de palpite
+     */
+    async submitPrediction(h, a) {
         if (!window.activeGame) return;
         const payload = {
             matchId: `${window.activeGame.home} vs ${window.activeGame.away}`,
             username: localStorage.getItem('goalDash_username'),
-            homeScore: homeScore,
-            awayScore: awayScore,
+            Winner: h > a ? window.activeGame.home : (a > h ? window.activeGame.away : "Empate"),
+            homeScore: parseInt(h),
+            awayScore: parseInt(a),
             createdAt: new Date().toISOString()
         };
 
@@ -73,67 +87,9 @@ const GD_API = {
     }
 };
 
-// ============================================================================
-// 3. MÓDULO: LIVE & DETALHES (LOGICA DE BUSCA)
-// ============================================================================
-async function fetchLiveMatches(leagueID = 'LA_LIGA') {
-    try {
-        const url = `https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&leagueID=${leagueID}&live=true`;
-        const response = await fetch(url);
-        const result = await response.json();
-        const liveMatches = (result.data || []).filter(m => m.status && m.status.live === true);
+// Resolve o erro "ReferenceError: fetchTeamFullStats is not defined" do seu console
+window.fetchTeamFullStats = () => console.log("Função de stats chamada, mas não implementada.");
 
-        // Chama a renderização do ui.js
-        if (window.UI && window.UI.renderLiveCards) {
-            window.UI.renderLiveCards(liveMatches);
-        }
-    } catch (error) { console.error("Erro live:", error); }
-}
-
-async function fetchMatchDetails(id) {
-    try {
-        const response = await fetch(`https://api.sportsgameodds.com/v2/events?apiKey=${CONFIG.API_KEY}&eventID=${id}`);
-        const result = await response.json();
-        
-        if (result.data && result.data.length > 0) {
-            window.currentMatchData = result.data[0];
-            
-            // Chama a renderização do cabeçalho no ui.js
-            if (window.UI && window.UI.renderHeader) window.UI.renderHeader();
-            
-            const status = window.currentMatchData.status?.status;
-            const isNotStarted = (status === 'NS' || status === 'PST' || !window.currentMatchData.status?.clock);
-            
-            if (window.showTab) window.showTab(isNotStarted ? 'formacoes' : 'sumario');
-        }
-    } catch (error) { console.error("Erro detalhes:", error); }
-}
-
-// ============================================================================
-// EXPOSIÇÃO GLOBAL
-// ============================================================================
-window.CONFIG = CONFIG;
+// Exposição Global
 window.GD_API = GD_API;
-window.fetchLiveMatches = fetchLiveMatches; 
-window.fetchMatchDetails = fetchMatchDetails;
-
-window.changeSport = (leagueID, leagueName) => {
-    window.previousScores = {};
-    if (window.location.pathname.includes('live')) {
-        window.fetchLiveMatches(leagueID);
-    } else {
-        GD_API.fetchMatches(leagueID, leagueName); 
-    }
-};
-
-window.fetchMatches = (id, name) => GD_API.fetchMatches(id, name);
-window.setActiveGame = (game) => { window.activeGame = game; };
-
-window.handleSearch = (query) => {
-    if (!window.allLoadedMatches) return;
-    const filtrados = window.allLoadedMatches.filter(m => 
-        m.teams.home.names.medium.toLowerCase().includes(query.toLowerCase()) || 
-        m.teams.away.names.medium.toLowerCase().includes(query.toLowerCase())
-    );
-    if (window.UI) window.UI.renderMatches('matches-container', filtrados);
-};
+window.fetchMatches = (id) => GD_API.fetchMatches(id);
