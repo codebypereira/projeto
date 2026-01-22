@@ -1,7 +1,6 @@
 /**
  * GoalDash - INTERFACE (ui.js)
- * FOCO: Renderização de Cards, Modais e Componentes Visuais.
- * CORREÇÃO: Mapeamento de nomes e logos sincronizado com a API.
+ * FOCO: Renderização de Cards, Modais e Histórico de Palpites.
  */
 
 window.UI = {
@@ -35,11 +34,11 @@ window.UI = {
         container.innerHTML = html;
     },
 
+    // Renderiza o cabeçalho em matchdetails.html
     renderMatchHeader: (match) => {
         const container = document.getElementById('match-header');
         if (!container || !match) return;
 
-        // CORREÇÃO: Busca profunda nos nomes
         const hName = match.teams?.home?.names?.medium || match.teams?.home?.names?.long || "Casa";
         const aName = match.teams?.away?.names?.medium || match.teams?.away?.names?.long || "Fora";
         const hLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.home?.names?.short, hName) : "";
@@ -66,6 +65,47 @@ window.UI = {
         `;
     },
 
+    // Renderiza a página history.html
+    renderHistory: () => {
+        const container = document.getElementById('history-container');
+        if (!container) return;
+
+        const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
+
+        if (historico.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-20">
+                    <p class="text-white/20 font-black uppercase italic tracking-widest text-xs">Ainda não tens palpites registados, cria!</p>
+                    <a href="index.html" class="inline-block mt-6 text-purple-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors">Ir para os Jogos →</a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = historico.map(p => `
+            <div class="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/[0.07] transition-all">
+                <div class="flex-1 text-center md:text-right">
+                    <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.homeTeam}</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="bg-purple-600/20 border border-purple-500/30 px-6 py-3 rounded-2xl">
+                        <span class="text-white text-2xl font-black italic">${p.homeScore} - ${p.awayScore}</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 text-center md:text-left">
+                    <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.awayTeam}</span>
+                </div>
+
+                <div class="md:border-l md:border-white/10 md:pl-6 text-center">
+                    <p class="text-[9px] text-purple-500 font-black uppercase tracking-widest mb-1">Enviado em</p>
+                    <p class="text-[10px] text-white/40 font-bold">${p.date}</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
     // Renderiza cards de jogos ao vivo (Página Live)
     renderLiveCards: (matches) => {
         const container = document.getElementById('live-matches-container');
@@ -76,7 +116,6 @@ window.UI = {
             let hScore = m.results?.reg?.home?.points ?? 0;
             let aScore = m.results?.reg?.away?.points ?? 0;
 
-            // CORREÇÃO: Busca profunda nos nomes para o Live
             const hName = m.teams?.home?.names?.medium || "Casa";
             const aName = m.teams?.away?.names?.medium || "Fora";
             const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams?.home?.names?.short, hName) : "";
@@ -118,7 +157,6 @@ window.UI = {
 
     components: {
         matchCard: (match) => {
-            // CORREÇÃO: Recuperando nomes usando a lógica que você confirmou que funciona
             const home = match.teams?.home;
             const away = match.teams?.away;
 
@@ -164,3 +202,6 @@ window.UI = {
         }
     }
 };
+
+// Alias para manter compatibilidade se usares GD_UI ou UI
+window.GD_UI = window.UI;

@@ -1,11 +1,18 @@
 /**
  * GoalDash - ORQUESTRADOR (main.js)
- * Versão: Modal Premium + Sincronização de IDs + Interface Inteligente
+ * Versão: Modal Premium + Histórico Local + Sincronização
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Inicializa UI comum (Navbar/User)
     if (window.updateUserUI) window.updateUserUI();
+
+    // 2. Verifica se está na página de histórico
+    if (window.location.pathname.includes('history.html')) {
+        if (window.GD_UI && window.GD_UI.renderHistory) {
+            window.GD_UI.renderHistory();
+        }
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id');
@@ -164,7 +171,7 @@ window.updateUserUI = () => {
 
 window.logout = () => {
     localStorage.removeItem('goalDash_username');
-    window.location.reload(); 
+    window.location.href = 'index.html'; 
 };
 
 window.handlePalpiteClick = (id, home, away) => {
@@ -176,14 +183,12 @@ window.handlePalpiteClick = (id, home, away) => {
 
     window.activeGame = { id, home, away };
     
-    // Injeta os nomes nos elementos do Modal (Home vs Away)
     const homeNameEl = document.getElementById('modal-home-name');
     const awayNameEl = document.getElementById('modal-away-name');
     
     if (homeNameEl) homeNameEl.innerText = home;
     if (awayNameEl) awayNameEl.innerText = away;
 
-    // Reseta os campos de score
     if(document.getElementById('modal-home-score')) document.getElementById('modal-home-score').value = "";
     if(document.getElementById('modal-away-score')) document.getElementById('modal-away-score').value = "";
 
@@ -197,7 +202,7 @@ window.handlePalpiteClick = (id, home, away) => {
 window.handlePredictionSubmit = async () => {
     const homeScore = document.getElementById('modal-home-score').value;
     const awayScore = document.getElementById('modal-away-score').value;
-    const btn = event.target;
+    const btn = event.currentTarget;
 
     if (homeScore === "" || awayScore === "") {
         alert("Preenche os dois placares, cria!");
@@ -208,9 +213,24 @@ window.handlePredictionSubmit = async () => {
     btn.innerText = "A ENVIAR...";
     btn.disabled = true;
 
+    // 1. Envia para a API simulada
     const success = await window.GD_API.submitPrediction(homeScore, awayScore);
 
     if (success) {
+        // 2. SALVA NO LOCAL STORAGE PARA O HISTÓRICO
+        const novoPalpite = {
+            id: window.activeGame.id,
+            homeTeam: window.activeGame.home,
+            awayTeam: window.activeGame.away,
+            homeScore: homeScore,
+            awayScore: awayScore,
+            date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        };
+
+        const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
+        historico.unshift(novoPalpite); // Adiciona no topo
+        localStorage.setItem('goalDash_history', JSON.stringify(historico));
+
         alert("Palpite enviado com sucesso!");
         document.getElementById('prediction-modal').classList.add('hidden');
     } else {
@@ -253,7 +273,10 @@ window.closeAuthModal = () => { document.getElementById('auth-modal').classList.
 window.switchToLogin = () => { window.closeAuthModal(); window.openLoginModal(); };
 window.switchToRegister = () => { window.closeLoginModal(); window.openAuthModal(); };
 
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
     const userDropdown = document.getElementById('user-dropdown');
-    if (userDropdown) userDropdown.classList.add('hidden');
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    if (userDropdown && !userMenuBtn.contains(e.target)) {
+        userDropdown.classList.add('hidden');
+    }
 });
