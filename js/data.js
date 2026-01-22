@@ -1,10 +1,9 @@
 /**
  * GOALDASH - MÓDULO DE DADOS ESTÁTICOS
- * Centraliza mapeamentos, dicionários de IDs e logos do Fotmob.
+ * Mantendo o padrão de siglas de 3 letras do cria.
  */
 
 const GD_DATA = {
-    // Mapeamento de IDs de ligas para nomes exibíveis
     LEAGUES: {
         'UEFA_EUROPA_LEAGUE': 'Europa League',
         'UEFA_CHAMPIONS_LEAGUE': 'Champions League',
@@ -16,10 +15,6 @@ const GD_DATA = {
         'INTERNATIONAL_SOCCER': 'World Cup 2026'
     },
 
-    /**
-     * TIMES POPULARES (Para a Grid da Home)
-     * Usando os IDs que você já mapeou para garantir o Scout automático.
-     */
     POPULAR_TEAMS: [
         { id: 8633, name: "Real Madrid" },
         { id: 8634, name: "Barcelona" },
@@ -35,9 +30,6 @@ const GD_DATA = {
         { id: 9765, name: "Flamengo" }
     ],
 
-    /**
-     * Dicionário de IDs para Logos do Fotmob
-     */
     TEAM_LOGOS_MAP: {
         // PREMIER LEAGUE
         "MCI": 8456, "ARS": 9825, "NEW": 10261, "FUL": 9879, "BRE": 9937, "WHU": 8654, 
@@ -80,17 +72,13 @@ const GD_DATA = {
     }
 };
 
-/**
- * Função: getTeamLogo 
- * Puxa a imagem do Fotmob ou gera um avatar se não encontrar.
- */
 function getTeamLogo(shortName, fullName = "") {
     if (!shortName) return `${GD_DATA.UI_CONFIG.AVATAR_BASE}&name=??`;
 
     const cleanShort = String(shortName).trim().toUpperCase();
     const cleanFull = String(fullName).trim();
 
-    // 1. Lógica de Desempates
+    // 1. Lógica de Desempates (Sua especialidade)
     const desempates = {
         "BRA": cleanFull.includes("Brasil") || cleanFull.includes("Brazil") ? 8256 : 8468,
         "AJA": cleanFull.includes("Ajax") ? 8593 : 8583,
@@ -102,21 +90,15 @@ function getTeamLogo(shortName, fullName = "") {
         return `https://images.fotmob.com/image_resources/logo/teamlogo/${desempates[cleanShort]}.png`;
     }
 
-    // 2. Procura no mapeamento principal
+    // 2. Busca pela sigla no mapa principal
     const id = GD_DATA.TEAM_LOGOS_MAP[cleanShort];
-
     if (id) {
         return `https://images.fotmob.com/image_resources/logo/teamlogo/${id}.png`;
     }
     
-    // 3. Fallback: Avatar roxo estilizado
+    // 3. Fallback
     return `${GD_DATA.UI_CONFIG.AVATAR_BASE}&name=${cleanShort}`;
 }
 
-// Exposições Globais
 window.GD_DATA = GD_DATA;
 window.getTeamLogo = getTeamLogo;
-// Garante que o CONFIG global enxergue os times populares
-if(window.CONFIG) {
-    window.CONFIG.POPULAR_TEAMS = GD_DATA.POPULAR_TEAMS;
-}
