@@ -1,7 +1,6 @@
 /**
  * GoalDash - INTERFACE (ui.js)
- * FOCO: Renderização de Cards, Modais, Histórico e Estatísticas de Equipas.
- * LOGO: Sistema integrado com data.js (FotMob)
+ * FOCO: Renderização de Cards, Modais, Histórico e Tabela de Resultados Reais.
  */
 
 window.UI = {
@@ -43,7 +42,6 @@ window.UI = {
         const hCode = match.teams?.home?.names?.short || "";
         const aCode = match.teams?.away?.names?.short || "";
 
-        // USANDO TUA FUNÇÃO DO DATA.JS
         const hLogo = window.getTeamLogo(hCode, hName);
         const aLogo = window.getTeamLogo(aCode, aName);
 
@@ -57,7 +55,7 @@ window.UI = {
                     <div class="text-center">
                         <div class="text-[10px] font-black text-purple-500 uppercase tracking-[3px] mb-2">${match.displayDay || '--/--'}</div>
                         <div class="text-6xl font-black italic tracking-tighter text-white">${match.status?.score?.home ?? 0} - ${match.status?.score?.away ?? 0}</div>
-                        <div class="text-[10px] font-black text-gray-500 uppercase tracking-[2px] mt-2">${match.displayTime || 'Pendente'}</div>
+                        <div class="text-[10px] font-black text-gray-500 uppercase tracking-2px mt-2">${match.displayTime || 'Pendente'}</div>
                     </div>
                     <div class="flex-1 text-center">
                         <img src="${aLogo}" class="w-20 h-20 mx-auto mb-4 object-contain" onerror="this.src='Images/favi.svg'">
@@ -73,7 +71,6 @@ window.UI = {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
         grid.innerHTML = teams.map(team => {
-            // USANDO O 'CODE' QUE TU MANDOU (RMA, FLA, etc)
             const logoUrl = window.getTeamLogo(team.code, team.name);
             return `
                 <div onclick="window.handleTeamClickByCode('${team.code}', '${team.name}')" 
@@ -87,7 +84,7 @@ window.UI = {
         }).join('');
     },
 
-    renderTeamDashboard: (data) => {
+    renderTeamDashboard: (data, endedMatches = []) => {
         const resultsContainer = document.getElementById('search-results');
         const initialView = document.getElementById('initial-view');
         if (!resultsContainer || !initialView) return;
@@ -95,7 +92,6 @@ window.UI = {
         initialView.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
 
-        // Pega a logo baseada no código que injetamos no main.js
         const dashLogo = window.getTeamLogo(data.code || "", data.name);
 
         resultsContainer.innerHTML = `
@@ -115,9 +111,9 @@ window.UI = {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-in slide-in-from-bottom-4 duration-700">
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5">
-                    <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente (Últimos 5 jogos)</h3>
+                    <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente</h3>
                     <div class="flex gap-3 justify-center md:justify-start">
                         ${data.form.map(res => {
                             let color = res === 'V' ? 'bg-green-500' : res === 'D' ? 'bg-red-500' : 'bg-gray-500';
@@ -136,10 +132,36 @@ window.UI = {
                     </div>
                 </div>
             </div>
+
+            <div class="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 animate-in slide-in-from-bottom-8 duration-1000">
+                <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8 text-center md:text-left">Resultados Reais das Partidas</h3>
+                <div class="space-y-4">
+                    ${endedMatches.length > 0 ? endedMatches.map(match => {
+                        const hScore = match.status?.score?.home ?? 0;
+                        const aScore = match.status?.score?.away ?? 0;
+                        const homeName = match.teams?.home?.names?.medium || "Casa";
+                        const awayName = match.teams?.away?.names?.medium || "Fora";
+                        
+                        return `
+                            <div class="flex items-center justify-between bg-white/[0.02] border border-white/5 p-5 rounded-2xl hover:bg-white/[0.05] transition-all">
+                                <div class="flex-1 text-right pr-4">
+                                    <span class="text-[11px] font-black text-white uppercase tracking-tighter">${homeName}</span>
+                                </div>
+                                <div class="bg-black/40 px-4 py-2 rounded-xl border border-white/10 min-w-[80px] text-center">
+                                    <span class="text-lg font-black italic text-purple-400">${hScore} - ${aScore}</span>
+                                </div>
+                                <div class="flex-1 text-left pl-4">
+                                    <span class="text-[11px] font-black text-white uppercase tracking-tighter">${awayName}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('') : `<p class="text-center text-gray-500 text-[10px] font-black uppercase py-4">Nenhum resultado recente encontrado</p>`}
+                </div>
+            </div>
         `;
     },
 
-    // 5. Histórico de Palpites
+    // 5. Histórico de Palpites (history.html)
     renderHistory: () => {
         const container = document.getElementById('history-container');
         if (!container) return;
@@ -160,44 +182,62 @@ window.UI = {
 
     // 6. Componentes Internos
     components: {
-        matchCard: (match) => {
-            const hName = match.teams?.home?.names?.medium || "Casa";
-            const aName = match.teams?.away?.names?.medium || "Fora";
-            const hCode = match.teams?.home?.names?.short || "";
-            const aCode = match.teams?.away?.names?.short || "";
+    matchCard: (match) => {
+        // 1. Lógica robusta para pegar nomes (cascata de fallback)
+        const hName = match.teams?.home?.names?.medium || match.teams?.home?.names?.long || match.teams?.home?.names?.short || "Casa";
+        const aName = match.teams?.away?.names?.medium || match.teams?.away?.names?.long || match.teams?.away?.names?.short || "Fora";
+        
+        const hCode = match.teams?.home?.names?.short || "";
+        const aCode = match.teams?.away?.names?.short || "";
 
-            // LOGOS VIA DATA.JS
-            const hLogo = window.getTeamLogo(hCode, hName);
-            const aLogo = window.getTeamLogo(aCode, aName);
+        // 2. Logos (usando o getter global)
+        const hLogo = window.getTeamLogo ? window.getTeamLogo(hCode, hName) : 'Images/favi.svg';
+        const aLogo = window.getTeamLogo ? window.getTeamLogo(aCode, aName) : 'Images/favi.svg';
 
-            return `
-                <div onclick="window.location.href='matchdetails.html?id=${match.eventID}'" 
-                     class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500 cursor-pointer">
-                    <div class="flex justify-center mb-6">
-                        <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                            <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${match.displayDay || '--/--'}</span>
-                            <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                            <span class="text-sm font-black text-white tracking-tight">${match.displayTime || '--:--'}</span>
-                        </div>
+        // 3. Escape de aspas para não quebrar o onclick do botão
+        const hNameEscaped = hName.replace(/'/g, "\\'");
+        const aNameEscaped = aName.replace(/'/g, "\\'");
+
+        return `
+            <div onclick="window.location.href='matchdetails.html?id=${match.eventID}'" 
+                 class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500 cursor-pointer">
+                
+                <div class="flex justify-center mb-6">
+                    <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                        <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${match.displayDay || '--/--'}</span>
+                        <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+                        <span class="text-sm font-black text-white tracking-tight">${match.displayTime || '--:--'}</span>
                     </div>
-                    <div class="flex items-center justify-between gap-4 mb-10">
-                        <div class="flex-1">
-                            <img src="${hLogo}" class="w-16 h-16 mx-auto object-contain mb-3 group-hover:-translate-y-1 transition-transform" onerror="this.src='Images/favi.svg'">
-                            <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${hName}</span>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 mb-10">
+                    <div class="flex-1">
+                        <div class="relative w-16 h-16 mx-auto mb-3">
+                            <img src="${hLogo}" class="w-full h-full object-contain relative z-10 group-hover:-translate-y-1 transition-transform" 
+                                 onerror="this.src='Images/favi.svg'">
                         </div>
-                        <span class="text-xl font-black italic text-white/10">VS</span>
-                        <div class="flex-1">
-                            <img src="${aLogo}" class="w-16 h-16 mx-auto object-contain mb-3 group-hover:-translate-y-1 transition-transform" onerror="this.src='Images/favi.svg'">
-                            <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${aName}</span>
-                        </div>
+                        <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100 line-clamp-1">${hName}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hName.replace(/'/g, "\\'")}', '${aName.replace(/'/g, "\\")}')" 
-                        class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 transition-all duration-500 cursor-pointer text-white">
-                        Dar Meu Palpite
-                    </button>
-                </div>`;
+
+                    <span class="text-xl font-black italic text-white/10">VS</span>
+
+                    <div class="flex-1">
+                        <div class="relative w-16 h-16 mx-auto mb-3">
+                            <img src="${aLogo}" class="w-full h-full object-contain relative z-10 group-hover:-translate-y-1 transition-transform" 
+                                 onerror="this.src='Images/favi.svg'">
+                        </div>
+                        <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100 line-clamp-1">${aName}</span>
+                    </div>
+                </div>
+
+                <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hNameEscaped}', '${aNameEscaped}')" 
+                    class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 transition-all duration-500 cursor-pointer text-white">
+                    Dar Meu Palpite
+                </button>
+            </div>`;
         }
     }
 };
 
+// GARANTE QUE AS DUAS FORMAS DE CHAMAR FUNCIONEM
 window.GD_UI = window.UI;

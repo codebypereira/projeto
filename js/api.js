@@ -1,6 +1,6 @@
 /**
  * GoalDash - SISTEMA CENTRAL (api.js)
- * Versão Final: Com busca de equipas, histórico e autenticação.
+ * Versão Final: Com busca de equipas, histórico, autenticação e partidas terminadas.
  */
 
 const CONFIG = {
@@ -57,134 +57,150 @@ const GD_API = {
     },
 
     /**
-     * 2. BUSCA DE EQUIPA POR NOME (Página Stats)
+     * 2. BUSCA DE PARTIDAS TERMINADAS
      */
-    async searchTeamByName(query) {
+    async fetchEndedMatches(leagueID = null) {
+        const league = leagueID || window.currentLeague;
         try {
-            const response = await fetch(`${CONFIG.BASE_URL_V1}/soccer/teams?search=${encodeURIComponent(query)}`, {
-                headers: { 'X-Api-Key': CONFIG.API_KEY }
-            });
-            const data = await response.json();
-            const teams = data.data || data;
-
-            // Retorna o primeiro ID encontrado (v1 usa teamID, v2 usa id)
-            return (teams && teams.length > 0) ? (teams[0].teamID || teams[0].id) : null;
-        } catch (err) {
-            console.error("Erro na busca da equipa:", err);
-            return null;
+            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${league}&finalized=true`;
+            const response = await fetch(url);
+            const result = await response.json();
+            return result.data || [];
+        } catch (error) {
+            console.error("Erro ao buscar partidas terminadas:", error);
+            return [];
         }
     },
 
     /**
-     * 3. ESTATÍSTICAS COMPLETAS E FORMA (Página Stats)
+     * 3. BUSCA DE EQUIPA POR NOME
+     */
+    searchTeamByName: async (name) => {
+    // 1. Garante que temos jogos carregados para pesquisar
+    const matches = window.allLoadedMatches || [];
+    const searchTerm = name.toLowerCase().trim();
+    
+    console.log(`🔍 Busca Universal iniciada para: "${searchTerm}"`);
+
+    // 2. Procura nos jogos carregados (Varre todos os times da liga atual)
+    for (const m of matches) {
+        const home = m.teams?.home;
+        const away = m.teams?.away;
+
+        // Testa o time da casa
+        if (home && (
+            home.names?.medium?.toLowerCase().includes(searchTerm) || 
+            home.names?.full?.toLowerCase().includes(searchTerm) ||
+            home.teamID?.toLowerCase().includes(searchTerm.replace(" ", "_"))
+        )) {
+            console.log("✅ Time encontrado na Casa:", home.teamID);
+            return home.teamID;
+        }
+
+        // Testa o time de fora
+        if (away && (
+            away.names?.medium?.toLowerCase().includes(searchTerm) || 
+            away.names?.full?.toLowerCase().includes(searchTerm) ||
+            away.teamID?.toLowerCase().includes(searchTerm.replace(" ", "_"))
+        )) {
+            console.log("✅ Time encontrado Fora:", away.teamID);
+            return away.teamID;
+        }
+    }
+
+    // 3. SE NÃO ACHOU NOS JOGOS: Tenta montar a String ID padrão da API
+    // Muitas APIs usam NOME_LIGA. Vamos tentar prever isso:
+    const predictedID = searchTerm.toUpperCase().replace(/\s+/g, '_') + "_UEFA_CHAMPIONS_LEAGUE";
+    console.warn("⚠️ Time não está na lista de jogos atual. Tentando ID previsto:", predictedID);
+    
+    return predictedID; 
+    },
+
+    /**
+     * 4. ESTATÍSTICAS COMPLETAS E FORMA (AJUSTADA PARA FUNCIONAR NA UI)
      */
     async fetchTeamFullStats(teamID) {
         try {
-            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&teamID=${teamID}&ended=true&limit=5`;
+            console.log(`%c 🔍 DEBUG: Buscando ID ${teamID}...`, "color: #9333ea; font-weight: bold;");
+
+            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&teamID=${teamID}&finalized=true&limit=5`;
             const response = await fetch(url);
             const result = await response.json();
-            const matches = result.data || [];
 
-            if (matches.length === 0) return null;
+            console.log("%c 📦 DADOS BRUTOS:", "color: #00ff00; font-weight: bold;", result);
+            
+            const matches = result.data || result.events || (Array.isArray(result) ? result : []);
 
-            // Calcula V/D/E para os últimos 5 jogos
-            const formArray = matches.map(game => {
-                const homeID = game.homeID || game.teams?.home?.id;
-                const hScore = game.homeScore ?? game.results?.reg?.home?.points ?? 0;
-                const aScore = game.awayScore ?? game.results?.reg?.away?.points ?? 0;
+            if (matches.length === 0) {
+                console.warn("⚠️ Sem jogos finalizados.");
+                return { name: "Equipa", league: "Liga", form: [], history: [] };
+            }
 
-                const isHome = homeID == teamID;
-                const teamScore = isHome ? hScore : aScore;
-                const oppScore = isHome ? aScore : hScore;
-
-                if (teamScore > oppScore) return 'V';
-                if (teamScore < oppScore) return 'D';
-                return 'E';
-            });
-
-            const firstMatch = matches[0];
+            // TRATAMENTO PARA A UI NÃO CRASHAR
+            const sample = matches[0];
+            const isHome = sample.teams.home.id == teamID;
+            
             return {
                 id: teamID,
-                name: (firstMatch.teams?.home?.id == teamID) 
-                    ? (firstMatch.teams?.home?.names?.medium || firstMatch.homeName) 
-                    : (firstMatch.teams?.away?.names?.medium || firstMatch.awayName),
-                league: firstMatch.tournament?.name || firstMatch.leagueName || "Liga",
-                form: formArray
+                name: isHome ? sample.teams.home.names.medium : sample.teams.away.names.medium,
+                league: sample.league?.names?.medium || "Competição",
+                form: matches.map(m => {
+                    const hS = m.status?.score?.home ?? 0;
+                    const aS = m.status?.score?.away ?? 0;
+                    if (hS === aS) return 'E';
+                    return (m.teams.home.id == teamID ? hS > aS : aS > hS) ? 'V' : 'D';
+                }),
+                history: matches
             };
+
         } catch (err) {
-            console.error("Erro ao puxar estatísticas completas:", err);
+            console.error("🚨 ERRO NO FETCH:", err);
             return null;
         }
     },
 
     /**
-     * 4. AUTENTICAÇÃO (Login e Registo)
+     * 5. AUTENTICAÇÃO
      */
     async loginUser(username, password) {
         try {
             const response = await fetch(CONFIG.MOCK_API_USERS);
             const users = await response.json();
-
-            const user = users.find(u => 
-                (u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase())
-            );
-
+            const user = users.find(u => (u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()));
             if (!user) return { success: false, error: "Utilizador não encontrado!" };
             if (user.password !== password) return { success: false, error: "Palavra-passe incorreta!" };
-
             return { success: true, username: user.username };
-        } catch (e) {
-            return { success: false, error: "Erro na ligação ao servidor." };
-        }
+        } catch (e) { return { success: false, error: "Erro na ligação." }; }
     },
 
     async registerUser(userData) {
         try {
-            if (userData.password.length < 8) {
-                return { success: false, error: "A palavra-passe deve ter pelo menos 8 caracteres." };
-            }
-
             const response = await fetch(CONFIG.MOCK_API_USERS);
             const users = await response.json();
-
-            const nameExists = users.some(u => u.username.toLowerCase() === userData.username.toLowerCase());
-            const emailExists = users.some(u => u.email.toLowerCase() === userData.email.toLowerCase());
-
-            if (nameExists && emailExists) return { success: false, error: "Nome e email já utilizados!" };
-            if (nameExists) return { success: false, error: "Nome de utilizador já está em uso!" };
-            if (emailExists) return { success: false, error: "Este e-mail já está registado!" };
-
+            if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) return { success: false, error: "Nome já existe!" };
             const createRes = await fetch(CONFIG.MOCK_API_USERS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-
-            return createRes.ok ? { success: true } : { success: false, error: "Erro ao salvar o registo." };
-
-        } catch (error) {
-            return { success: false, error: "Falha de conexão à internet." };
-        }
+            return createRes.ok ? { success: true } : { success: false, error: "Erro ao salvar." };
+        } catch (error) { return { success: false, error: "Falha de conexão." }; }
     },
 
     /**
-     * 5. ENVIO DE PALPITE
+     * 6. ENVIO DE PALPITE
      */
     async submitPrediction(h, a) {
         if (!window.activeGame) return false;
-
         const username = localStorage.getItem('goalDash_username');
-        if (!username) return false;
-
         const payload = {
-            matchId: `${window.activeGame.home} vs ${window.activeGame.away}`,
+            matchId: window.activeGame.id,
+            matchName: `${window.activeGame.home} vs ${window.activeGame.away}`,
             username: username,
-            Winner: h > a ? window.activeGame.home : (a > h ? window.activeGame.away : "Empate"),
             homeScore: parseInt(h),
             awayScore: parseInt(a),
             createdAt: new Date().toISOString()
         };
-
         try {
             const res = await fetch(CONFIG.MOCK_API_PREDICTIONS, {
                 method: 'POST',
@@ -192,13 +208,9 @@ const GD_API = {
                 body: JSON.stringify(payload)
             });
             return res.ok;
-        } catch (e) {
-            console.error("Erro ao enviar palpite:", e);
-            return false;
-        }
+        } catch (e) { return false; }
     }
 };
 
-// EXPOSIÇÃO GLOBAL
 window.GD_API = GD_API;
 window.fetchMatches = (id) => GD_API.fetchMatches(id);

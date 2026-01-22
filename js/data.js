@@ -80,7 +80,8 @@ function getTeamLogo(shortName, fullName = "") {
         "BRA": cleanFull.includes("Brasil") || cleanFull.includes("Brazil") ? 8256 : 8468,
         "AJA": cleanFull.includes("Ajax") ? 8593 : 8583,
         "PAR": cleanFull.includes("Paraguay") || cleanFull.includes("Paraguai") ? 6724 : 10167,
-        "BRE": cleanFull.includes("Brentford") ? 9937 : 8521
+        "BRE": cleanFull.includes("Brentford") ? 9937 : 8521,
+        "PAN": cleanFull.includes("Panathinaikos") ? 10200 : 5922
     };
 
     if (desempates[cleanShort]) {

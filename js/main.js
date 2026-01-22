@@ -1,83 +1,242 @@
 /**
  * GoalDash - ORQUESTRADOR CENTRAL (main.js)
- * Versão Final: Stats, Auth Global, Matches e History integrados com Limpeza de Dados.
+ * Versão: 3.7.0 - Ultra Full Edition (Sem cortes)
+ * Foco: Stats, Auth, Matches, History, Details e Modais.
  */
 
+// ========================================================
+// 1. FUNÇÕES GLOBAIS DE CLIQUE & LIGAS (ESSENCIAL)
+// ========================================================
+
+window.changeSport = async (leagueID, leagueName) => {
+    console.log("🏆 Trocando para liga:", leagueID);
+    window.currentLeague = leagueID;
+
+    // 1. Atualizar o Título Dinâmico (Ajustado para o seu ID: current-league-title)
+    const titleEl = document.getElementById('current-league-title');
+    if (titleEl) {
+        titleEl.innerText = leagueName ? leagueName.toUpperCase() : "TODAS AS LIGAS";
+    }
+
+    // 2. Tratamento visual dos botões (Procurando pelo texto dentro dos botões)
+    document.querySelectorAll('aside button').forEach(btn => {
+        // Remove as classes de ativo de todos
+        btn.classList.remove('bg-white/5', 'text-purple-400', 'border-purple-500/30');
+        btn.classList.add('text-gray-400', 'border-transparent');
+
+        // Se o texto do botão for igual ao nome da liga, destaca ele
+        if (leagueName && btn.innerText.includes(leagueName)) {
+            btn.classList.remove('text-gray-400', 'border-transparent');
+            btn.classList.add('bg-white/5', 'text-purple-400', 'border-purple-500/30');
+        }
+    });
+
+    // 3. Recarrega os jogos no container com feedback visual
+    if (window.GD_API && window.GD_API.fetchMatches) {
+        const container = document.getElementById('matches-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-20">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-4"></div>
+                    <p class="text-white font-black uppercase tracking-widest text-[10px] animate-pulse">Sincronizando ${leagueName}...</p>
+                </div>
+            `;
+        }
+        await window.GD_API.fetchMatches(leagueID);
+    }
+};
+
+window.handleTeamClickByCode = async (code, name) => {
+    console.log("%c 🚨 [SISTEMA] CLIQUE DETECTADO NO TIME: " + name, "background: #9333ea; color: white; padding: 8px; font-weight: bold; border-radius: 4px;");
+    
+    if (window.UI && typeof window.UI.showLoading === 'function') {
+        window.UI.showLoading('search-results');
+    }
+
+    try {
+        if (!window.GD_API) {
+            console.error("❌ ERRO CRÍTICO: Objeto GD_API não encontrado no escopo global.");
+            alert("Erro de sistema: API não carregada.");
+            return;
+        }
+        
+        console.log("📡 Iniciando busca de ID para: " + name);
+        const teamID = await window.GD_API.searchTeamByName(name);
+        
+        if (teamID) {
+            console.log("✅ ID Localizado com sucesso: " + teamID);
+            await window.handleTeamClick(teamID);
+        } else {
+            console.warn("⚠️ A API não retornou um ID válido para: " + name);
+            alert("Não foi possível localizar os dados deste time especificamente.");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("🚨 ERRO NO FLUXO handleTeamClickByCode:", err);
+    }
+};
+
+window.handleTeamClick = async (teamID) => {
+    console.log("%c 📡 [API] BUSCANDO DASHBOARD DO TIME ID: " + teamID, "color: #a855f7; font-weight: bold;");
+    
+    try {
+        const stats = await window.GD_API.fetchTeamFullStats(teamID);
+        const endedMatches = await window.GD_API.fetchEndedMatches() || [];
+        
+        console.log("📊 Dados Brutos Recebidos (Stats):", stats);
+
+        const teamHistory = endedMatches.filter(m => {
+            return String(m.homeID) === String(teamID) || String(m.awayID) === String(teamID);
+        });
+
+        if (stats && window.UI && typeof window.UI.renderTeamDashboard === 'function') {
+            window.UI.renderTeamDashboard(stats, teamHistory);
+            console.log("✅ [UI] Dashboard renderizado com sucesso.");
+        } else {
+            throw new Error("Falha na validação dos dados ou funções de UI ausentes.");
+        }
+    } catch (err) {
+        console.error("🚨 ERRO AO PROCESSAR DASHBOARD:", err);
+        const resultsContainer = document.getElementById('search-results');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `<div class="p-10 text-center text-red-500 font-black uppercase tracking-widest text-xs">Erro ao carregar estatísticas. Tente novamente.</div>`;
+        }
+    }
+};
+
+// ========================================================
+// 2. INICIALIZAÇÃO DO DOCUMENTO (DOMContentLoaded)
+// ========================================================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Inicializa UI comum (Navbar/User)
-    if (window.updateUserUI) window.updateUserUI();
+    console.log("%c 🚀 GoalDash Main: Engine Iniciada", "color: #10b981; font-weight: bold;");
+
+    // Inicialização da interface de usuário (Navbar/Login)
+    if (window.updateUserUI) {
+        window.updateUserUI();
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id');
     const action = urlParams.get('action');
 
-    // --- REDIRECIONAMENTO DE AUTH ---
-    if (action === 'login') window.openLoginModal();
-    if (action === 'register') window.openAuthModal();
+    // --- LOGICA DE REDIRECIONAMENTOS ---
+    if (action === 'login') {
+        console.log("Ação detectada: Abrindo Login");
+        window.openLoginModal();
+    }
+    if (action === 'register') {
+        console.log("Ação detectada: Abrindo Registro");
+        window.openAuthModal();
+    }
 
-    // --- 2. VERIFICAÇÃO DE PÁGINA: HISTORY ---
+    // --- VERIFICAÇÃO DE PÁGINA: HISTORY ---
     if (window.location.pathname.includes('history.html')) {
+        console.log("Página detectada: Histórico");
         if (window.GD_UI && window.GD_UI.renderHistory) {
             window.GD_UI.renderHistory();
         }
     }
 
-    // --- 3. VERIFICAÇÃO DE PÁGINA: STATS ---
+    // --- VERIFICAÇÃO DE PÁGINA: STATS ---
     if (window.location.pathname.includes('stats.html')) {
-        initStatsPage();
+        console.log("Página detectada: Estatísticas");
+        
+        const popularTeamsData = [
+            { name: 'Real Madrid', code: "RMA" },
+            { name: 'Barcelona', code: "BAR" },
+            { name: 'Man. City', code: "MCI" },
+            { name: 'Liverpool', code: "LIV" },
+            { name: 'Bayern Munich', code: "FCB" },
+            { name: 'Paris SG', code: "PSG" },
+            { name: 'Benfica', code: "SLB" },
+            { name: 'Sporting CP', code: "SCP" },
+            { name: 'FC Porto', code: "FCP" },
+            { name: 'Flamengo', code: "FLA" },
+            { name: 'Palmeiras', code: "PAL" },
+            { name: 'Al Nassr', code: "ALN" }
+        ];
+
+        if (window.UI && window.UI.renderPopularTeams) {
+            window.UI.renderPopularTeams(popularTeamsData);
+        }
+
+        const searchInput = document.getElementById('teams-search');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query.length < 3) return;
+                    console.log("Pesquisa manual iniciada por: " + query);
+                    const teamID = await window.GD_API.searchTeamByName(query);
+                    if (teamID) window.handleTeamClick(teamID);
+                }
+            });
+        }
     }
 
-    // --- 4. LÓGICA DE JOGOS (HOME/DETAILS) ---
+    // --- VERIFICAÇÃO DE PÁGINA: DETAILS OU HOME ---
     if (matchId && window.location.pathname.includes('matchdetails.html')) {
+        console.log("Página detectada: Detalhes do Jogo - ID: " + matchId);
         if (window.GD_API && window.GD_API.fetchMatches) {
             try {
-                const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
-                const data = await window.GD_API.fetchMatches(leagueToLoad);
+                const currentLeague = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
+                const data = await window.GD_API.fetchMatches(currentLeague);
                 const matches = Array.isArray(data) ? data : (window.allLoadedMatches || []);
                 const match = matches.find(m => String(m.eventID) === String(matchId));
                 
                 if (match && window.UI && window.UI.renderMatchHeader) {
                     window.UI.renderMatchHeader(match);
                 }
-            } catch (err) { console.error("Erro detalhes:", err); }
+            } catch (err) {
+                console.error("Erro ao carregar detalhes do jogo:", err);
+            }
         }
     } else if (document.getElementById('matches-container')) {
+        console.log("Página detectada: Home (Lista de Jogos)");
         if (window.GD_API && window.GD_API.fetchMatches) {
             const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
             await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
 
-    // --- 5. BIND DOS FORMULÁRIOS (LOGIN/REGISTO) ---
     setupAuthListeners();
 });
 
-/**
- * CONFIGURAÇÃO DOS LISTENERS DE AUTH (Com Feedbacks Visuais)
- */
+// ========================================================
+// 3. SISTEMA DE AUTENTICAÇÃO E FORMULÁRIOS
+// ========================================================
+
 function setupAuthListeners() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
-            const user = document.getElementById('login-user').value.trim();
-            const pass = document.getElementById('login-pass').value;
-            const btn = loginForm.querySelector('button[type="submit"]');
-            const msg = document.getElementById('login-message');
+            const userField = document.getElementById('login-user');
+            const passField = document.getElementById('login-pass');
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const messageBox = document.getElementById('login-message');
 
-            if (btn) { btn.innerText = "A ENTRAR..."; btn.disabled = true; }
+            if (submitBtn) { 
+                submitBtn.innerText = "A VALIDAR CREDENCIAIS..."; 
+                submitBtn.disabled = true; 
+            }
 
-            const res = await window.GD_API.loginUser(user, pass);
-            if (res.success) {
-                localStorage.setItem('goalDash_username', res.username);
+            const response = await window.GD_API.loginUser(userField.value.trim(), passField.value);
+
+            if (response.success) {
+                localStorage.setItem('goalDash_username', response.username);
                 window.location.reload();
             } else {
-                if (msg) {
-                    msg.innerText = res.error;
-                    msg.classList.remove('hidden');
-                    msg.className = "p-4 rounded-2xl bg-red-50 text-red-500 text-[14px] font-bold text-center mt-2 border border-red-100";
+                if (messageBox) {
+                    messageBox.innerText = response.error;
+                    messageBox.classList.remove('hidden');
+                    messageBox.className = "p-4 rounded-2xl bg-red-500/10 text-red-500 text-[11px] font-black text-center mt-4 border border-red-500/20";
                 }
-                if (btn) { btn.innerText = "Entrar"; btn.disabled = false; }
+                if (submitBtn) { 
+                    submitBtn.innerText = "ENTRAR"; 
+                    submitBtn.disabled = false; 
+                }
             }
         };
     }
@@ -86,166 +245,145 @@ function setupAuthListeners() {
     if (authForm) {
         authForm.onsubmit = async (e) => {
             e.preventDefault();
+            const user = document.getElementById('auth-user').value.trim();
+            const email = document.getElementById('auth-email').value.trim();
+            const pass = document.getElementById('auth-pass').value;
             const submitBtn = authForm.querySelector('button[type="submit"]');
             const messageBox = document.getElementById('auth-message');
 
-            if (submitBtn) { submitBtn.innerText = "A VALIDAR..."; submitBtn.disabled = true; }
+            if (submitBtn) {
+                submitBtn.innerText = "A CRIAR CONTA...";
+                submitBtn.disabled = true;
+            }
 
             const userData = {
-                username: document.getElementById('auth-user').value.trim(),
-                email: document.getElementById('auth-email').value.trim(),
-                password: document.getElementById('auth-pass').value,
+                username: user,
+                email: email,
+                password: pass,
                 createdAt: new Date().toISOString()
             };
 
             const result = await window.GD_API.registerUser(userData);
+
             if (result.success) {
-                localStorage.setItem('goalDash_username', userData.username);
-                window.location.reload(); 
+                localStorage.setItem('goalDash_username', user);
+                window.location.reload();
             } else {
                 if (messageBox) {
                     messageBox.innerText = result.error;
                     messageBox.classList.remove('hidden');
-                    messageBox.style.cssText = "display: block; background: rgba(239,68,68,0.15); color: #ff4444; border: 1px solid rgba(255,68,68,0.3); padding: 12px; font-size: 14px; font-weight: 800; border-radius: 8px; margin-top: 15px;";
+                    messageBox.className = "p-4 rounded-2xl bg-red-500/10 text-red-500 text-[11px] font-black text-center mt-4 border border-red-500/20";
                 }
-                if (submitBtn) { submitBtn.innerText = "Criar Conta"; submitBtn.disabled = false; }
+                if (submitBtn) {
+                    submitBtn.innerText = "CRIAR CONTA";
+                    submitBtn.disabled = false;
+                }
             }
         };
     }
 }
 
-/**
- * LÓGICA DE PALPITES
- */
+// ========================================================
+// 4. LÓGICA DE PALPITES & HISTÓRICO
+// ========================================================
+
 window.handlePalpiteClick = (id, home, away) => {
-    const user = localStorage.getItem('goalDash_username');
-    if (!user) { 
-        window.openAuthModal(); 
-        return; 
+    const activeUser = localStorage.getItem('goalDash_username');
+    if (!activeUser) {
+        window.openAuthModal();
+        return;
     }
 
     window.activeGame = { id, home, away };
-    const homeNameEl = document.getElementById('modal-home-name');
-    const awayNameEl = document.getElementById('modal-away-name');
-    if (homeNameEl) homeNameEl.innerText = home;
-    if (awayNameEl) awayNameEl.innerText = away;
+    
+    const homeEl = document.getElementById('modal-home-name');
+    const awayEl = document.getElementById('modal-away-name');
+    
+    if (homeEl) homeEl.innerText = home;
+    if (awayEl) awayEl.innerText = away;
 
     const modal = document.getElementById('prediction-modal');
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 };
 
 window.handlePredictionSubmit = async () => {
-    const homeScore = document.getElementById('modal-home-score').value;
-    const awayScore = document.getElementById('modal-away-score').value;
+    const hScore = document.getElementById('modal-home-score').value;
+    const aScore = document.getElementById('modal-away-score').value;
     const btn = event.currentTarget;
 
-    if (homeScore === "" || awayScore === "") { alert("Preenche os placares, cria!"); return; }
+    if (hScore === "" || aScore === "") {
+        alert("Por favor, preenche ambos os campos do palpite, cria!");
+        return;
+    }
 
-    btn.innerText = "A ENVIAR...";
+    btn.innerText = "A ENVIAR PALPITE...";
     btn.disabled = true;
 
-    const success = await window.GD_API.submitPrediction(homeScore, awayScore);
+    const success = await window.GD_API.submitPrediction(hScore, aScore);
+    
     if (success) {
-        const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
-        historico.unshift({
+        const history = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
+        history.unshift({
+            predictionID: Date.now(),
             id: window.activeGame.id,
             homeTeam: window.activeGame.home,
             awayTeam: window.activeGame.away,
-            homeScore, awayScore,
-            date: new Date().toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+            homeScore: hScore,
+            awayScore: aScore,
+            date: new Date().toLocaleString('pt-PT')
         });
-        localStorage.setItem('goalDash_history', JSON.stringify(historico));
-        alert("Palpite enviado!");
+        localStorage.setItem('goalDash_history', JSON.stringify(history));
+        alert("Palpite registado com sucesso!");
         document.getElementById('prediction-modal').classList.add('hidden');
-    } else { 
-        alert("Erro ao enviar."); 
+    } else {
+        alert("Erro ao enviar o palpite para o servidor.");
     }
-    btn.innerText = "Enviar Palpite"; btn.disabled = false;
+    
+    btn.innerText = "ENVIAR PALPITE";
+    btn.disabled = false;
 };
 
-/**
- * LÓGICA DE HISTÓRICO
- */
+// LIMPAR HISTÓRICO COMPLETO
 window.clearHistory = () => {
-    if (confirm("Tens a certeza que queres apagar todos os teus palpites, cria?")) {
+    if (confirm("Desejas mesmo apagar todo o teu histórico de palpites, cria?")) {
         localStorage.removeItem('goalDash_history');
-        window.location.reload();
-    }
-};
-
-/**
- * LÓGICA DE ESTATÍSTICAS
- */
-async function initStatsPage() {
-    const popularTeamsData = [
-        { name: 'Real Madrid', code: "RMA" }, { name: 'Barcelona', code: "BAR" },
-        { name: 'Man. City', code: "MCI" }, { name: 'Liverpool', code: "LIV" },
-        { name: 'Bayern Munich', code: "FCB" }, { name: 'Paris SG', code: "PSG" },
-        { name: 'Benfica', code: "SLB" }, { name: 'Sporting CP', code: "SCP" },
-        { name: 'FC Porto', code: "FCP" }, { name: 'Flamengo', code: "FLA" },
-        { name: 'Palmeiras', code: "PAL" }, { name: 'Al Nassr', code: "ALN" }
-    ];
-
-    if (window.UI && window.UI.renderPopularTeams) {
-        window.UI.renderPopularTeams(popularTeamsData);
-    }
-
-    const searchInput = document.getElementById('teams-search');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                if (query.length < 3) return;
-                const teamID = await window.GD_API.searchTeamByName(query);
-                if (teamID) window.handleTeamClick(teamID);
-            }
-        });
-    }
-}
-
-window.handleTeamClick = async (teamID) => {
-    if (window.UI.showLoading) window.UI.showLoading('search-results');
-    const stats = await window.GD_API.fetchTeamFullStats(teamID);
-    if (stats && window.UI.renderTeamDashboard) window.UI.renderTeamDashboard(stats);
-};
-
-window.handleTeamClickByCode = async (code, name) => {
-    const initialView = document.getElementById('initial-view');
-    const resultsContainer = document.getElementById('search-results');
-    if (initialView) initialView.classList.add('hidden');
-    if (resultsContainer) {
-        resultsContainer.classList.remove('hidden');
-        if (window.UI.showLoading) window.UI.showLoading('search-results');
-    }
-
-    const teamID = await window.GD_API.searchTeamByName(name);
-    if (teamID) {
-        const stats = await window.GD_API.fetchTeamFullStats(teamID);
-        if (stats && window.UI.renderTeamDashboard) {
-            stats.code = code;
-            window.UI.renderTeamDashboard(stats);
+        console.log("🧹 Histórico limpo com sucesso.");
+        if (window.GD_UI && window.GD_UI.renderHistory) {
+            window.GD_UI.renderHistory();
+        } else {
+            window.location.reload();
         }
     }
 };
 
-/**
- * FUNÇÕES GLOBAIS DE UI
- */
+// APAGAR PALPITE ÚNICO
+window.deletePrediction = (predictionID) => {
+    if (confirm("Apagar este palpite especificamente?")) {
+        let history = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
+        history = history.filter(p => p.predictionID !== predictionID);
+        localStorage.setItem('goalDash_history', JSON.stringify(history));
+        if (window.GD_UI && window.GD_UI.renderHistory) window.GD_UI.renderHistory();
+    }
+};
+
+// ========================================================
+// 5. GESTÃO DE UI GERAL E MODAIS (AQUI ESTÁ TUDO!)
+// ========================================================
+
 window.updateUserUI = () => {
     const user = localStorage.getItem('goalDash_username');
     const userMenuBtn = document.getElementById('user-menu-btn');
     const userDropdown = document.getElementById('user-dropdown');
-    const authLinksContainer = document.getElementById('auth-links-container');
+    const authLinks = document.getElementById('auth-links-container');
 
     if (!userMenuBtn) return;
 
     if (user) {
-        if (authLinksContainer) authLinksContainer.style.display = 'none';
-        userMenuBtn.onclick = (e) => {
-            e.stopPropagation();
-            if (userDropdown) userDropdown.classList.toggle('hidden');
-        };
-
+        if (authLinks) authLinks.style.display = 'none';
+        
         userMenuBtn.innerHTML = `
             <div class="flex items-center gap-3 bg-white/5 border border-white/10 py-2 px-4 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
                 <span class="text-[11px] font-black uppercase tracking-wider text-white">${user}</span>
@@ -255,47 +393,121 @@ window.updateUserUI = () => {
             </div>
         `;
 
+        userMenuBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (userDropdown) userDropdown.classList.toggle('hidden');
+        };
+
         if (userDropdown) {
             userDropdown.innerHTML = `
                 <div class="p-4 border-b border-white/5 bg-white/[0.02]">
-                    <p class="text-[9px] text-white/40 uppercase font-black tracking-[2px]">A Minha Conta</p>
+                    <p class="text-[9px] text-white/40 uppercase font-black tracking-[2px]">Painel do Utilizador</p>
                 </div>
                 <a href="history.html" class="flex items-center gap-3 w-full text-left p-4 hover:bg-white/5 text-white text-[10px] font-black uppercase tracking-widest transition-all">
                     <span class="text-purple-500 text-sm">⌛</span> Meus Palpites
                 </a>
                 <button onclick="window.logout()" class="flex items-center gap-3 w-full text-left p-4 hover:bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all border-t border-white/5">
-                    <span class="text-sm">🚪</span> Sair da Conta
+                    <span class="text-sm">🚪</span> Terminar Sessão
                 </button>
             `;
         }
     } else {
-        if (authLinksContainer) authLinksContainer.style.display = 'block';
+        if (authLinks) authLinks.style.display = 'block';
         userMenuBtn.onclick = () => window.openAuthModal();
-        userMenuBtn.innerHTML = `<span class="text-[11px] font-black uppercase tracking-[2px] text-white hover:text-purple-400 transition-colors cursor-pointer">Criar Conta</span>`;
+        userMenuBtn.innerHTML = `
+            <div class="bg-[#9333ea] hover:bg-[#7e22ce] px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-500/20">
+                <span class="text-[11px] font-black uppercase tracking-[2px] text-white">Criar Conta</span>
+            </div>
+        `;
     }
 };
 
 window.logout = () => {
-    localStorage.removeItem('goalDash_username');
-    window.location.href = 'index.html'; 
+    if (confirm("Desejas mesmo sair da tua conta, cria?")) {
+        localStorage.removeItem('goalDash_username');
+        window.location.href = 'index.html';
+    }
 };
 
-// --- MODAIS GLOBAIS ---
-window.openLoginModal = () => { 
-    const m = document.getElementById('login-modal'); 
-    if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } 
+// --- CONTROLO DE MODAIS DE LOGIN ---
+window.openLoginModal = () => {
+    console.log("🔓 Abrindo Modal de Login");
+    const m = document.getElementById('login-modal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        // Reset de mensagens de erro ao abrir
+        const msg = document.getElementById('login-message');
+        if (msg) msg.classList.add('hidden');
+    }
 };
-window.openAuthModal = () => { 
-    const m = document.getElementById('auth-modal'); 
-    if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } 
-};
-window.closeLoginModal = () => document.getElementById('login-modal').classList.add('hidden');
-window.closeAuthModal = () => document.getElementById('auth-modal').classList.add('hidden');
-window.switchToLogin = () => { window.closeAuthModal(); window.openLoginModal(); };
-window.switchToRegister = () => { window.closeLoginModal(); window.openAuthModal(); };
 
+window.closeLoginModal = () => {
+    const m = document.getElementById('login-modal');
+    if (m) {
+        m.classList.remove('flex');
+        m.classList.add('hidden');
+    }
+};
+
+// --- CONTROLO DE MODAIS DE REGISTRO ---
+window.openAuthModal = () => {
+    console.log("📝 Abrindo Modal de Registro");
+    const m = document.getElementById('auth-modal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        const msg = document.getElementById('auth-message');
+        if (msg) msg.classList.add('hidden');
+    }
+};
+
+window.closeAuthModal = () => {
+    const m = document.getElementById('auth-modal');
+    if (m) {
+        m.classList.remove('flex');
+        m.classList.add('hidden');
+    }
+};
+
+// --- CONTROLO DE MODAL DE PALPITE ---
+window.closePredictionModal = () => {
+    const m = document.getElementById('prediction-modal');
+    if (m) {
+        m.classList.remove('flex');
+        m.classList.add('hidden');
+    }
+};
+
+// --- SWITCH ENTRE LOGIN E REGISTRO ---
+window.switchToLogin = () => {
+    window.closeAuthModal();
+    setTimeout(() => window.openLoginModal(), 100);
+};
+
+window.switchToRegister = () => {
+    window.closeLoginModal();
+    setTimeout(() => window.openAuthModal(), 100);
+};
+
+// --- LISTENER GLOBAL PARA FECHAR TUDO AO CLICAR FORA ---
 document.addEventListener('click', (e) => {
-    const userDropdown = document.getElementById('user-dropdown');
-    const userMenuBtn = document.getElementById('user-menu-btn');
-    if (userDropdown && userMenuBtn && !userMenuBtn.contains(e.target)) userDropdown.classList.add('hidden');
+    // Fechar Dropdown de Usuário
+    const drop = document.getElementById('user-dropdown');
+    const btn = document.getElementById('user-menu-btn');
+    if (drop && btn && !btn.contains(e.target) && !drop.contains(e.target)) {
+        drop.classList.add('hidden');
+    }
+
+    // Fechar Modais ao clicar no Backdrop (fundo escuro)
+    const loginModal = document.getElementById('login-modal');
+    if (e.target === loginModal) window.closeLoginModal();
+
+    const authModal = document.getElementById('auth-modal');
+    if (e.target === authModal) window.closeAuthModal();
+
+    const predModal = document.getElementById('prediction-modal');
+    if (e.target === predModal) window.closePredictionModal();
 });
+
+console.log("%c ✅ GoalDash: Script main.js totalmente carregado.", "color: #9333ea; font-weight: bold;");
