@@ -1,59 +1,63 @@
 /**
- * GoalDash - ORQUESTRADOR (main.js)
- * Versão: Modal Premium + Histórico Local + Sincronização
+ * GoalDash - ORQUESTRADOR CENTRAL (main.js)
+ * Versão Final: Stats, Auth Global, Matches e History integrados.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Inicializa UI comum (Navbar/User)
     if (window.updateUserUI) window.updateUserUI();
 
-    // 2. Verifica se está na página de histórico
+    const urlParams = new URLSearchParams(window.location.search);
+    const matchId = urlParams.get('id');
+    const action = urlParams.get('action');
+
+    // --- REDIRECIONAMENTO DE AUTH (Se vier de outra página) ---
+    if (action === 'login') window.openLoginModal();
+    if (action === 'register') window.openAuthModal();
+
+    // --- 2. VERIFICAÇÃO DE PÁGINA: HISTORY ---
     if (window.location.pathname.includes('history.html')) {
         if (window.GD_UI && window.GD_UI.renderHistory) {
             window.GD_UI.renderHistory();
         }
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const matchId = urlParams.get('id');
+    // --- 3. VERIFICAÇÃO DE PÁGINA: STATS ---
+    if (window.location.pathname.includes('stats.html')) {
+        initStatsPage();
+    }
 
-    // --- LÓGICA DE NAVEGAÇÃO / CARREGAMENTO ---
+    // --- 4. LÓGICA DE DETALHES OU HOME ---
     if (matchId) {
-        // --- PÁGINA DE DETALHES ---
+        // PÁGINA DE DETALHES (matchdetails.html)
         if (window.GD_API && window.GD_API.fetchMatches) {
             try {
                 const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
                 const data = await window.GD_API.fetchMatches(leagueToLoad);
-                
                 const matches = Array.isArray(data) ? data : (window.allLoadedMatches || []);
                 const match = matches.find(m => String(m.eventID) === String(matchId));
                 
                 if (match && window.UI && window.UI.renderMatchHeader) {
                     window.UI.renderMatchHeader(match);
-                } else {
-                    const header = document.getElementById('match-header');
-                    if (header) header.innerHTML = "<div class='text-center py-10 opacity-50 uppercase text-[10px] font-black tracking-widest'>Jogo não encontrado</div>";
+                } else if (document.getElementById('match-header')) {
+                    document.getElementById('match-header').innerHTML = "<div class='text-center py-10 opacity-50 uppercase text-[10px] font-black tracking-widest'>Jogo não encontrado</div>";
                 }
-            } catch (err) {
-                console.error("Erro ao carregar detalhes:", err);
-            }
+            } catch (err) { console.error("Erro detalhes:", err); }
         }
-    } else {
-        // --- PÁGINA INICIAL ---
+    } else if (document.getElementById('matches-container')) {
+        // PÁGINA INICIAL / LIVE
         if (window.GD_API && window.GD_API.fetchMatches) {
             const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
-
             const titleElement = document.getElementById('current-league-title');
             if (titleElement && window.GD_DATA && window.GD_DATA.LEAGUES) {
                 const leagueName = window.GD_DATA.LEAGUES[leagueToLoad] || "LIGA SELECIONADA";
                 titleElement.innerText = leagueName.toUpperCase();
             }
-
             await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
 
-    // --- LÓGICA DE LOGIN ---
+    // --- 5. LÓGICA DE LOGIN ---
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.onsubmit = async (e) => {
@@ -82,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // --- LÓGICA DE REGISTO ---
+    // --- 6. LÓGICA DE REGISTO ---
     const authForm = document.getElementById('auth-form');
     if (authForm) {
         authForm.onsubmit = async (e) => {
@@ -93,7 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const messageBox = document.getElementById('auth-message');
             const submitBtn = authForm.querySelector('button[type="submit"]');
 
-            const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = "A VALIDAR...";
             submitBtn.disabled = true;
 
@@ -114,15 +117,67 @@ document.addEventListener('DOMContentLoaded', async () => {
                     messageBox.classList.remove('hidden');
                     messageBox.style.cssText = "display: block; background: rgba(239,68,68,0.15); color: #ff4444; border: 1px solid rgba(255,68,68,0.3); padding: 12px; font-size: 14px; font-weight: 800; border-radius: 8px; margin-top: 15px;";
                 }
-                submitBtn.innerText = originalBtnText;
+                submitBtn.innerText = "Criar Conta";
                 submitBtn.disabled = false;
             }
         };
     }
 });
 
-// --- FUNÇÕES GLOBAIS ---
+/**
+ * LÓGICA ESPECÍFICA DE ESTATÍSTICAS
+ */
+async function initStatsPage() {
+    const popularTeamsData = [
+        { name: 'Real Madrid', id: 541 }, { name: 'Barcelona', id: 529 },
+        { name: 'Man. City', id: 50 }, { name: 'Liverpool', id: 40 },
+        { name: 'Bayern Munich', id: 157 }, { name: 'Paris SG', id: 85 },
+        { name: 'Benfica', id: 211 }, { name: 'Sporting CP', id: 212 },
+        { name: 'FC Porto', id: 217 }, { name: 'Flamengo', id: 127 },
+        { name: 'Palmeiras', id: 121 }, { name: 'Al Nassr', id: 2939 }
+    ];
 
+    if (window.UI && window.UI.renderPopularTeams) {
+        window.UI.renderPopularTeams(popularTeamsData);
+    }
+
+    const searchInput = document.getElementById('teams-search');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query.length < 3) return alert("Digite pelo menos 3 letras.");
+                
+                searchInput.disabled = true;
+                searchInput.placeholder = "A analisar base de dados...";
+                
+                const teamID = await window.GD_API.searchTeamByName(query);
+                if (teamID) {
+                    await window.handleTeamClick(teamID);
+                } else {
+                    alert("Equipa não encontrada!");
+                }
+                
+                searchInput.disabled = false;
+                searchInput.placeholder = "Pesquise seu time...";
+            }
+        });
+    }
+}
+
+window.handleTeamClick = async (teamID) => {
+    // Esconde a view inicial e mostra o dashboard
+    const stats = await window.GD_API.fetchTeamFullStats(teamID);
+    if (stats && window.UI && window.UI.renderTeamDashboard) {
+        window.UI.renderTeamDashboard(stats);
+    } else {
+        alert("Não foi possível carregar as estatísticas.");
+    }
+};
+
+/**
+ * FUNÇÕES GLOBAIS DE UI / AUTH
+ */
 window.updateUserUI = () => {
     const user = localStorage.getItem('goalDash_username');
     const userMenuBtn = document.getElementById('user-menu-btn');
@@ -130,7 +185,6 @@ window.updateUserUI = () => {
     const authLinksContainer = document.getElementById('auth-links-container');
 
     if (!userMenuBtn) return;
-    userMenuBtn.onclick = null;
 
     if (user) {
         if (authLinksContainer) authLinksContainer.style.display = 'none';
@@ -165,7 +219,6 @@ window.updateUserUI = () => {
         if (authLinksContainer) authLinksContainer.style.display = 'block';
         userMenuBtn.onclick = () => window.openAuthModal();
         userMenuBtn.innerHTML = `<span class="text-[11px] font-black uppercase tracking-[2px] text-white hover:text-purple-400 transition-colors">Criar Conta</span>`;
-        if (userDropdown) userDropdown.classList.add('hidden');
     }
 };
 
@@ -176,27 +229,16 @@ window.logout = () => {
 
 window.handlePalpiteClick = (id, home, away) => {
     const user = localStorage.getItem('goalDash_username');
-    if (!user) {
-        window.openAuthModal();
-        return;
-    }
+    if (!user) { window.openAuthModal(); return; }
 
     window.activeGame = { id, home, away };
-    
     const homeNameEl = document.getElementById('modal-home-name');
     const awayNameEl = document.getElementById('modal-away-name');
-    
     if (homeNameEl) homeNameEl.innerText = home;
     if (awayNameEl) awayNameEl.innerText = away;
 
-    if(document.getElementById('modal-home-score')) document.getElementById('modal-home-score').value = "";
-    if(document.getElementById('modal-away-score')) document.getElementById('modal-away-score').value = "";
-
     const modal = document.getElementById('prediction-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
 };
 
 window.handlePredictionSubmit = async () => {
@@ -204,79 +246,46 @@ window.handlePredictionSubmit = async () => {
     const awayScore = document.getElementById('modal-away-score').value;
     const btn = event.currentTarget;
 
-    if (homeScore === "" || awayScore === "") {
-        alert("Preenche os dois placares, cria!");
-        return;
-    }
+    if (homeScore === "" || awayScore === "") { alert("Preenche os placares, cria!"); return; }
 
-    const originalText = btn.innerText;
     btn.innerText = "A ENVIAR...";
     btn.disabled = true;
 
-    // 1. Envia para a API simulada
     const success = await window.GD_API.submitPrediction(homeScore, awayScore);
-
     if (success) {
-        // 2. SALVA NO LOCAL STORAGE PARA O HISTÓRICO
-        const novoPalpite = {
+        const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
+        historico.unshift({
             id: window.activeGame.id,
             homeTeam: window.activeGame.home,
             awayTeam: window.activeGame.away,
-            homeScore: homeScore,
-            awayScore: awayScore,
-            date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-        };
-
-        const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
-        historico.unshift(novoPalpite); // Adiciona no topo
+            homeScore, awayScore,
+            date: new Date().toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+        });
         localStorage.setItem('goalDash_history', JSON.stringify(historico));
-
-        alert("Palpite enviado com sucesso!");
+        alert("Palpite enviado!");
         document.getElementById('prediction-modal').classList.add('hidden');
-    } else {
-        alert("Erro ao enviar palpite.");
-    }
-
-    btn.innerText = originalText;
-    btn.disabled = false;
+    } else { alert("Erro ao enviar."); }
+    btn.innerText = "Enviar Palpite"; btn.disabled = false;
 };
 
-window.handleSearch = (query) => {
-    const matches = window.allLoadedMatches || [];
-    const term = query.toLowerCase().trim();
-    if (!term) {
-        if (window.UI) window.UI.renderMatches('matches-container', matches);
-        return;
-    }
-    const filtrados = matches.filter(m => {
-        const h = (m.teams?.home?.names?.medium || "").toLowerCase();
-        const a = (m.teams?.away?.names?.medium || "").toLowerCase();
-        return h.includes(term) || a.includes(term);
-    });
-    if (window.UI) window.UI.renderMatches('matches-container', filtrados);
+// --- MODAIS GLOBAIS ---
+window.openLoginModal = () => { 
+    const m = document.getElementById('login-modal'); 
+    if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } 
+    else { window.location.href = 'index.html?action=login'; }
 };
-
-window.changeSport = (id, name) => {
-    window.currentLeague = id;
-    const titleElement = document.getElementById('current-league-title');
-    const displayName = name || (window.GD_DATA && window.GD_DATA.LEAGUES[id]) || id;
-    
-    if (titleElement) titleElement.innerText = displayName.toUpperCase();
-    if (window.GD_API) window.GD_API.fetchMatches(id);
+window.openAuthModal = () => { 
+    const m = document.getElementById('auth-modal'); 
+    if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } 
+    else { window.location.href = 'index.html?action=register'; }
 };
-
-// Modais
-window.openLoginModal = () => { const m = document.getElementById('login-modal'); if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } };
-window.closeLoginModal = () => { document.getElementById('login-modal').classList.add('hidden'); };
-window.openAuthModal = () => { const m = document.getElementById('auth-modal'); if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } };
-window.closeAuthModal = () => { document.getElementById('auth-modal').classList.add('hidden'); };
+window.closeLoginModal = () => document.getElementById('login-modal').classList.add('hidden');
+window.closeAuthModal = () => document.getElementById('auth-modal').classList.add('hidden');
 window.switchToLogin = () => { window.closeAuthModal(); window.openLoginModal(); };
 window.switchToRegister = () => { window.closeLoginModal(); window.openAuthModal(); };
 
 document.addEventListener('click', (e) => {
     const userDropdown = document.getElementById('user-dropdown');
     const userMenuBtn = document.getElementById('user-menu-btn');
-    if (userDropdown && !userMenuBtn.contains(e.target)) {
-        userDropdown.classList.add('hidden');
-    }
+    if (userDropdown && userMenuBtn && !userMenuBtn.contains(e.target)) userDropdown.classList.add('hidden');
 });

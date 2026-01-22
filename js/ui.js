@@ -1,10 +1,10 @@
 /**
  * GoalDash - INTERFACE (ui.js)
- * FOCO: Renderização de Cards, Modais e Histórico de Palpites.
+ * FOCO: Renderização de Cards, Modais, Histórico e Estatísticas de Equipas.
  */
 
 window.UI = {
-    // Exibe o estado de carregamento
+    // 1. Estados Globais de UI
     showLoading: (containerId) => {
         const container = document.getElementById(containerId);
         if (container) {
@@ -12,7 +12,7 @@ window.UI = {
         }
     },
 
-    // Renderiza a lista de jogos (Página Inicial)
+    // 2. Renderização de Jogos (Página Inicial)
     renderMatches: (containerId, matches) => {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -22,7 +22,7 @@ window.UI = {
             return;
         }
 
-        const html = matches.map(match => {
+        container.innerHTML = matches.map(match => {
             try {
                 return window.UI.components.matchCard(match);
             } catch (e) {
@@ -30,19 +30,17 @@ window.UI = {
                 return ""; 
             }
         }).join('');
-        
-        container.innerHTML = html;
     },
 
-    // Renderiza o cabeçalho em matchdetails.html
+    // 3. Cabeçalho de Detalhes do Jogo
     renderMatchHeader: (match) => {
         const container = document.getElementById('match-header');
         if (!container || !match) return;
 
-        const hName = match.teams?.home?.names?.medium || match.teams?.home?.names?.long || "Casa";
-        const aName = match.teams?.away?.names?.medium || match.teams?.away?.names?.long || "Fora";
-        const hLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.home?.names?.short, hName) : "";
-        const aLogo = window.getTeamLogo ? window.getTeamLogo(match.teams?.away?.names?.short, aName) : "";
+        const hName = match.teams?.home?.names?.medium || "Casa";
+        const aName = match.teams?.away?.names?.medium || "Fora";
+        const hLogo = `https://media.api-sports.io/football/teams/${match.teams?.home?.id}.png`;
+        const aLogo = `https://media.api-sports.io/football/teams/${match.teams?.away?.id}.png`;
 
         container.innerHTML = `
             <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden animate-in fade-in duration-500">
@@ -65,7 +63,71 @@ window.UI = {
         `;
     },
 
-    // Renderiza a página history.html
+    // 4. LÓGICA DE ESTATÍSTICAS (Página Stats.html)
+    renderPopularTeams: (teams) => {
+        const grid = document.getElementById('popular-teams-grid');
+        if (!grid) return;
+        grid.innerHTML = teams.map(team => `
+            <div onclick="window.handleTeamClick(${team.id})" 
+                 class="group bg-white/5 border border-white/5 p-4 rounded-3xl flex flex-col items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all cursor-pointer">
+                <img src="https://media.api-sports.io/football/teams/${team.id}.png" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-white text-center">
+                    ${team.name}
+                </span>
+            </div>
+        `).join('');
+    },
+
+    renderTeamDashboard: (data) => {
+        const resultsContainer = document.getElementById('search-results');
+        const initialView = document.getElementById('initial-view');
+        if (!resultsContainer || !initialView) return;
+
+        initialView.classList.add('hidden');
+        resultsContainer.classList.remove('hidden');
+
+        resultsContainer.innerHTML = `
+            <button onclick="location.reload()" class="mb-8 text-purple-400 font-black flex items-center gap-2 hover:text-white transition-colors cursor-pointer text-[10px] tracking-widest">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+                VOLTAR
+            </button>
+
+            <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 backdrop-blur-xl animate-in fade-in duration-500">
+                <img src="https://media.api-sports.io/football/teams/${data.id}.png" class="w-24 h-24 md:w-32 md:h-32 object-contain" onerror="this.src='Images/favi.svg'">
+                <div class="text-center md:text-left">
+                    <h2 class="text-4xl md:text-7xl uppercase italic tracking-tighter leading-none mb-4 font-black text-white">${data.name}</h2>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-4 text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                        <span class="bg-white/5 px-4 py-2 rounded-full border border-white/5">🏆 ${data.league}</span>
+                        <span class="bg-white/5 px-4 py-2 rounded-full border border-white/5">🆔 ${data.id}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-700">
+                <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5">
+                    <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente (Últimos 5 jogos)</h3>
+                    <div class="flex gap-3 justify-center md:justify-start">
+                        ${data.form.map(res => {
+                            let color = res === 'V' ? 'bg-green-500' : res === 'D' ? 'bg-red-500' : 'bg-gray-500';
+                            return `<div class="${color} w-12 h-12 rounded-full flex items-center justify-center font-black text-white shadow-lg shadow-${color.split('-')[1]}-500/20 text-lg">${res}</div>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2">Análise GoalDash</h3>
+                        <p class="text-3xl font-black text-purple-400 italic">SISTEMA ATIVO</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Confiança</p>
+                        <p class="text-4xl font-black italic text-white">98%</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    // 5. Histórico de Palpites
     renderHistory: () => {
         const container = document.getElementById('history-container');
         if (!container) return;
@@ -87,17 +149,14 @@ window.UI = {
                 <div class="flex-1 text-center md:text-right">
                     <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.homeTeam}</span>
                 </div>
-                
                 <div class="flex items-center gap-4">
                     <div class="bg-purple-600/20 border border-purple-500/30 px-6 py-3 rounded-2xl">
                         <span class="text-white text-2xl font-black italic">${p.homeScore} - ${p.awayScore}</span>
                     </div>
                 </div>
-
                 <div class="flex-1 text-center md:text-left">
                     <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.awayTeam}</span>
                 </div>
-
                 <div class="md:border-l md:border-white/10 md:pl-6 text-center">
                     <p class="text-[9px] text-purple-500 font-black uppercase tracking-widest mb-1">Enviado em</p>
                     <p class="text-[10px] text-white/40 font-bold">${p.date}</p>
@@ -106,65 +165,13 @@ window.UI = {
         `).join('');
     },
 
-    // Renderiza cards de jogos ao vivo (Página Live)
-    renderLiveCards: (matches) => {
-        const container = document.getElementById('live-matches-container');
-        if (!container) return;
-        container.innerHTML = '';
-
-        matches.forEach(m => {
-            let hScore = m.results?.reg?.home?.points ?? 0;
-            let aScore = m.results?.reg?.away?.points ?? 0;
-
-            const hName = m.teams?.home?.names?.medium || "Casa";
-            const aName = m.teams?.away?.names?.medium || "Fora";
-            const hLogo = window.getTeamLogo ? window.getTeamLogo(m.teams?.home?.names?.short, hName) : "";
-            const aLogo = window.getTeamLogo ? window.getTeamLogo(m.teams?.away?.names?.short, aName) : "";
-
-            const card = document.createElement('div');
-            card.className = `bg-slate-900/90 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-700`;
-            card.innerHTML = `
-                <div class="flex justify-center mb-6">
-                    <span class="bg-red-600 px-4 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-2">
-                        <span class="animate-ping h-2 w-2 rounded-full bg-white"></span>
-                        ${m.status?.clock ? m.status.clock + "'" : 'LIVE'}
-                    </span>
-                </div>
-                <div class="flex items-center justify-between gap-4 mb-8 text-center">
-                    <div class="flex-1">
-                        <img src="${hLogo}" class="w-20 h-20 mx-auto mb-3 object-contain" onerror="this.src='Images/favi.svg'">
-                        <span class="text-[11px] font-black text-gray-400 uppercase block">${hName}</span>
-                    </div>
-                    <div class="flex flex-col items-center px-4">
-                        <div class="flex items-center gap-4">
-                            <span class="text-5xl font-black italic text-white">${hScore}</span>
-                            <span class="text-2xl font-bold text-white/10">:</span>
-                            <span class="text-5xl font-black italic text-white">${aScore}</span>
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <img src="${aLogo}" class="w-20 h-20 mx-auto mb-3 object-contain" onerror="this.src='Images/favi.svg'">
-                        <span class="text-[11px] font-black text-gray-400 uppercase block">${aName}</span>
-                    </div>
-                </div>
-                <button onclick="window.location.href='matchdetails.html?id=${m.eventID}'" class="w-full py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest bg-white/5 border border-white/10 hover:bg-purple-600 transition-all cursor-pointer">
-                    Estatísticas Completas
-                </button>
-            `;
-            container.appendChild(card);
-        });
-    },
-
+    // 6. Componentes Internos
     components: {
         matchCard: (match) => {
-            const home = match.teams?.home;
-            const away = match.teams?.away;
-
-            const hName = home?.names?.medium || home?.names?.long || home?.names?.short || "Equipa Casa";
-            const aName = away?.names?.medium || away?.names?.long || away?.names?.short || "Equipa Fora";
-
-            const hLogo = window.getTeamLogo ? window.getTeamLogo(home?.names?.short, hName) : "";
-            const aLogo = window.getTeamLogo ? window.getTeamLogo(away?.names?.short, aName) : "";
+            const hName = match.teams?.home?.names?.medium || "Equipa Casa";
+            const aName = match.teams?.away?.names?.medium || "Equipa Fora";
+            const hLogo = `https://media.api-sports.io/football/teams/${match.teams?.home?.id}.png`;
+            const aLogo = `https://media.api-sports.io/football/teams/${match.teams?.away?.id}.png`;
 
             return `
                 <div onclick="window.location.href='matchdetails.html?id=${match.eventID}'" 
@@ -180,22 +187,18 @@ window.UI = {
 
                     <div class="flex items-center justify-between gap-4 mb-10">
                         <div class="flex-1">
-                            <div class="relative mb-3 group-hover:-translate-y-1 transition-transform">
-                                <img src="${hLogo}" class="w-16 h-16 mx-auto object-contain relative z-10" onerror="this.src='Images/favi.svg'">
-                            </div>
+                            <img src="${hLogo}" class="w-16 h-16 mx-auto object-contain mb-3 group-hover:-translate-y-1 transition-transform" onerror="this.src='Images/favi.svg'">
                             <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${hName}</span>
                         </div>
                         <span class="text-xl font-black italic text-white/10">VS</span>
                         <div class="flex-1">
-                            <div class="relative mb-3 group-hover:-translate-y-1 transition-transform">
-                                <img src="${aLogo}" class="w-16 h-16 mx-auto object-contain relative z-10" onerror="this.src='Images/favi.svg'">
-                            </div>
+                            <img src="${aLogo}" class="w-16 h-16 mx-auto object-contain mb-3 group-hover:-translate-y-1 transition-transform" onerror="this.src='Images/favi.svg'">
                             <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${aName}</span>
                         </div>
                     </div>
 
                     <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hName.replace(/'/g, "\\'")}', '${aName.replace(/'/g, "\\")}')" 
-                        class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:from-purple-600 hover:to-pink-600 hover:bg-gradient-to-r transition-all duration-500 cursor-pointer">
+                        class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 transition-all duration-500 cursor-pointer text-white">
                         Dar Meu Palpite
                     </button>
                 </div>`;
@@ -203,5 +206,4 @@ window.UI = {
     }
 };
 
-// Alias para manter compatibilidade se usares GD_UI ou UI
 window.GD_UI = window.UI;
