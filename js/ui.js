@@ -1,6 +1,7 @@
 /**
  * GoalDash - INTERFACE (ui.js)
  * FOCO: Renderização de Cards, Modais, Histórico e Estatísticas de Equipas.
+ * LOGO: Sistema integrado com data.js (FotMob)
  */
 
 window.UI = {
@@ -39,8 +40,12 @@ window.UI = {
 
         const hName = match.teams?.home?.names?.medium || "Casa";
         const aName = match.teams?.away?.names?.medium || "Fora";
-        const hLogo = `https://media.api-sports.io/football/teams/${match.teams?.home?.id}.png`;
-        const aLogo = `https://media.api-sports.io/football/teams/${match.teams?.away?.id}.png`;
+        const hCode = match.teams?.home?.names?.short || "";
+        const aCode = match.teams?.away?.names?.short || "";
+
+        // USANDO TUA FUNÇÃO DO DATA.JS
+        const hLogo = window.getTeamLogo(hCode, hName);
+        const aLogo = window.getTeamLogo(aCode, aName);
 
         container.innerHTML = `
             <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden animate-in fade-in duration-500">
@@ -67,15 +72,19 @@ window.UI = {
     renderPopularTeams: (teams) => {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
-        grid.innerHTML = teams.map(team => `
-            <div onclick="window.handleTeamClick(${team.id})" 
-                 class="group bg-white/5 border border-white/5 p-4 rounded-3xl flex flex-col items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all cursor-pointer">
-                <img src="https://media.api-sports.io/football/teams/${team.id}.png" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
-                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-white text-center">
-                    ${team.name}
-                </span>
-            </div>
-        `).join('');
+        grid.innerHTML = teams.map(team => {
+            // USANDO O 'CODE' QUE TU MANDOU (RMA, FLA, etc)
+            const logoUrl = window.getTeamLogo(team.code, team.name);
+            return `
+                <div onclick="window.handleTeamClickByCode('${team.code}', '${team.name}')" 
+                     class="group bg-white/5 border border-white/5 p-4 rounded-3xl flex flex-col items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all cursor-pointer">
+                    <img src="${logoUrl}" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
+                    <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-white text-center">
+                        ${team.name}
+                    </span>
+                </div>
+            `;
+        }).join('');
     },
 
     renderTeamDashboard: (data) => {
@@ -86,6 +95,9 @@ window.UI = {
         initialView.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
 
+        // Pega a logo baseada no código que injetamos no main.js
+        const dashLogo = window.getTeamLogo(data.code || "", data.name);
+
         resultsContainer.innerHTML = `
             <button onclick="location.reload()" class="mb-8 text-purple-400 font-black flex items-center gap-2 hover:text-white transition-colors cursor-pointer text-[10px] tracking-widest">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
@@ -93,7 +105,7 @@ window.UI = {
             </button>
 
             <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 backdrop-blur-xl animate-in fade-in duration-500">
-                <img src="https://media.api-sports.io/football/teams/${data.id}.png" class="w-24 h-24 md:w-32 md:h-32 object-contain" onerror="this.src='Images/favi.svg'">
+                <img src="${dashLogo}" class="w-24 h-24 md:w-32 md:h-32 object-contain" onerror="this.src='Images/favi.svg'">
                 <div class="text-center md:text-left">
                     <h2 class="text-4xl md:text-7xl uppercase italic tracking-tighter leading-none mb-4 font-black text-white">${data.name}</h2>
                     <div class="flex flex-wrap justify-center md:justify-start gap-4 text-gray-400 text-[10px] font-black uppercase tracking-widest">
@@ -131,36 +143,17 @@ window.UI = {
     renderHistory: () => {
         const container = document.getElementById('history-container');
         if (!container) return;
-
         const historico = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
-
         if (historico.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-20">
-                    <p class="text-white/20 font-black uppercase italic tracking-widest text-xs">Ainda não tens palpites registados, cria!</p>
-                    <a href="index.html" class="inline-block mt-6 text-purple-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors">Ir para os Jogos →</a>
-                </div>
-            `;
+            container.innerHTML = `<div class="col-span-full text-center py-20"><p class="text-white/20 font-black uppercase italic tracking-widest text-xs">Sem palpites, cria!</p></div>`;
             return;
         }
-
         container.innerHTML = historico.map(p => `
             <div class="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/[0.07] transition-all">
-                <div class="flex-1 text-center md:text-right">
-                    <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.homeTeam}</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="bg-purple-600/20 border border-purple-500/30 px-6 py-3 rounded-2xl">
-                        <span class="text-white text-2xl font-black italic">${p.homeScore} - ${p.awayScore}</span>
-                    </div>
-                </div>
-                <div class="flex-1 text-center md:text-left">
-                    <span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.awayTeam}</span>
-                </div>
-                <div class="md:border-l md:border-white/10 md:pl-6 text-center">
-                    <p class="text-[9px] text-purple-500 font-black uppercase tracking-widest mb-1">Enviado em</p>
-                    <p class="text-[10px] text-white/40 font-bold">${p.date}</p>
-                </div>
+                <div class="flex-1 text-center md:text-right"><span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.homeTeam}</span></div>
+                <div class="bg-purple-600/20 border border-purple-500/30 px-6 py-3 rounded-2xl"><span class="text-white text-2xl font-black italic">${p.homeScore} - ${p.awayScore}</span></div>
+                <div class="flex-1 text-center md:text-left"><span class="text-white font-black uppercase italic text-xs tracking-tighter">${p.awayTeam}</span></div>
+                <div class="md:border-l md:border-white/10 md:pl-6 text-center text-[10px] text-white/40 font-bold">${p.date}</div>
             </div>
         `).join('');
     },
@@ -168,15 +161,18 @@ window.UI = {
     // 6. Componentes Internos
     components: {
         matchCard: (match) => {
-            const hName = match.teams?.home?.names?.medium || "Equipa Casa";
-            const aName = match.teams?.away?.names?.medium || "Equipa Fora";
-            const hLogo = `https://media.api-sports.io/football/teams/${match.teams?.home?.id}.png`;
-            const aLogo = `https://media.api-sports.io/football/teams/${match.teams?.away?.id}.png`;
+            const hName = match.teams?.home?.names?.medium || "Casa";
+            const aName = match.teams?.away?.names?.medium || "Fora";
+            const hCode = match.teams?.home?.names?.short || "";
+            const aCode = match.teams?.away?.names?.short || "";
+
+            // LOGOS VIA DATA.JS
+            const hLogo = window.getTeamLogo(hCode, hName);
+            const aLogo = window.getTeamLogo(aCode, aName);
 
             return `
                 <div onclick="window.location.href='matchdetails.html?id=${match.eventID}'" 
                      class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] text-center group hover:border-purple-500/50 transition-all duration-500 cursor-pointer">
-                    
                     <div class="flex justify-center mb-6">
                         <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
                             <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${match.displayDay || '--/--'}</span>
@@ -184,7 +180,6 @@ window.UI = {
                             <span class="text-sm font-black text-white tracking-tight">${match.displayTime || '--:--'}</span>
                         </div>
                     </div>
-
                     <div class="flex items-center justify-between gap-4 mb-10">
                         <div class="flex-1">
                             <img src="${hLogo}" class="w-16 h-16 mx-auto object-contain mb-3 group-hover:-translate-y-1 transition-transform" onerror="this.src='Images/favi.svg'">
@@ -196,7 +191,6 @@ window.UI = {
                             <span class="text-[10px] font-black text-white uppercase block opacity-60 group-hover:opacity-100">${aName}</span>
                         </div>
                     </div>
-
                     <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hName.replace(/'/g, "\\'")}', '${aName.replace(/'/g, "\\")}')" 
                         class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 transition-all duration-500 cursor-pointer text-white">
                         Dar Meu Palpite

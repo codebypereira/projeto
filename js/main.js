@@ -129,12 +129,12 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function initStatsPage() {
     const popularTeamsData = [
-        { name: 'Real Madrid', id: 541 }, { name: 'Barcelona', id: 529 },
-        { name: 'Man. City', id: 50 }, { name: 'Liverpool', id: 40 },
-        { name: 'Bayern Munich', id: 157 }, { name: 'Paris SG', id: 85 },
-        { name: 'Benfica', id: 211 }, { name: 'Sporting CP', id: 212 },
-        { name: 'FC Porto', id: 217 }, { name: 'Flamengo', id: 127 },
-        { name: 'Palmeiras', id: 121 }, { name: 'Al Nassr', id: 2939 }
+        { name: 'Real Madrid', code: "RMA" }, { name: 'Barcelona', code: "BAR" },
+        { name: 'Man. City', code: "MCI" }, { name: 'Liverpool', code: "LIV" },
+        { name: 'Bayern Munich', code: "FCB" }, { name: 'Paris SG', code: "PSG" },
+        { name: 'Benfica', code: "SLB" }, { name: 'Corinthians', code: "COR" },
+        { name: 'FC Porto', code: "FCP" }, { name: 'Flamengo', code: "FLA" },
+        { name: 'Palmeiras', code: "PAL" }, { name: 'Al Nassr', code: "ALN" }
     ];
 
     if (window.UI && window.UI.renderPopularTeams) {

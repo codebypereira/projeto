@@ -36,8 +36,8 @@ const GD_DATA = {
         "OSA": 8371, "VAL": 10267, "ESP": 8558, "SEV": 8302, "ATH": 8315, "MLL": 8661, "OVI": 8670, "CEL": 9910, "ALA": 9866, 
         "GIR": 7732, "GET": 8305,
 
-        // PORTUGAL
-        "SLB": 9772, "SCP": 9768, "FCP": 9773, "SCB": 10230, "VSC": 7844,
+        // TIMES POPULARES
+        "SLB": 9772, "FCP": 9773, "COR": 9808, "FLA": 9770, "ALN": 101918, "PAL": 10283,
 
         // SERIE A (ITA)
         "ACM": 8564, "ASR": 8686, "LAZ": 8543, "INT": 8636, "JUV": 9885, "NAP": 9875, "ATA": 8524, "BOL": 9857, "FIO": 8535, 
@@ -56,8 +56,7 @@ const GD_DATA = {
 
         // INTERNACIONAL
         "EGY": 10255, "TUN": 6719, "OMA": 5824, "MEX": 6710, "RSA": 6316, "USA": 6713, "QAT": 5902, "SUI": 6717, "MOR": 6262, "HAI": 5934, 
-        "SCO": 8498, "GER": 8570, "NED": 6708, "JPN": 6715, "CIV": 6709, "ECU": 6707, "COR": 10201, "FLA": 9765, "PAL": 10214, "ALN": 2939,
-        "SUD": 5805, "CUR": 287981
+        "SCO": 8498, "GER": 8570, "NED": 6708, "JPN": 6715, "CIV": 6709, "ECU": 6707, "SUD": 5805, "CUR": 287981
     },
 
     UI_CONFIG: {
