@@ -9,6 +9,7 @@ window.UI = {
         if (c) c.innerHTML = `<div class="col-span-full text-center py-20 text-purple-500 animate-pulse font-black text-[10px] tracking-widest uppercase">Sincronizando Dados...</div>`;
     },
 
+    // Renderiza a lista de jogos (Página Inicial)
     renderMatches: (containerId, matches) => {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -124,11 +125,10 @@ window.UI = {
                             <span class="text-[10px] font-black text-slate-400 uppercase line-clamp-1">${aMedium}</span>
                         </div>
                     </div>
-                </a>
-                <div class="px-6 pb-6">
-                    <button onclick="window.openPredictionModal('${m.eventID}', '${hMedium.replace(/'/g, "\\'")}', '${aMedium.replace(/'/g, "\\")}')" 
-                        class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl cursor-pointer relative z-20">
-                        Dar meu palpite
+
+                    <button onclick="event.stopPropagation(); window.handlePalpiteClick('${match.eventID}', '${hName}', '${aName}')" 
+                        class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[3px] hover:from-purple-600 hover:to-pink-600 hover:bg-gradient-to-r transition-all duration-500 cursor-pointer">
+                        Dar Meu Palpite
                     </button>
                 </div>
             </div>`;

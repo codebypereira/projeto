@@ -198,6 +198,13 @@ const GD_API = {
         } catch (e) { return false; }
     }
 };
+const params = new URLSearchParams(window.location.search);
+const gameId = params.get('id');
+
+if (gameId && window.GD_API) {
+    // Aqui chamarias a tua função da API para carregar esse jogo específico
+    console.log("A carregar dados do jogo ID:", gameId);
+}
 
 /**
  * GESTÃO DE JOGOS AO VIVO (LIVE)

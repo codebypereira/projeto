@@ -6,12 +6,7 @@
     <link rel="shortcut icon" href="Images/favi.svg" type="image/x-icon" />
     <title>Goal Dash - Detalhes do Jogo</title>
     
-    <script src="js/data.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/main.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/styles.css" />
 </head>
 <body class="bg-[#050505] min-h-screen flex flex-col text-white font-sans">
@@ -52,6 +47,7 @@
 
     <main class="flex-grow pt-24 pb-20">
         <section class="container mx-auto px-4">
+            
             <button onclick="history.back()" class="inline-flex items-center gap-2 text-gray-500 hover:text-purple-400 transition-colors mb-8 group font-bold uppercase text-[10px] tracking-[3px] cursor-pointer">
                 <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
@@ -60,56 +56,84 @@
             </button>
 
             <div id="match-header" class="mb-6">
-                <div class="h-48 bg-white/5 rounded-[2.5rem] animate-pulse flex items-center justify-center">
-                    <div class="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+                <div id="loading-state" class="h-48 bg-white/5 rounded-[2.5rem] animate-pulse flex items-center justify-center">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+                        <p class="text-[10px] font-black uppercase tracking-[3px] text-purple-500/50">Carregando Jogo...</p>
+                    </div>
                 </div>
             </div>
 
-           <div class="flex border-b border-white/5 mb-8 overflow-x-auto no-scrollbar justify-center md:justify-start bg-slate-900/20 rounded-t-2xl">
-    <button onclick="showTab('sumario')" id="btn-sumario" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">Sumário</button>
-    <button onclick="showTab('formacoes')" id="btn-formacoes" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">Formações</button>
-    <button onclick="showTab('estatisticas')" id="btn-estatisticas" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">Estatísticas</button>
-    <button onclick="showTab('h2h')" id="btn-h2h" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">H2H</button>
-</div>
-            <div id="tab-content" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <p class="text-center text-gray-600 uppercase text-[10px] font-black tracking-widest py-10">A carregar dados...</p>
+            <div class="flex border-b border-white/5 mb-8 overflow-x-auto no-scrollbar justify-center md:justify-start bg-slate-900/20 rounded-t-2xl">
+                <button onclick="showTab('sumario')" id="btn-sumario" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-white border-b-2 border-purple-500 transition-all">Sumário</button>
+                <button onclick="showTab('formacoes')" id="btn-formacoes" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">Formações</button>
+                <button onclick="showTab('estatisticas')" id="btn-estatisticas" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">Estatísticas</button>
+                <button onclick="showTab('h2h')" id="btn-h2h" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-gray-400 border-b-2 border-transparent transition-all">H2H</button>
             </div>
+
+            <div id="tab-content" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                </div>
+
         </section>
     </main>
 
-    <nav class="md:hidden fixed bottom-6 left-6 right-6 bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-8 py-4 z-[100] flex justify-between items-center rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-    
-        <a href="index.html" class="group flex flex-col items-center gap-1.5 transition-all active:scale-90">
-            <div class="p-2 rounded-xl group-hover:bg-purple-500/10 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-500 group-hover:text-white transition-colors">Início</span>
-        </a>
+   <script src="js/data.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
 
-        <a href="live.html" class="group flex flex-col items-center gap-1.5 transition-all active:scale-90">
-            <div class="relative p-2 rounded-xl group-hover:bg-red-500/10 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span class="absolute top-1 right-1 flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                </span>
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-500 group-hover:text-white transition-colors">Live</span>
-        </a>
+    <script>
+        // DEBUG ESTRATÉGICO
+        window.addEventListener('load', () => {
+            console.group("🔍 Debug GoalDash - Match Details");
+            
+            // 1. Verificar se os arquivos JS foram carregados
+            console.log("📁 Data.js carregado:", typeof window.getTeamLogo !== 'undefined');
+            console.log("📁 API.js carregado:", typeof window.GD_API !== 'undefined');
+            console.log("📁 UI.js carregado:", typeof window.UI !== 'undefined');
+            console.log("📁 UI.renderMatchHeader existe:", typeof window.UI?.renderMatchHeader !== 'undefined');
 
-        <a href="stats.html" class="group flex flex-col items-center gap-1.5 transition-all active:scale-90">
-            <div class="p-2 rounded-xl group-hover:bg-purple-500/10 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-500 group-hover:text-white transition-colors">Stats</span>
-        </a>
+            // 2. Verificar Parâmetros da URL
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            console.log("🆔 ID extraído da URL:", id);
 
-    </nav>
+            // 3. Verificar estado da variável global de jogos
+            console.log("⚽ Jogos na memória (window.allLoadedMatches):", window.allLoadedMatches);
+
+            // 4. Testar se o container de destino existe no HTML
+            const headerContainer = document.getElementById('match-header');
+            console.log("🏗️ Elemento 'match-header' encontrado:", !!headerContainer);
+
+            if (!id) {
+                console.warn("⚠️ Alerta: Nenhum ID foi passado na URL! A página não sabe o que carregar.");
+            }
+
+            console.groupEnd();
+        });
+
+        // Função das abas
+        function showTab(tabName) {
+            console.log("📑 Trocando para aba:", tabName);
+            const content = document.getElementById('tab-content');
+            if(!content) {
+                console.error("❌ Erro: Elemento 'tab-content' não existe no HTML!");
+                return;
+            }
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-white', 'border-purple-500');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+
+            const activeBtn = document.getElementById('btn-' + tabName);
+            if (activeBtn) {
+                activeBtn.classList.add('text-white', 'border-purple-500');
+                activeBtn.classList.remove('text-gray-400', 'border-transparent');
+            }
+
+            content.innerHTML = `<div class="py-10 text-center opacity-50 uppercase text-[10px] font-black tracking-widest">Conteúdo de ${tabName} em breve...</div>`;
+        }
+    </script>
 </body>
 </html>
