@@ -1,6 +1,6 @@
 /**
  * GoalDash - ORQUESTRADOR (main.js)
- * Versão: Sincronização Global com api.js + Interface Inteligente
+ * Versão: Modal Premium + Sincronização de IDs + Interface Inteligente
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- PÁGINA DE DETALHES ---
         if (window.GD_API && window.GD_API.fetchMatches) {
             try {
-                // Usa a liga atual definida no api.js ou Champions como fallback
                 const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
                 const data = await window.GD_API.fetchMatches(leagueToLoad);
                 
@@ -35,17 +34,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         // --- PÁGINA INICIAL ---
         if (window.GD_API && window.GD_API.fetchMatches) {
-            // 1. Puxamos a liga que o teu api.js definiu como inicial
             const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
 
-            // 2. Sincroniza o título do HTML com o nome da liga no GD_DATA.LEAGUES
             const titleElement = document.getElementById('current-league-title');
             if (titleElement && window.GD_DATA && window.GD_DATA.LEAGUES) {
                 const leagueName = window.GD_DATA.LEAGUES[leagueToLoad] || "LIGA SELECIONADA";
                 titleElement.innerText = leagueName.toUpperCase();
             }
 
-            // 3. Faz a busca dos jogos
             await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
@@ -116,34 +112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
     }
-
-    // --- LÓGICA DE PALPITES ---
-    const confirmPredictionBtn = document.getElementById('confirm-prediction-btn');
-    if (confirmPredictionBtn) {
-        confirmPredictionBtn.onclick = async () => {
-            const homeScore = document.getElementById('modal-home-score').value;
-            const awayScore = document.getElementById('modal-away-score').value;
-
-            if (homeScore === "" || awayScore === "") {
-                alert("Por favor, preencha ambos os resultados.");
-                return;
-            }
-
-            confirmPredictionBtn.innerText = "A ENVIAR...";
-            confirmPredictionBtn.disabled = true;
-
-            const success = await window.GD_API.submitPrediction(homeScore, awayScore);
-            if (success) {
-                alert("Palpite enviado com sucesso!");
-                if (window.closePredictionModal) window.closePredictionModal();
-                else document.getElementById('prediction-modal').classList.add('hidden');
-            } else {
-                alert("Erro ao enviar palpite.");
-            }
-            confirmPredictionBtn.innerText = "CONFIRMAR PALPITE";
-            confirmPredictionBtn.disabled = false;
-        };
-    }
 });
 
 // --- FUNÇÕES GLOBAIS ---
@@ -203,19 +171,54 @@ window.handlePalpiteClick = (id, home, away) => {
     const user = localStorage.getItem('goalDash_username');
     if (!user) {
         window.openAuthModal();
-        const messageBox = document.getElementById('auth-message');
-        if (messageBox) {
-            messageBox.innerText = "Inicie sessão para registar o seu palpite.";
-            messageBox.classList.remove('hidden');
-            messageBox.className = "p-3 rounded bg-amber-500/10 text-amber-500 text-[10px] font-bold text-center mt-2 border border-amber-500/20";
-        }
         return;
     }
+
     window.activeGame = { id, home, away };
+    
+    // Injeta os nomes nos elementos do Modal (Home vs Away)
+    const homeNameEl = document.getElementById('modal-home-name');
+    const awayNameEl = document.getElementById('modal-away-name');
+    
+    if (homeNameEl) homeNameEl.innerText = home;
+    if (awayNameEl) awayNameEl.innerText = away;
+
+    // Reseta os campos de score
+    if(document.getElementById('modal-home-score')) document.getElementById('modal-home-score').value = "";
+    if(document.getElementById('modal-away-score')) document.getElementById('modal-away-score').value = "";
+
     const modal = document.getElementById('prediction-modal');
-    const title = document.getElementById('modal-teams-title');
-    if (title) title.innerText = `${home} vs ${away}`;
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+};
+
+window.handlePredictionSubmit = async () => {
+    const homeScore = document.getElementById('modal-home-score').value;
+    const awayScore = document.getElementById('modal-away-score').value;
+    const btn = event.target;
+
+    if (homeScore === "" || awayScore === "") {
+        alert("Preenche os dois placares, cria!");
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.innerText = "A ENVIAR...";
+    btn.disabled = true;
+
+    const success = await window.GD_API.submitPrediction(homeScore, awayScore);
+
+    if (success) {
+        alert("Palpite enviado com sucesso!");
+        document.getElementById('prediction-modal').classList.add('hidden');
+    } else {
+        alert("Erro ao enviar palpite.");
+    }
+
+    btn.innerText = originalText;
+    btn.disabled = false;
 };
 
 window.handleSearch = (query) => {
@@ -234,12 +237,8 @@ window.handleSearch = (query) => {
 };
 
 window.changeSport = (id, name) => {
-    const titleElement = document.getElementById('current-league-title');
-    
-    // Atualiza a liga global no api.js para que o sistema saiba o que está selecionado
     window.currentLeague = id;
-
-    // Busca o nome amigável no dicionário ou usa o nome passado/id
+    const titleElement = document.getElementById('current-league-title');
     const displayName = name || (window.GD_DATA && window.GD_DATA.LEAGUES[id]) || id;
     
     if (titleElement) titleElement.innerText = displayName.toUpperCase();

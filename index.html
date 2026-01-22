@@ -30,41 +30,41 @@
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden w-screen max-w-full">
 
-<nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
-    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <a href="index.html">
-            <div class="flex items-center gap-2">
-                <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
-                <span class="text-xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent pr-4">Goal Dash</span>
-            </div>
-        </a>
-
-        <div class="hidden md:flex items-center gap-10">
-            <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Início</a>
-            <a href="live.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Ao Vivo</a>
-            <a href="stats.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Estatísticas</a>
-        </div>
-
-        <div class="flex items-center gap-6">
-    <div class="relative inline-block text-left">
-        <button id="user-menu-btn" class="flex items-center transition-all cursor-pointer">
-            </button>
-
-        <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-[#1a142e] border border-white/10 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
-            </div>
-    </div>
-
-    <div id="auth-links-container" class="hidden lg:block border-l border-white/10 pl-6">
-        <p class="text-white text-[10px] font-bold uppercase tracking-wider">
-            Já tem conta? 
-            <a href="#" onclick="window.switchToLogin()" class="text-[#a855f7] hover:text-white ml-1 underline">
-                Faça Login
+    <nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html">
+                <div class="flex items-center gap-2">
+                    <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
+                    <span class="text-xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent pr-4">Goal Dash</span>
+                </div>
             </a>
-        </p>
-    </div>
-</div>
-    </div>
-</nav>
+
+            <div class="hidden md:flex items-center gap-10">
+                <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Início</a>
+                <a href="live.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Ao Vivo</a>
+                <a href="stats.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Estatísticas</a>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative inline-block text-left">
+                    <button id="user-menu-btn" class="flex items-center transition-all cursor-pointer">
+                        </button>
+
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-[#1a142e] border border-white/10 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
+                        </div>
+                </div>
+
+                <div id="auth-links-container" class="hidden lg:block border-l border-white/10 pl-6">
+                    <p class="text-white text-[10px] font-bold uppercase tracking-wider">
+                        Já tem conta? 
+                        <a href="#" onclick="window.switchToLogin()" class="text-[#a855f7] hover:text-white ml-1 underline">
+                            Faça Login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </nav>
 
    <main class="flex-grow w-full">
         
@@ -170,16 +170,43 @@
     </footer>
 
     <div id="prediction-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
-        <div class="bg-slate-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
-            <h3 class="text-center text-purple-500 text-[10px] font-black uppercase tracking-[0.4em] mb-2">Novo Palpite</h3>
-            <p id="modal-home-name" class="text-center text-white text-xl font-black italic uppercase mb-8">Equipa Casa</p>
-            <div class="flex items-center justify-center gap-6 mb-10">
-                <input type="number" id="input-home-score" class="w-20 h-20 text-4xl text-center bg-white/5 border border-white/10 rounded-3xl text-white font-black outline-none">
-                <span class="text-white/20 font-black italic text-2xl">X</span>
-                <input type="number" id="input-away-score" class="w-20 h-20 text-4xl text-center bg-white/5 border border-white/10 rounded-3xl text-white font-black outline-none">
+        <div class="bg-slate-900 border border-white/10 p-10 rounded-[3rem] max-w-sm w-full shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 blur-[100px] rounded-full"></div>
+
+            <h3 class="text-center text-purple-500 text-[10px] font-black uppercase tracking-[0.4em] mb-8 relative z-10">Novo Palpite</h3>
+
+            <div class="flex items-center justify-between gap-4 mb-10 relative z-10">
+                <div class="flex-1">
+                    <p id="modal-home-name" class="text-white text-[13px] font-black italic uppercase leading-tight text-right break-words">Equipa Casa</p>
+                </div>
+                
+                <div class="flex items-center justify-center bg-purple-500/20 border border-purple-500/30 w-10 h-10 rounded-xl rotate-45 shrink-0 shadow-[0_0_15px_rgba(147,51,234,0.2)]">
+                    <span class="text-purple-500 font-black italic text-[10px] -rotate-45">VS</span>
+                </div>
+
+                <div class="flex-1">
+                    <p id="modal-away-name" class="text-white text-[13px] font-black italic uppercase leading-tight text-left break-words">Equipa Fora</p>
+                </div>
             </div>
-            <button onclick="window.handlePredictionSubmit()" class="w-full py-5 bg-purple-600 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest hover:bg-purple-500 transition-all">Confirmar Envio</button>
-            <button onclick="document.getElementById('prediction-modal').classList.add('hidden')" class="w-full py-2 mt-2 text-[10px] font-black text-white/30 hover:text-white uppercase tracking-widest transition-all">Cancelar</button>
+
+            <div class="flex items-center justify-center gap-6 mb-10 relative z-10">
+                <input type="number" id="modal-home-score" placeholder="0" 
+                    class="w-20 h-20 text-4xl text-center bg-white/5 border border-white/10 rounded-3xl text-white font-black outline-none focus:border-purple-500/50 focus:bg-purple-500/5 transition-all appearance-none">
+                
+                <span class="text-white/10 font-black italic text-2xl">X</span>
+                
+                <input type="number" id="modal-away-score" placeholder="0" 
+                    class="w-20 h-20 text-4xl text-center bg-white/5 border border-white/10 rounded-3xl text-white font-black outline-none focus:border-purple-500/50 focus:bg-purple-500/5 transition-all appearance-none">
+            </div> 
+
+            <div class="flex flex-col gap-3 relative z-10">
+                <button onclick="window.handlePredictionSubmit()" class="w-full py-5 bg-purple-600 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest hover:bg-purple-500 transition-all active:scale-95 shadow-lg shadow-purple-600/20">
+                    Confirmar Envio
+                </button>
+                <button onclick="document.getElementById('prediction-modal').classList.add('hidden')" class="w-full py-2 text-[10px] font-black text-white/30 hover:text-white uppercase tracking-widest transition-all">
+                    Cancelar
+                </button>
+            </div>
         </div>
     </div>
 

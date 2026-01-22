@@ -7,16 +7,53 @@
     <title>Goal Dash | Histórico de Previsões</title>
 
   <script src="js/data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     
-    <link rel="stylesheet" href="./styles/styles.css" />
+  <link rel="stylesheet" href="./styles/styles.css" />
   </head>
 
   <body class="min-h-screen flex flex-col">
+
+    <nav class="fixed top-0 left-0 w-full z-[100] glass-nav">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html">
+                <div class="flex items-center gap-2">
+                    <img src="Images/favi.svg" class="w-8 h-8" alt="Logo">
+                    <span class="text-xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent pr-4">Goal Dash</span>
+                </div>
+            </a>
+
+            <div class="hidden md:flex items-center gap-10">
+                <a href="index.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Início</a>
+                <a href="live.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Ao Vivo</a>
+                <a href="stats.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-white hover:text-purple-400 transition-colors">Estatísticas</a>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative inline-block text-left">
+                    <button id="user-menu-btn" class="flex items-center transition-all cursor-pointer">
+                        </button>
+
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-[#1a142e] border border-white/10 rounded-2xl shadow-2xl z-[1000] overflow-hidden">
+                        </div>
+                </div>
+
+                <div id="auth-links-container" class="hidden lg:block border-l border-white/10 pl-6">
+                    <p class="text-white text-[10px] font-bold uppercase tracking-wider">
+                        Já tem conta? 
+                        <a href="#" onclick="window.switchToLogin()" class="text-[#a855f7] hover:text-white ml-1 underline">
+                            Faça Login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <main class="pt-24 max-w-4xl mx-auto p-6 mt-10">
       
       <div class="mb-10">
