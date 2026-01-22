@@ -1,42 +1,52 @@
 /**
  * GoalDash - ORQUESTRADOR (main.js)
- * Versão Corrigida: Escopo de variáveis e renderização sincronizada.
+ * Versão: Sincronização Global com api.js + Interface Inteligente
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Inicializa UI comum
+    // 1. Inicializa UI comum (Navbar/User)
     if (window.updateUserUI) window.updateUserUI();
 
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id');
 
-    // --- PÁGINA DE DETALHES ---
+    // --- LÓGICA DE NAVEGAÇÃO / CARREGAMENTO ---
     if (matchId) {
+        // --- PÁGINA DE DETALHES ---
         if (window.GD_API && window.GD_API.fetchMatches) {
             try {
-                // Forçamos a busca e aguardamos o resultado
-                const data = await window.GD_API.fetchMatches('UEFA_CHAMPIONS_LEAGUE');
+                // Usa a liga atual definida no api.js ou Champions como fallback
+                const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
+                const data = await window.GD_API.fetchMatches(leagueToLoad);
                 
-                // Garantimos que 'data' é um array antes de usar o .find()
                 const matches = Array.isArray(data) ? data : (window.allLoadedMatches || []);
-                
                 const match = matches.find(m => String(m.eventID) === String(matchId));
                 
                 if (match && window.UI && window.UI.renderMatchHeader) {
                     window.UI.renderMatchHeader(match);
                 } else {
-                    console.error("Jogo não encontrado no array da API");
                     const header = document.getElementById('match-header');
                     if (header) header.innerHTML = "<div class='text-center py-10 opacity-50 uppercase text-[10px] font-black tracking-widest'>Jogo não encontrado</div>";
                 }
             } catch (err) {
-                console.error("Erro ao processar dados da API:", err);
+                console.error("Erro ao carregar detalhes:", err);
             }
         }
     } else {
         // --- PÁGINA INICIAL ---
         if (window.GD_API && window.GD_API.fetchMatches) {
-            await window.GD_API.fetchMatches();
+            // 1. Puxamos a liga que o teu api.js definiu como inicial
+            const leagueToLoad = window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE';
+
+            // 2. Sincroniza o título do HTML com o nome da liga no GD_DATA.LEAGUES
+            const titleElement = document.getElementById('current-league-title');
+            if (titleElement && window.GD_DATA && window.GD_DATA.LEAGUES) {
+                const leagueName = window.GD_DATA.LEAGUES[leagueToLoad] || "LIGA SELECIONADA";
+                titleElement.innerText = leagueName.toUpperCase();
+            }
+
+            // 3. Faz a busca dos jogos
+            await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
 
@@ -54,7 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.disabled = true;
 
             const res = await window.GD_API.loginUser(user, pass);
-
             if (res.success) {
                 localStorage.setItem('goalDash_username', res.username);
                 window.location.reload();
@@ -93,7 +102,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
 
             const result = await window.GD_API.registerUser(userData);
-
             if (result.success) {
                 localStorage.setItem('goalDash_username', userData.username);
                 window.location.reload(); 
@@ -101,15 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (messageBox) {
                     messageBox.innerText = result.error;
                     messageBox.classList.remove('hidden');
-                    messageBox.style.display = "block"; 
-                    messageBox.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
-                    messageBox.style.color = "#ff4444";
-                    messageBox.style.border = "1px solid rgba(255, 68, 68, 0.3)";
-                    messageBox.style.padding = "12px";
-                    messageBox.style.fontSize = "14px";
-                    messageBox.style.fontWeight = "800";
-                    messageBox.style.borderRadius = "8px";
-                    messageBox.style.marginTop = "15px";
+                    messageBox.style.cssText = "display: block; background: rgba(239,68,68,0.15); color: #ff4444; border: 1px solid rgba(255,68,68,0.3); padding: 12px; font-size: 14px; font-weight: 800; border-radius: 8px; margin-top: 15px;";
                 }
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
@@ -133,18 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             confirmPredictionBtn.disabled = true;
 
             const success = await window.GD_API.submitPrediction(homeScore, awayScore);
-
             if (success) {
                 alert("Palpite enviado com sucesso!");
-                if (window.closePredictionModal) {
-                    window.closePredictionModal();
-                } else {
-                    document.getElementById('prediction-modal').classList.add('hidden');
-                }
+                if (window.closePredictionModal) window.closePredictionModal();
+                else document.getElementById('prediction-modal').classList.add('hidden');
             } else {
-                alert("Erro ao enviar palpite. Tente novamente.");
+                alert("Erro ao enviar palpite.");
             }
-
             confirmPredictionBtn.innerText = "CONFIRMAR PALPITE";
             confirmPredictionBtn.disabled = false;
         };
@@ -160,7 +155,6 @@ window.updateUserUI = () => {
     const authLinksContainer = document.getElementById('auth-links-container');
 
     if (!userMenuBtn) return;
-
     userMenuBtn.onclick = null;
 
     if (user) {
@@ -200,11 +194,6 @@ window.updateUserUI = () => {
     }
 };
 
-document.addEventListener('click', () => {
-    const userDropdown = document.getElementById('user-dropdown');
-    if (userDropdown) userDropdown.classList.add('hidden');
-});
-
 window.logout = () => {
     localStorage.removeItem('goalDash_username');
     window.location.reload(); 
@@ -222,40 +211,11 @@ window.handlePalpiteClick = (id, home, away) => {
         }
         return;
     }
-
     window.activeGame = { id, home, away };
     const modal = document.getElementById('prediction-modal');
     const title = document.getElementById('modal-teams-title');
     if (title) title.innerText = `${home} vs ${away}`;
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-};
-
-window.switchToLogin = () => { window.closeAuthModal(); window.openLoginModal(); };
-window.switchToRegister = () => { window.closeLoginModal(); window.openAuthModal(); };
-
-window.openLoginModal = () => {
-    const m = document.getElementById('login-modal');
-    if(m) { m.classList.remove('hidden'); m.classList.add('flex'); }
-};
-window.closeLoginModal = () => { document.getElementById('login-modal').classList.add('hidden'); };
-
-window.openAuthModal = () => {
-    const authModal = document.getElementById('auth-modal');
-    if (authModal) {
-        authModal.classList.remove('hidden');
-        authModal.classList.add('flex');
-    }
-};
-
-window.closeAuthModal = () => {
-    const authModal = document.getElementById('auth-modal');
-    if (authModal) {
-        authModal.classList.add('hidden');
-        authModal.classList.remove('flex');
-    }
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
 };
 
 window.handleSearch = (query) => {
@@ -275,6 +235,26 @@ window.handleSearch = (query) => {
 
 window.changeSport = (id, name) => {
     const titleElement = document.getElementById('current-league-title');
-    if (titleElement) titleElement.innerText = name ? name.toUpperCase() : "LIGA SELECIONADA";
+    
+    // Atualiza a liga global no api.js para que o sistema saiba o que está selecionado
+    window.currentLeague = id;
+
+    // Busca o nome amigável no dicionário ou usa o nome passado/id
+    const displayName = name || (window.GD_DATA && window.GD_DATA.LEAGUES[id]) || id;
+    
+    if (titleElement) titleElement.innerText = displayName.toUpperCase();
     if (window.GD_API) window.GD_API.fetchMatches(id);
 };
+
+// Modais
+window.openLoginModal = () => { const m = document.getElementById('login-modal'); if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } };
+window.closeLoginModal = () => { document.getElementById('login-modal').classList.add('hidden'); };
+window.openAuthModal = () => { const m = document.getElementById('auth-modal'); if(m) { m.classList.remove('hidden'); m.classList.add('flex'); } };
+window.closeAuthModal = () => { document.getElementById('auth-modal').classList.add('hidden'); };
+window.switchToLogin = () => { window.closeAuthModal(); window.openLoginModal(); };
+window.switchToRegister = () => { window.closeLoginModal(); window.openAuthModal(); };
+
+document.addEventListener('click', () => {
+    const userDropdown = document.getElementById('user-dropdown');
+    if (userDropdown) userDropdown.classList.add('hidden');
+});

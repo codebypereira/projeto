@@ -13,7 +13,7 @@ const CONFIG = {
 // Estado Global da Aplicação
 window.allLoadedMatches = [];
 window.activeGame = null;     
-window.currentLeague = 'BUNDESLIGA';
+window.currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
 
 const GD_API = {
 
