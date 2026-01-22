@@ -37,7 +37,7 @@ const GD_DATA = {
         "GIR": 7732, "GET": 8305,
 
         // TIMES POPULARES
-        "SLB": 9772, "FCP": 9773, "COR": 9808, "FLA": 9770, "ALN": 101918, "PAL": 10283,
+        "SLB": 9772, "FCP": 9773, "COR": 9808, "FLA": 9770, "ALN": 101918, "PAL": 10283, "SCP": 9768,
 
         // SERIE A (ITA)
         "ACM": 8564, "ASR": 8686, "LAZ": 8543, "INT": 8636, "JUV": 9885, "NAP": 9875, "ATA": 8524, "BOL": 9857, "FIO": 8535, 
