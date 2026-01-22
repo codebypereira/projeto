@@ -89,6 +89,8 @@
           </button>
       </div>
 
+      <div id="user-stats-display"></div>
+
       <div id="history-container" class="grid gap-4">
         
         <div class="text-center py-20">
@@ -148,15 +150,10 @@
     </div>
 
     <script>
-      /**
-       * Monitorização do DOM:
-       * Dispara a função de carga de dados assim que a estrutura HTML está pronta,
-       * garantindo que o history-container está disponível para manipulação.
-       */
-      document.addEventListener("DOMContentLoaded", () => {
-        if (window.loadPredictionHistory) {
-          window.loadPredictionHistory();
-        }
+      window.addEventListener('DOMContentLoaded', () => {
+          if (window.UI && window.UI.renderHistory) {
+              window.UI.renderHistory();
+          }
       });
     </script>
   </body>
