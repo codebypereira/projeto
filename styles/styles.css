@@ -156,3 +156,35 @@ input[type=number] {
     color: white;
     z-index: 10;
 }
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.1); }
+    50% { box-shadow: 0 0 15px rgba(var(--glow-color), 0.4); }
+    100% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.1); }
+}
+
+.card-win { 
+    --glow-color: 34, 197, 94; 
+    border-left: 4px solid #22c55e !important;
+    animation: glowPulse 2s infinite ease-in-out;
+}
+
+.card-draw { 
+    --glow-color: 234, 179, 8; 
+    border-left: 4px solid #eab308 !important;
+}
+
+.card-loss { 
+    --glow-color: 239, 68, 68; 
+    border-left: 4px solid #ef4444 !important;
+}
+
+/* Etiqueta da Liga - Texto Puro */
+.league-label {
+    font-size: 7px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+    display: block;
+}

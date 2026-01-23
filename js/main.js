@@ -77,45 +77,62 @@ window.handleTeamClickByCode = async (code, name) => {
 };
 
 window.handleTeamClick = async (teamID) => {
-    // 1. Extração Inteligente da Base
-    // Se o ID for "LIVERPOOL_UEFA", base vira "LIVERPOOL"
-    // Se o ID for "REAL_MADRID_UEFA", base vira "REAL_MADRID"
-    const parts = String(teamID).toUpperCase().split('_');
-    let baseID = parts[0];
-    
-    // Caso especial para nomes compostos tipo REAL MADRID, ATLETICO MADRID, etc.
-    if (["REAL", "ATLETICO", "MAN", "BAYERN"].includes(baseID) && parts[1]) {
+    // 1. TRADUTOR DE CODES (Mantém seus logos e resolve nomes)
+    const tradutor = {
+        "MCI": "MANCHESTER_CITY_EPL",
+        "RMA": "REAL_MADRID_LA_LIGA",
+        "BAR": "BARCELONA_LA_LIGA",
+        "LIV": "LIVERPOOL_EPL",
+        "ARS": "ARSENAL_EPL",
+        "ATM": "ATLETICO_MADRID_LA_LIGA",
+        "CHE": "CHELSEA_EPL",
+        "FCB": "BAYERN_MUNICH_BUNDESLIGA"
+    };
+
+    const apiID = tradutor[teamID] || teamID;
+    const parts = String(apiID).toUpperCase().split('_');
+    let baseID = parts[0]; 
+
+    // Ajustes de nomes compostos para as IDs de busca
+    if (baseID === "MANCHESTER" && parts[1] === "CITY") {
+        baseID = "MANCHESTER_CITY";
+    } else if (baseID === "NEWCASTLE") {
+        // Para a busca de jogos, usamos o termo que a API reconhece
+        baseID = "NEWCASTLE"; 
+    } else if (["REAL", "ATLETICO", "BAYERN"].includes(baseID) && parts[1] && parts[1] !== "UEFA") {
         baseID = `${parts[0]}_${parts[1]}`;
     }
 
-    console.log("%c 🚀 [HÍBRIDO] TRADUZINDO IDS PARA: " + baseID, "color: #00f2ff; font-weight: bold;");
+    console.log("%c 🚀 BUSCANDO: " + baseID, "color: #00f2ff; font-weight: bold;");
     
     if (window.UI && typeof window.UI.showLoading === 'function') {
         window.UI.showLoading('search-results');
     }
 
-    // 2. Define os IDs específicos e as Ligas conforme a documentação da sua API
+    // 2. Define os IDs das Ligas (Mantendo todas as ligas que você tinha)
     const idChampions = `${baseID}_UEFA_CHAMPIONS_LEAGUE`;
     let idDomestic = "";
     let domesticLeague = "";
 
-    // Mapeamento de Ligas e IDs Nacionais
-    if (baseID.includes("REAL_MADRID") || baseID.includes("BARCELONA")) {
+    // Verificação de Ligas
+    if (baseID.includes("REAL_MADRID") || baseID.includes("BARCELONA") || baseID.includes("ATLETICO_MADRID")) {
         domesticLeague = "LA_LIGA";
         idDomestic = `${baseID}_LA_LIGA`;
-    } else if (baseID.includes("LIVERPOOL") || baseID.includes("CITY") || baseID.includes("ARSENAL")) {
-        domesticLeague = "EPL";
-        idDomestic = `${baseID}_EPL`;
-    } else if (baseID.includes("BAYERN_MUNICH") || baseID.includes("DORTMUND")) {
+    } 
+    else if (baseID.includes("LIVERPOOL") || baseID.includes("MANCHESTER_CITY") || baseID.includes("ARSENAL") || baseID.includes("CHELSEA") || baseID.includes("NEWCASTLE")) {
+        domesticLeague = "EPL"; 
+        idDomestic = `${baseID}_EPL`; 
+    }
+    else if (baseID.includes("BAYERN_MUNICH")) {
         domesticLeague = "BUNDESLIGA";
         idDomestic = `${baseID}_BUNDESLIGA`;
     }
 
     try {
         const startsAfter = "2025-10-15";
-        const startsBefore = "2026-01-23"; // Data de hoje
+        const startsBefore = "2026-01-23";
 
-        // 3. Monta a lista de promessas (Sempre Champions + Nacional se houver)
+        // Promessas de jogos
         const promises = [
             window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", startsAfter, startsBefore, idChampions)
         ];
@@ -124,38 +141,56 @@ window.handleTeamClick = async (teamID) => {
             promises.push(window.GD_API.fetchEndedMatches(domesticLeague, startsAfter, startsBefore, idDomestic));
         }
 
-        // Executa todas as buscas em paralelo
+        // Stats Target: Usamos o apiID original ou o idDomestic para garantir os dados do time certo
+        const statsTarget = apiID; 
+
         const [stats, ...matchResults] = await Promise.all([
-            window.GD_API.fetchTeamFullStats(teamID),
+            window.GD_API.fetchTeamFullStats(statsTarget),
             ...promises
         ]);
 
-        // Une os resultados de todas as ligas
-        let allMatches = matchResults.flat();
+        let allMatches = matchResults.flat().filter(m => m !== null);
         
-        // 4. Ordenação Cronológica (Mais recente no topo)
+        // Ordenação
         allMatches.sort((a, b) => {
             const timeA = new Date(a.status?.startsAt || a.startsAt || 0).getTime();
             const timeB = new Date(b.status?.startsAt || b.startsAt || 0).getTime();
             return timeB - timeA;
         });
 
-        // 5. Remove possíveis duplicatas e pega os 5 últimos
-        const uniqueMatches = Array.from(new Map(allMatches.map(m => [m.id, m])).values());
-        const last5Matches = uniqueMatches.slice(0, 5);
+        const last5Matches = allMatches.slice(0, 5);
         
-        console.table(last5Matches.map(m => ({
-            Data: m.status?.startsAt || m.startsAt,
-            Liga: m.leagueID,
-            Jogo: `${m.teams.home.names.short} ${m.teams.home.score} x ${m.teams.away.score} ${m.teams.away.names.short}`
-        })));
+        // --- PROTEÇÃO DO NOME (FIM DO LUTON) ---
+        let finalName = baseID.replace(/_/g, ' '); 
+        if (stats && stats.name && stats.name.toUpperCase() !== "EQUIPA") {
+            // Se a API retornar Luton para busca de Newcastle, o 'includes' barra
+            if (stats.name.toUpperCase().includes(baseID.split('_')[0])) {
+                finalName = stats.name;
+            }
+        }
 
-        if (stats && window.UI) {
-            window.UI.renderTeamDashboard({ ...stats, id: teamID }, last5Matches);
+        // --- LOGO (RECUPERADA) ---
+        let teamShortName = "";
+        if (last5Matches.length > 0) {
+            const m = last5Matches[0];
+            // Comparamos apenas a primeira parte (ex: NEWCASTLE) para garantir o match
+            const searchKey = baseID.split('_')[0];
+            const isHome = String(m.teams.home.teamID).toUpperCase().includes(searchKey);
+            teamShortName = isHome ? m.teams.home.names.short : m.teams.away.names.short;
+        }
+
+        if (window.UI) {
+            window.UI.renderTeamDashboard({ 
+                ...stats, 
+                id: teamID, // Mantemos o ID original para não quebrar referências
+                name: finalName,
+                // Fallback: se teamShortName falhar, usa o code/baseID
+                logo: window.getTeamLogo ? window.getTeamLogo(teamShortName || teamID, baseID) : ""
+            }, last5Matches);
         }
 
     } catch (err) {
-        console.error("🚨 ERRO NA TRADUÇÃO DE IDS:", err);
+        console.error("🚨 ERRO NO CLIQUE DO TIME:", err);
     }
 };
 
@@ -201,16 +236,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const popularTeamsData = [
             { name: 'Real Madrid', code: "RMA" },
             { name: 'Barcelona', code: "BAR" },
-            { name: 'Man. City', code: "MCI" },
+            { name: 'Manchester City', code: "MCI" },
             { name: 'Liverpool', code: "LIV" },
             { name: 'Bayern Munich', code: "FCB" },
             { name: 'Paris SG', code: "PSG" },
-            { name: 'Benfica', code: "SLB" },
-            { name: 'Sporting CP', code: "SCP" },
-            { name: 'FC Porto', code: "FCP" },
-            { name: 'Flamengo', code: "FLA" },
-            { name: 'Palmeiras', code: "PAL" },
-            { name: 'Al Nassr', code: "ALN" }
+            { name: 'Juventus', code: "JUV" },
+            { name: 'Chelsea', code: "CHE" },
+            { name: 'Inter', code: "INT" },
+            { name: 'Arsenal', code: "ARS" },
+            { name: 'Lyon', code: "LYO" },
+            { name: 'Atletico de Madrid', code: "ATM" }
         ];
 
         if (window.UI && window.UI.renderPopularTeams) {
@@ -294,7 +329,7 @@ function setupAuthListeners() {
                     submitBtn.disabled = false; 
                 }
             }
-        });
+        };
     }
 
     const authForm = document.getElementById('auth-form');
