@@ -79,16 +79,39 @@ const GD_API = {
     },
 
     /**
-     * 2. BUSCA DE PARTIDAS TERMINADAS
+     * 2. BUSCA DE PARTIDAS TERMINADAS (COM FILTRO DE DATA)
      */
-    async fetchEndedMatches(leagueID = null) {
-        const league = leagueID || window.currentLeague;
+    async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null) {
         try {
-            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${league}&finalized=true`;
+            // 1. Limpa as datas para o formato YYYY-MM-DD (mais seguro para evitar erro 400)
+            // Se a data vier completa, pegamos só os primeiros 10 caracteres
+            const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
+            const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
+
+            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&finalized=true`;
+
+            if (leagueID || window.currentLeague) {
+                url += `&leagueID=${leagueID || window.currentLeague}`;
+            }
+
+            // Adiciona apenas se houver data, usando o formato simples
+            if (dateAfter) url += `&startsAfter=${dateAfter}`;
+            if (dateBefore) url += `&startsBefore=${dateBefore}`;
+
+            console.log("📡 [API] Tentando URL Simplificada:", url);
+
             const response = await fetch(url);
+            
+            if (!response.ok) {
+                console.error("❌ Erro na API (Status):", response.status);
+                return [];
+            }
+
             const result = await response.json();
-            return result.data || [];
+            // Garante que retorne a lista de jogos
+            return result.data || result || [];
         } catch (error) {
+            console.error("🚨 Erro ao buscar jogos:", error);
             return [];
         }
     },

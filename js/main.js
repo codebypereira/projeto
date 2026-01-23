@@ -77,30 +77,35 @@ window.handleTeamClickByCode = async (code, name) => {
 };
 
 window.handleTeamClick = async (teamID) => {
-    console.log("%c 📡 [API] BUSCANDO DASHBOARD DO TIME ID: " + teamID, "color: #a855f7; font-weight: bold;");
-    
     try {
-        const stats = await window.GD_API.fetchTeamFullStats(teamID);
-        const endedMatches = await window.GD_API.fetchEndedMatches() || [];
-        
-        console.log("📊 Dados Brutos Recebidos (Stats):", stats);
+        const hoje = new Date();
+        const dezDiasAtras = new Date();
+        dezDiasAtras.setDate(hoje.getDate() - 10);
 
-        const teamHistory = endedMatches.filter(m => {
-            return String(m.homeID) === String(teamID) || String(m.awayID) === String(teamID);
+        const startsAfter = dezDiasAtras.toISOString().split('T')[0];
+        const startsBefore = hoje.toISOString().split('T')[0];
+
+        const [stats, allEnded] = await Promise.all([
+            window.GD_API.fetchTeamFullStats(teamID),
+            window.GD_API.fetchEndedMatches(null, startsAfter, startsBefore)
+        ]);
+
+        const endedMatches = Array.isArray(allEnded) ? allEnded : [];
+
+        // Filtra usando o teamID que está dentro de teams.home ou teams.away
+        let teamHistory = endedMatches.filter(m => {
+            return m.teams?.home?.teamID === teamID || m.teams?.away?.teamID === teamID;
         });
+
+        // Ordena por data (Mais recentes primeiro)
+        teamHistory.sort((a, b) => new Date(b.status?.startsAt || b.startsAt) - new Date(a.status?.startsAt || a.startsAt));
 
         if (stats && window.UI && typeof window.UI.renderTeamDashboard === 'function') {
             window.UI.renderTeamDashboard(stats, teamHistory);
-            console.log("✅ [UI] Dashboard renderizado com sucesso.");
-        } else {
-            throw new Error("Falha na validação dos dados ou funções de UI ausentes.");
+            console.log(`✅ Dash renderizado: ${teamHistory.length} jogos encontrados.`);
         }
     } catch (err) {
-        console.error("🚨 ERRO AO PROCESSAR DASHBOARD:", err);
-        const resultsContainer = document.getElementById('search-results');
-        if (resultsContainer) {
-            resultsContainer.innerHTML = `<div class="p-10 text-center text-red-500 font-black uppercase tracking-widest text-xs">Erro ao carregar estatísticas. Tente novamente.</div>`;
-        }
+        console.error("🚨 Erro no fluxo do Dashboard:", err);
     }
 };
 
@@ -346,26 +351,69 @@ window.handlePredictionSubmit = async () => {
     btn.disabled = false;
 };
 
-// LIMPAR HISTÓRICO COMPLETO
-window.clearHistory = () => {
+// LIMPAR HISTÓRICO COMPLETO NA MOCKAPI
+window.clearHistory = async () => {
+    const username = localStorage.getItem('goalDash_username');
+    if (!username) return;
+
     if (confirm("Desejas mesmo apagar todo o teu histórico de palpites, cria?")) {
-        localStorage.removeItem('goalDash_history');
-        console.log("🧹 Histórico limpo com sucesso.");
-        if (window.GD_UI && window.GD_UI.renderHistory) {
-            window.GD_UI.renderHistory();
-        } else {
-            window.location.reload();
+        try {
+            // 1. Pega todos os palpites da API
+            const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
+            const data = await res.json();
+            
+            // 2. Filtra só os que são seus
+            const meusPalpites = data.filter(p => p.username === username);
+
+            if (meusPalpites.length === 0) {
+                alert("Teu histórico já tá limpo, cria!");
+                return;
+            }
+
+            console.log(`🗑️ Apagando ${meusPalpites.length} palpites...`);
+
+            // 3. Deleta um por um na API (a MockAPI exige delete individual por ID)
+            const deletePromises = meusPalpites.map(p => 
+                fetch(`https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions/${p.id}`, {
+                    method: 'DELETE'
+                })
+            );
+
+            await Promise.all(deletePromises);
+
+            // 4. Limpa o LocalStorage também pra não sobrar rastro
+            localStorage.removeItem('goalDash_history');
+
+            console.log("🧹 Tudo limpo!");
+
+            // 5. Atualiza a interface sem dar reload na página toda
+            if (window.GD_UI && window.GD_UI.renderHistory) {
+                window.GD_UI.renderHistory();
+            } else {
+                window.location.reload();
+            }
+
+        } catch (e) {
+            console.error("Erro ao limpar histórico:", e);
+            alert("Deu erro ao falar com o servidor. Tenta de novo!");
         }
     }
 };
 
 // APAGAR PALPITE ÚNICO
-window.deletePrediction = (predictionID) => {
+window.deletePrediction = async (apiID) => {
     if (confirm("Apagar este palpite especificamente?")) {
-        let history = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
-        history = history.filter(p => p.predictionID !== predictionID);
-        localStorage.setItem('goalDash_history', JSON.stringify(history));
-        if (window.GD_UI && window.GD_UI.renderHistory) window.GD_UI.renderHistory();
+        try {
+            // Deleta direto pelo ID da API
+            await fetch(`https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions/${apiID}`, {
+                method: 'DELETE'
+            });
+
+            console.log("✅ Palpite removido da API.");
+            if (window.GD_UI && window.GD_UI.renderHistory) window.GD_UI.renderHistory();
+        } catch (e) {
+            console.error("Erro ao deletar palpite:", e);
+        }
     }
 };
 
