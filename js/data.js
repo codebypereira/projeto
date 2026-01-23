@@ -17,8 +17,26 @@ const GD_DATA = {
     },
 
     /**
+     * TIMES POPULARES (Para a Grid da Home)
+     * Usando os IDs que você já mapeou para garantir o Scout automático.
+     */
+    POPULAR_TEAMS: [
+        { id: 8633, name: "Real Madrid" },
+        { id: 8634, name: "Barcelona" },
+        { id: 8456, name: "Man. City" },
+        { id: 10260, name: "Man. United" },
+        { id: 8650, name: "Liverpool" },
+        { id: 9823, name: "Bayern" },
+        { id: 9847, name: "PSG" },
+        { id: 8636, name: "Inter" },
+        { id: 9772, name: "Benfica" },
+        { id: 9773, name: "FC Porto" },
+        { id: 9768, name: "Sporting" },
+        { id: 9765, name: "Flamengo" }
+    ],
+
+    /**
      * Dicionário de IDs para Logos do Fotmob
-     * Mapeia as siglas da API de Odds para os IDs reais das imagens.
      */
     TEAM_LOGOS_MAP: {
         // PREMIER LEAGUE
@@ -75,7 +93,7 @@ function getTeamLogo(shortName, fullName = "") {
     const cleanShort = String(shortName).trim().toUpperCase();
     const cleanFull = String(fullName).trim();
 
-    // 1. Lógica de Desempates (Casos onde a sigla é igual)
+    // 1. Lógica de Desempates
     const desempates = {
         "BRA": cleanFull.includes("Brasil") || cleanFull.includes("Brazil") ? 8256 : 8468,
         "AJA": cleanFull.includes("Ajax") ? 8593 : 8583,

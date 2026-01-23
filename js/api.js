@@ -3,17 +3,17 @@
  * Versão Master: Conectividade UI + Greens + Auth
  */
 
-const CONFIG = {
+window.CONFIG = {
     API_KEY: 'cc48942721f415ae287937399dd882c7',
     MOCK_API_PREDICTIONS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
     MOCK_API_USERS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/users',
     BASE_URL_V2: 'https://api.sportsgameodds.com/v2'
 };
 
-// Estado Global da Aplicação
 window.allLoadedMatches = [];
-window.activeGame = null;     
-window.currentLeague = 'UEFA_CHAMPIONS_LEAGUE';
+window.activeGame = null;    
+window.currentLeague = 'EPL';
+window.previousScores = {}; 
 
 const GD_API = {
 
@@ -221,7 +221,7 @@ const GD_API = {
             createdAt: new Date().toISOString()
         };
         try {
-            const res = await fetch(CONFIG.MOCK_API_PREDICTIONS, {
+            const res = await fetch(window.CONFIG.MOCK_API_PREDICTIONS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

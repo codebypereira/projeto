@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.updateUserUI();
     }
 
+    // Carrega a Champions por padrão
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id');
     const action = urlParams.get('action');
@@ -293,7 +294,7 @@ function setupAuthListeners() {
                     submitBtn.disabled = false; 
                 }
             }
-        };
+        });
     }
 
     const authForm = document.getElementById('auth-form');
@@ -502,7 +503,7 @@ window.updateUserUI = () => {
                     <p class="text-[9px] text-white/40 uppercase font-black tracking-[2px]">Painel do Utilizador</p>
                 </div>
                 <a href="history.html" class="flex items-center gap-3 w-full text-left p-4 hover:bg-white/5 text-white text-[10px] font-black uppercase tracking-widest transition-all">
-                    <span class="text-purple-500 text-sm">⌛</span> Meus Palpites
+                    <span class="text-purple-500">⌛</span> Meus Palpites
                 </a>
                 <button onclick="window.logout()" class="flex items-center gap-3 w-full text-left p-4 hover:bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all border-t border-white/5">
                     <span class="text-sm">🚪</span> Terminar Sessão
@@ -525,6 +526,7 @@ window.logout = () => {
         localStorage.removeItem('goalDash_username');
         window.location.href = 'index.html';
     }
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
 };
 
 // --- CONTROLO DE MODAIS DE LOGIN ---
