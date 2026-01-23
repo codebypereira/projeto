@@ -23,9 +23,10 @@ const GD_API = {
     async fetchMatches(leagueID = null) {
         if (leagueID) window.currentLeague = leagueID;
 
-        if (window.UI && window.UI.showLoading) {
-            window.UI.showLoading('matches-container');
-        }
+       if (window.UI && window.UI.showLoading) {
+    const loaderId = document.getElementById('live-matches-container') ? 'live-matches-container' : 'matches-container';
+    window.UI.showLoading(loaderId);
+}
 
         try {
             const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
