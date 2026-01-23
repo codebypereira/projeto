@@ -77,35 +77,74 @@ window.handleTeamClickByCode = async (code, name) => {
 };
 
 window.handleTeamClick = async (teamID) => {
+    // 1. Identifica a "raiz" do time (ex: REAL_MADRID)
+    const baseID = String(teamID).split('_')[0].toUpperCase();
+    console.log("%c 🎯 [SISTEMA] BUSCANDO DASHBOARD PARA: " + baseID, "color: #a855f7; font-weight: bold;");
+    
+    if (window.UI && typeof window.UI.showLoading === 'function') {
+        window.UI.showLoading('search-results');
+    }
+
     try {
+        // 2. Ajuste de Datas (Busca 90 dias atrás até amanhã, para não perder jogos de hoje)
         const hoje = new Date();
-        const dezDiasAtras = new Date();
-        dezDiasAtras.setDate(hoje.getDate() - 10);
+        const amanha = new Date(hoje);
+        amanha.setDate(hoje.getDate() + 1);
 
-        const startsAfter = dezDiasAtras.toISOString().split('T')[0];
-        const startsBefore = hoje.toISOString().split('T')[0];
+        const tresMesesAtras = new Date();
+        tresMesesAtras.setDate(hoje.getDate() - 90);
 
-        const [stats, allEnded] = await Promise.all([
+        const startsAfter = tresMesesAtras.toISOString().split('T')[0];
+        const startsBefore = amanha.toISOString().split('T')[0];
+
+        // 3. Busca os dados (Lembrando que o limit=100 já está no seu fetchEndedMatches)
+        const [stats, allMatches] = await Promise.all([
             window.GD_API.fetchTeamFullStats(teamID),
-            window.GD_API.fetchEndedMatches(null, startsAfter, startsBefore)
+            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", startsAfter, startsBefore)
         ]);
 
-        const endedMatches = Array.isArray(allEnded) ? allEnded : [];
+        const matchesArray = Array.isArray(allMatches) ? allMatches : [];
+        console.log(`📊 Total de jogos da Liga recebidos: ${matchesArray.length}`);
 
-        // Filtra usando o teamID que está dentro de teams.home ou teams.away
-        let teamHistory = endedMatches.filter(m => {
-            return m.teams?.home?.teamID === teamID || m.teams?.away?.teamID === teamID;
+        // 4. FILTRO MILIMÉTRICO (Garante que só entre jogo do time clicado)
+        let teamHistory = matchesArray.filter(m => {
+            const hID = String(m.teams?.home?.teamID || "").toUpperCase();
+            const aID = String(m.teams?.away?.teamID || "").toUpperCase();
+            
+            // Pega a raiz de cada time no jogo
+            const hRoot = hID.split('_')[0];
+            const aRoot = aID.split('_')[0];
+            
+            // Retorna true apenas se um dos times for o nosso baseID (ex: REAL_MADRID)
+            return hRoot === baseID || aRoot === baseID;
         });
 
-        // Ordena por data (Mais recentes primeiro)
-        teamHistory.sort((a, b) => new Date(b.status?.startsAt || b.startsAt) - new Date(a.status?.startsAt || a.startsAt));
+        // 5. ORDENAÇÃO POR DATA (Garante 2026 no topo)
+        teamHistory.sort((a, b) => {
+            const dateA = new Date(a.status?.startsAt || a.startsAt || a.date || 0);
+            const dateB = new Date(b.status?.startsAt || b.startsAt || b.date || 0);
+            return dateB - dateA; 
+        });
 
-        if (stats && window.UI && typeof window.UI.renderTeamDashboard === 'function') {
-            window.UI.renderTeamDashboard(stats, teamHistory);
-            console.log(`✅ Dash renderizado: ${teamHistory.length} jogos encontrados.`);
+        // 6. SELEÇÃO DOS ÚLTIMOS 5
+        const last5Matches = teamHistory.slice(0, 5);
+        
+        // Log de conferência
+        console.log(`✅ Filtrados ${teamHistory.length} jogos para o histórico.`);
+        if (last5Matches.length > 0) {
+            console.log("🏆 Jogo mais recente encontrado:", 
+                `${last5Matches[0].teams.home.names.medium} ${last5Matches[0].teams.home.score} x ${last5Matches[0].teams.away.score} ${last5Matches[0].teams.away.names.medium}`
+            );
         }
+
+        // 7. RENDERIZAÇÃO
+        if (stats && window.UI) {
+            // Passamos o stats com o id original para a UI tratar logo e cálculos
+            window.UI.renderTeamDashboard({ ...stats, id: teamID }, last5Matches);
+        }
+
     } catch (err) {
-        console.error("🚨 Erro no fluxo do Dashboard:", err);
+        console.error("🚨 ERRO NO PROCESSAMENTO DO TIME:", err);
     }
 };
 

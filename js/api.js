@@ -88,7 +88,7 @@ const GD_API = {
             const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
             const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
 
-            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&finalized=true`;
+            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&finalized=true&limit=100`;
 
             if (leagueID || window.currentLeague) {
                 url += `&leagueID=${leagueID || window.currentLeague}`;
