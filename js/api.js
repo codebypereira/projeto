@@ -83,22 +83,22 @@ const GD_API = {
      */
     async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null) {
         try {
-            // 1. Limpa as datas para o formato YYYY-MM-DD (mais seguro para evitar erro 400)
-            // Se a data vier completa, pegamos só os primeiros 10 caracteres
+            // 1. Limpa as datas para o formato YYYY-MM-DD
             const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
             const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
 
-            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&finalized=true&limit=100`;
+            // 2. Monta a URL base (sem filtros fixos que duplicam)
+            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&limit=200`;
 
-            if (leagueID || window.currentLeague) {
-                url += `&leagueID=${leagueID || window.currentLeague}`;
-            }
+            // 3. Adiciona a Liga (prioriza o que vem no argumento)
+            const activeLeague = leagueID || window.currentLeague || "UEFA_CHAMPIONS_LEAGUE";
+            url += `&leagueID=${activeLeague}`;
 
-            // Adiciona apenas se houver data, usando o formato simples
+            // 4. Adiciona as datas APENAS UMA VEZ
             if (dateAfter) url += `&startsAfter=${dateAfter}`;
             if (dateBefore) url += `&startsBefore=${dateBefore}`;
 
-            console.log("📡 [API] Tentando URL Simplificada:", url);
+            console.log("📡 [API] URL FINAL CORRIGIDA:", url);
 
             const response = await fetch(url);
             
@@ -108,7 +108,6 @@ const GD_API = {
             }
 
             const result = await response.json();
-            // Garante que retorne a lista de jogos
             return result.data || result || [];
         } catch (error) {
             console.error("🚨 Erro ao buscar jogos:", error);

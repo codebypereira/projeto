@@ -77,74 +77,57 @@ window.handleTeamClickByCode = async (code, name) => {
 };
 
 window.handleTeamClick = async (teamID) => {
-    // 1. Identifica a "raiz" do time (ex: REAL_MADRID)
     const baseID = String(teamID).split('_')[0].toUpperCase();
-    console.log("%c 🎯 [SISTEMA] BUSCANDO DASHBOARD PARA: " + baseID, "color: #a855f7; font-weight: bold;");
+    console.log("%c 🚀 [OPERAÇÃO RESGATE] BUSCANDO MONACO + HISTÓRICO: " + baseID, "color: #00f2ff; font-weight: bold;");
     
     if (window.UI && typeof window.UI.showLoading === 'function') {
         window.UI.showLoading('search-results');
     }
 
     try {
-        // 2. Ajuste de Datas (Busca 90 dias atrás até amanhã, para não perder jogos de hoje)
-        const hoje = new Date();
-        const amanha = new Date(hoje);
-        amanha.setDate(hoje.getDate() + 1);
-
-        const tresMesesAtras = new Date();
-        tresMesesAtras.setDate(hoje.getDate() - 90);
-
-        const startsAfter = tresMesesAtras.toISOString().split('T')[0];
-        const startsBefore = amanha.toISOString().split('T')[0];
-
-        // 3. Busca os dados (Lembrando que o limit=100 já está no seu fetchEndedMatches)
-        const [stats, allMatches] = await Promise.all([
+        // BUSCA EM DUAS FRENTES PARA BURLAR O LIMITE DA API
+        const [stats, blocoJaneiro, blocoAnterior] = await Promise.all([
             window.GD_API.fetchTeamFullStats(teamID),
-            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", startsAfter, startsBefore)
+            // Busca 1: Só Janeiro de 2026 (Foco no Monaco)
+            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", "2026-01-01", "2026-01-26"),
+            // Busca 2: Outubro a Dezembro de 2025 (Foco nas Rodadas 3 a 6)
+            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", "2025-10-15", "2025-12-31")
         ]);
 
-        const matchesArray = Array.isArray(allMatches) ? allMatches : [];
-        console.log(`📊 Total de jogos da Liga recebidos: ${matchesArray.length}`);
+        // Une os dois blocos
+        let matchesArray = [...(blocoJaneiro || []), ...(blocoAnterior || [])];
+        console.log(`📊 Total bruto coletado: ${matchesArray.length} jogos.`);
 
-        // 4. FILTRO MILIMÉTRICO (Garante que só entre jogo do time clicado)
+        // Filtro de Identidade (Só o Real Madrid, sem Villarreal)
         let teamHistory = matchesArray.filter(m => {
-            const hID = String(m.teams?.home?.teamID || "").toUpperCase();
-            const aID = String(m.teams?.away?.teamID || "").toUpperCase();
-            
-            // Pega a raiz de cada time no jogo
-            const hRoot = hID.split('_')[0];
-            const aRoot = aID.split('_')[0];
-            
-            // Retorna true apenas se um dos times for o nosso baseID (ex: REAL_MADRID)
-            return hRoot === baseID || aRoot === baseID;
+            if (!m.teams?.home || !m.teams?.away) return false;
+            const hID = String(m.teams.home.teamID || "").toUpperCase().split('_')[0];
+            const aID = String(m.teams.away.teamID || "").toUpperCase().split('_')[0];
+            return hID === baseID || aID === baseID;
         });
 
-        // 5. ORDENAÇÃO POR DATA (Garante 2026 no topo)
+        // Ordenação por data (Mais recente primeiro)
         teamHistory.sort((a, b) => {
-            const dateA = new Date(a.status?.startsAt || a.startsAt || a.date || 0);
-            const dateB = new Date(b.status?.startsAt || b.startsAt || b.date || 0);
-            return dateB - dateA; 
+            const timeA = new Date(a.status?.startsAt || a.startsAt || 0).getTime();
+            const timeB = new Date(b.status?.startsAt || b.startsAt || 0).getTime();
+            return timeB - timeA;
         });
 
-        // 6. SELEÇÃO DOS ÚLTIMOS 5
+        // Pega o Top 5 (Agora o Monaco TEM que estar no topo)
         const last5Matches = teamHistory.slice(0, 5);
         
-        // Log de conferência
-        console.log(`✅ Filtrados ${teamHistory.length} jogos para o histórico.`);
-        if (last5Matches.length > 0) {
-            console.log("🏆 Jogo mais recente encontrado:", 
-                `${last5Matches[0].teams.home.names.medium} ${last5Matches[0].teams.home.score} x ${last5Matches[0].teams.away.score} ${last5Matches[0].teams.away.names.medium}`
-            );
-        }
+        console.log("✅ RESULTADO DA OPERAÇÃO:");
+        console.table(last5Matches.map(m => ({
+            Data: m.status?.startsAt || m.startsAt,
+            Jogo: `${m.teams.home.names.short} ${m.teams.home.score} x ${m.teams.away.score} ${m.teams.away.names.short}`
+        })));
 
-        // 7. RENDERIZAÇÃO
         if (stats && window.UI) {
-            // Passamos o stats com o id original para a UI tratar logo e cálculos
             window.UI.renderTeamDashboard({ ...stats, id: teamID }, last5Matches);
         }
 
     } catch (err) {
-        console.error("🚨 ERRO NO PROCESSAMENTO DO TIME:", err);
+        console.error("🚨 ERRO NO RESGATE DE DADOS:", err);
     }
 };
 
