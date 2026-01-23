@@ -1,11 +1,13 @@
 /**
  * GoalDash - SISTEMA CENTRAL (api.js)
+ * Versão Master: Conectividade UI + Greens + Auth
  */
 
 window.CONFIG = {
     API_KEY: 'cc48942721f415ae287937399dd882c7',
     MOCK_API_PREDICTIONS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
-    MOCK_API_USERS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/users'
+    MOCK_API_USERS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/users',
+    BASE_URL_V2: 'https://api.sportsgameodds.com/v2'
 };
 
 window.allLoadedMatches = [];
@@ -16,21 +18,28 @@ window.previousScores = {};
 const GD_API = {
 
     /**
-     * 1. BUSCA DE JOGOS (Lista Principal)
-     * Mapeia os dados da API para o formato esperado pela UI (Logos e Datas).
+     * 1. BUSCA DE JOGOS ATIVOS
      */
     async fetchMatches(leagueID = null) {
         if (leagueID) window.currentLeague = leagueID;
-        if (window.UI && window.UI.showLoading) window.UI.showLoading('matches-container');
+
+        if (window.UI && window.UI.showLoading) {
+            window.UI.showLoading('matches-container');
+        }
 
         try {
-            const url = `https://api.sportsgameodds.com/v2/events?apiKey=${window.CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
+            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
             const response = await fetch(url);
             const result = await response.json();
             const data = result.data || [];
 
-            // Mapeamos os dados respeitando a estrutura que o seu getTeamLogo e UI esperam
             window.allLoadedMatches = data.map(m => {
+                const hID = m.teams?.home?.teamID || m.homeTeamID || "SEM_ID";
+                const aID = m.teams?.away?.teamID || m.awayTeamID || "SEM_ID";
+                const leagueName = m.league?.names?.medium || "Liga";
+                const hName = m.teams?.home?.names?.medium || "Equipa Casa";
+                const aName = m.teams?.away?.names?.medium || "Equipa Fora";
+
                 const rawDate = m.status?.startsAt || m.startsAt;
                 let day = "--/--", time = "--:--";
 
@@ -42,150 +51,173 @@ const GD_API = {
                     }
                 }
 
-                // RESTAURAMOS A ESTRUTURA ORIGINAL:
-                // Se a API mandar m.teams, usamos. Se não, montamos o objeto teams manualmente
-                // para que o UI.js e o data.js não fiquem perdidos.
-                const teamsStructure = m.teams || {
-                    home: { 
-                        id: m.homeID, 
-                        names: { medium: m.homeName, short: m.homeName?.substring(0,3).toUpperCase() } 
-                    },
-                    away: { 
-                        id: m.awayID, 
-                        names: { medium: m.awayName, short: m.awayName?.substring(0,3).toUpperCase() } 
-                    }
-                };
-
                 return { 
                     ...m, 
+                    eventID: m.eventID || m.id,
+                    homeName: hName,
+                    awayName: aName,
+                    homeID: hID, 
+                    awayID: aID,
+                    leagueName: leagueName,
                     displayDay: day, 
-                    displayTime: time,
-                    teams: teamsStructure
+                    displayTime: time 
                 };
             });
 
+            console.log(`✅ ${window.allLoadedMatches.length} jogos carregados.`);
+            
             if (window.UI && window.UI.renderMatches) {
                 window.UI.renderMatches('matches-container', window.allLoadedMatches);
             }
+
+            return window.allLoadedMatches;
+
         } catch (error) {
             console.error("Erro ao carregar jogos:", error);
+            return [];
         }
     },
 
     /**
-     * 2. ESTATÍSTICAS DETALHADAS (Dashboard do Scout)
-     * Versão Ultra-Resiliente baseada no Status e Results
+     * 2. BUSCA DE PARTIDAS TERMINADAS (COM FILTRO DE DATA)
      */
-    async fetchTeamFullStats(teamID) {
-        if (window.UI && window.UI.showLoading) window.UI.showLoading('search-results');
-
+    async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null, teamID = null) {
         try {
-            const url = `https://api.sportsgameodds.com/v2/events?apiKey=${window.CONFIG.API_KEY}&teamID=${teamID}&limit=5&include=results`;
+            const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
+            const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
+
+            // 1. URL base com limite equilibrado (como são duas buscas, 100 tá ótimo)
+            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&limit=100`;
+
+            // 2. Prioridade Total ao teamID (Isso mata os "intrusos" tipo Real Betis)
+            if (teamID) {
+                url += `&teamID=${teamID}`;
+            }
+
+            // 3. Prioridade Total ao leagueID enviado pelo handleTeamClick
+            // Removemos o "ALL" e garantimos que ele use exatamente a liga da vez
+            if (leagueID && leagueID !== "ALL") {
+                url += `&leagueID=${leagueID}`;
+            } else if (!leagueID && window.currentLeague) {
+                // Fallback apenas se não vier nada no argumento
+                url += `&leagueID=${window.currentLeague}`;
+            }
+
+            // 4. Datas formatadas
+            if (dateAfter) url += `&startsAfter=${dateAfter}`;
+            if (dateBefore) url += `&startsBefore=${dateBefore}`;
+
+            console.log(`📡 [API] Chamada Híbrida: ${leagueID || 'Geral'} | Time: ${teamID}`);
+
+            const response = await fetch(url);
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const result = await response.json();
+            return result.data || result || [];
+        } catch (error) {
+            console.error("🚨 Erro na busca do histórico:", error);
+            return [];
+        }
+    },
+
+    /**
+     * 3. BUSCA DE EQUIPA POR NOME
+     */
+    searchTeamByName: async (name) => {
+        const searchTerm = name.toLowerCase().trim();
+        const matches = window.allLoadedMatches || [];
+
+        for (const m of matches) {
+            const home = m.teams?.home;
+            const away = m.teams?.away;
+            if (home?.names?.medium?.toLowerCase().includes(searchTerm)) return home.teamID;
+            if (away?.names?.medium?.toLowerCase().includes(searchTerm)) return away.teamID;
+        }
+        return searchTerm.toUpperCase().replace(/\s+/g, '_') + "_UEFA_CHAMPIONS_LEAGUE";
+    },
+
+    /**
+     * 4. ESTATÍSTICAS E FORMA
+     */
+    async fetchTeamFullStats(teamID, leagueID = null) {
+        try {
+            const league = leagueID || window.currentLeague;
+            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&teamID=${teamID}&leagueID=${league}&finalized=true&limit=8`;
             const response = await fetch(url);
             const result = await response.json();
             const matches = result.data || [];
 
-            // Captura o nome da equipe clicada para garantir que o dashboard não fique vazio
-            const fallbackName = document.querySelector(`[onclick*="${teamID}"] span`)?.innerText || "Equipa";
+            if (matches.length === 0) return { name: "Equipa", league: "Liga", form: [], history: [] };
 
-            // SE A API VIER VAZIA: Forçamos a exibição do dashboard com dados base
-            if (matches.length === 0) {
-                console.log("Usando dados de demonstração para:", teamID);
-                return window.UI.renderDashboard({
-                    id: teamID,
-                    name: fallbackName,
-                    league: "Liga Principal",
-                    form: ['V', 'E', 'V', 'V', 'D'], 
-                    avgCorners: "5.2",
-                    avgShots: "12.0",
-                    avgPossession: "54",
-                    confidence: 80
-                });
-            }
-
-            // SE HOUVER DADOS REAIS: Mapeamos conforme sua documentação (results.game)
-            let totalCorners = 0, totalShots = 0, totalPossession = 0, gamesWithStats = 0;
-
-            const formArray = matches.map(match => {
-                const isHome = match.homeID === teamID || match.teams?.home?.teamID === teamID;
-                const gameStats = match.results?.game;
-                const teamData = isHome ? gameStats?.home : gameStats?.away;
-                const oppData = isHome ? gameStats?.away : gameStats?.home;
-
-                if (teamData) {
-                    totalCorners += (teamData.cornerKicks || 0);
-                    totalShots += (teamData.shots || 0);
-                    totalPossession += (teamData.possessionPercent || 0);
-                    gamesWithStats++;
-                }
-
-                const teamPts = teamData?.points || 0;
-                const oppPts = oppData?.points || 0;
-                return teamPts > oppPts ? 'V' : (teamPts < oppPts ? 'D' : 'E');
-            });
-
-            window.UI.renderDashboard({
+            const sample = matches[0];
+            const isHome = sample.teams.home.id == teamID;
+            
+            return {
                 id: teamID,
-                name: fallbackName,
-                league: matches[0].leagueID?.replace(/_/g, ' ') || "Liga",
-                form: formArray,
-                avgCorners: gamesWithStats > 0 ? (totalCorners / gamesWithStats).toFixed(1) : "4.5",
-                avgShots: gamesWithStats > 0 ? (totalShots / gamesWithStats).toFixed(1) : "10.0",
-                avgPossession: gamesWithStats > 0 ? Math.round(totalPossession / gamesWithStats) : "50",
-                confidence: 70 + Math.floor(Math.random() * 20)
-            });
-
-        } catch (error) {
-            console.error("Erro no Scout:", error);
-            // Fallback final para garantir que o usuário veja algo
-            window.UI.renderDashboard({
-                id: teamID,
-                name: "Erro de Conexão",
-                league: "Tente novamente",
-                form: ['?','?','?','?','?'],
-                avgCorners: "0.0",
-                avgShots: "0.0",
-                avgPossession: "0",
-                confidence: 0
-            });
+                name: isHome ? sample.teams.home.names.medium : sample.teams.away.names.medium,
+                league: sample.league?.names?.medium || "Competição",
+                form: matches.map(m => {
+                    const hS = m.status?.score?.home ?? 0;
+                    const aS = m.status?.score?.away ?? 0;
+                    if (hS === aS) return 'E';
+                    const win = (m.teams.home.id == teamID ? hS > aS : aS > hS);
+                    return win ? 'V' : 'D';
+                }),
+                history: matches.map(m => ({
+                    eventID: m.eventID,
+                    homeTeam: m.teams.home.names.medium,
+                    awayTeam: m.teams.away.names.medium,
+                    homeScore: m.status?.score?.home ?? 0,
+                    awayScore: m.status?.score?.away ?? 0,
+                    date: m.status?.startsAt || m.startsAt
+                }))
+            };
+        } catch (err) {
+            console.error("Erro nas stats:", err);
+            return null;
         }
     },
 
-
+    /**
+     * 5. AUTENTICAÇÃO
+     */
     async loginUser(username, password) {
         try {
-            const response = await fetch(window.CONFIG.MOCK_API_USERS);
+            const response = await fetch(CONFIG.MOCK_API_USERS);
             const users = await response.json();
-            const user = users.find(u => (u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()));
-            if (!user) return { success: false, error: "Utilizador não encontrado!" };
-            if (user.password !== password) return { success: false, error: "Palavra-passe incorreta!" };
-            return { success: true, username: user.username };
+            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase());
+            if (user && user.password === password) return { success: true, username: user.username };
+            return { success: false, error: "Credenciais inválidas!" };
         } catch (e) { return { success: false, error: "Erro na ligação." }; }
     },
 
     async registerUser(userData) {
         try {
-            if (userData.password.length < 8) return { success: false, error: "Mínimo 8 caracteres." };
-            const response = await fetch(window.CONFIG.MOCK_API_USERS);
+            const response = await fetch(CONFIG.MOCK_API_USERS);
             const users = await response.json();
-            if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) return { success: false, error: "Nome em uso!" };
-            const createRes = await fetch(window.CONFIG.MOCK_API_USERS, {
+            if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) return { success: false, error: "Nome já existe!" };
+            const createRes = await fetch(CONFIG.MOCK_API_USERS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-            return { success: createRes.ok };
-        } catch (e) { return { success: false, error: "Erro técnico." }; }
+            return createRes.ok ? { success: true } : { success: false, error: "Erro ao salvar." };
+        } catch (error) { return { success: false, error: "Falha de conexão." }; }
     },
 
+    /**
+     * 6. ENVIO DE PALPITE
+     */
     async submitPrediction(h, a) {
         if (!window.activeGame) return false;
-        const username = localStorage.getItem('goalDash_username');
         const payload = {
-            matchId: `${window.activeGame.home} vs ${window.activeGame.away}`,
-            username: username,
+            matchId: window.activeGame.id,
+            matchName: `${window.activeGame.home} vs ${window.activeGame.away}`,
+            username: localStorage.getItem('goalDash_username'),
             homeScore: parseInt(h),
             awayScore: parseInt(a),
+            status: "pendente",
             createdAt: new Date().toISOString()
         };
         try {
@@ -196,49 +228,80 @@ const GD_API = {
             });
             return res.ok;
         } catch (e) { return false; }
+    },
+
+    /**
+     * 7. CONFERÊNCIA AUTOMÁTICA DE GREENS
+     */
+    async checkMyGreens() {
+        console.log("🚀 Verificando Green/Red (Filtro Recentes)...");
+        try {
+            const resPred = await fetch(CONFIG.MOCK_API_PREDICTIONS);
+            const allPreds = await resPred.json();
+            const username = localStorage.getItem('goalDash_username');
+            if (!username) return;
+
+            const myPending = allPreds.filter(p => p.username === username && p.status === "pendente");
+            if (myPending.length === 0) return console.log("✅ Nada pendente para conferir.");
+
+            // FILTRAGEM DE DATA: Pegar jogos de no máximo 15 dias atrás
+            const dataLimite = new Date();
+            dataLimite.setDate(dataLimite.getDate() - 15);
+            const startsAfter = dataLimite.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+            // Fetch com startsAfter para ignorar 2024/2025
+            const urlReal = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&finalized=true&startsAfter=${startsAfter}&limit=50`;
+            
+            const resReal = await fetch(urlReal);
+            const realData = await resReal.json();
+            const finishedMatches = realData.data || [];
+
+            for (let palpite of myPending) {
+                const jogoReal = finishedMatches.find(m => m.eventID === palpite.matchId);
+
+                if (jogoReal) {
+                    const rH = jogoReal.status?.score?.home ?? 0;
+                    const rA = jogoReal.status?.score?.away ?? 0;
+                    
+                    // Lógica de Green (Placar exato)
+                    const isGreen = (palpite.homeScore === rH && palpite.awayScore === rA);
+                    const newStatus = isGreen ? "green" : "red";
+                    
+                    console.log(`🎯 Resultado Processado: ${palpite.matchName} -> ${newStatus.toUpperCase()}`);
+
+                    await fetch(`${CONFIG.MOCK_API_PREDICTIONS}/${palpite.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            ...palpite, 
+                            status: newStatus, 
+                            realScore: `${rH}x${rA}` 
+                        })
+                    });
+                }
+            }
+            
+            console.log("🏁 Greens atualizados!");
+            
+            // Se a UI de stats existir, atualiza ela logo após o check
+            if (window.UI && window.UI.renderUserStats) {
+                window.UI.renderUserStats();
+            }
+
+        } catch (e) { 
+            console.error("🚨 Erro no checkGreens:", e); 
+        }
     }
 };
-const params = new URLSearchParams(window.location.search);
-const gameId = params.get('id');
 
-if (gameId && window.GD_API) {
-    // Aqui chamarias a tua função da API para carregar esse jogo específico
-    console.log("A carregar dados do jogo ID:", gameId);
-}
-
-/**
- * GESTÃO DE JOGOS AO VIVO (LIVE)
- */
-window.fetchLiveMatches = async function(leagueID = 'LA_LIGA') {
-    const container = document.getElementById('live-matches-container');
-    if (!container) return;
-    try {
-        const url = `https://api.sportsgameodds.com/v2/events?apiKey=${window.CONFIG.API_KEY}&leagueID=${leagueID}&live=true`;
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        const liveMatches = (result.data || []).map(m => ({
-            ...m,
-            teams: {
-                home: { id: m.homeID, names: { medium: m.homeName } },
-                away: { id: m.awayID, names: { medium: m.awayName } }
-            }
-        }));
-
-        if (liveMatches.length === 0) {
-            container.innerHTML = `<p class="text-white/40 col-span-full text-center py-20 font-black uppercase italic tracking-widest text-[10px]">Sem jogos live no momento.</p>`;
-            return;
-        }
-        if (window.UI && window.UI.renderLiveCards) window.UI.renderLiveCards(liveMatches);
-    } catch (error) { console.error("Erro Live:", error); }
-};
-
-window.changeSport = function(leagueID) {
-    window.previousScores = {}; 
-    window.fetchLiveMatches(leagueID);
-};
-
-// Exposição Global
+// Exportação Global
 window.GD_API = GD_API;
-window.fetchTeamFullStats = (id) => GD_API.fetchTeamFullStats(id);
 window.fetchMatches = (id) => GD_API.fetchMatches(id);
+
+// Inicialização Automática ao carregar a página
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        GD_API.fetchMatches();
+        GD_API.checkMyGreens();
+    }, 200);
+});

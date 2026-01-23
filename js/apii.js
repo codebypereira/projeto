@@ -151,74 +151,74 @@ function renderMatches(matches) {
     if (!container) return;
     container.innerHTML = '';
 
-    matches.forEach(m => {
-        const home = m.teams?.home;
-        const away = m.teams?.away;
+        matches.forEach(m => {
+            const home = m.teams?.home;
+            const away = m.teams?.away;
 
-        // Obter logos das equipas
-        const homeLogo = getTeamLogo(home?.names?.short, home?.names?.medium);
-        const awayLogo = getTeamLogo(away?.names?.short, away?.names?.medium);
+            // Obter logos das equipas
+            const homeLogo = getTeamLogo(home?.names?.short, home?.names?.medium);
+            const awayLogo = getTeamLogo(away?.names?.short, away?.names?.medium);
 
-        // Formatar data e hora
-        const rawDate = m.status?.startsAt || m.startsAt;
-        let day = "--/--", time = "--:--";
+            // Formatar data e hora
+            const rawDate = m.status?.startsAt || m.startsAt;
+            let day = "--/--", time = "--:--";
 
-        if (rawDate) {
-            const gameDate = new Date(rawDate);
-            if (!isNaN(gameDate.getTime())) {
-                day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-                time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+            if (rawDate) {
+                const gameDate = new Date(rawDate);
+                if (!isNaN(gameDate.getTime())) {
+                    day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+                    time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+                }
             }
-        }
 
-        // Criar card do jogo
-        const card = document.createElement('div');
-        card.className = "match-card bg-slate-900/50 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
-        
-        card.innerHTML = `
-            <a href="matchdetails.html?id=${m.eventID}" class="block p-6">
-                <!-- Data e hora -->
-                <div class="flex justify-center mb-6">
-                    <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
-                        <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
-                        <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
-                        <span class="text-sm font-black text-white tracking-tight">${time}</span>
-                    </div>
-                </div>
-                
-                <!-- Equipas -->
-                <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
-                    <!-- Equipa Casa -->
-                    <div class="flex flex-col items-center flex-1">
-                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
-                            <img src="${homeLogo}" 
-                                class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
-                                alt="home">
+            // Criar card do jogo
+            const card = document.createElement('div');
+            card.className = "match-card bg-slate-900/50 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
+            
+            card.innerHTML = `
+                <a href="matchdetails.html?id=${m.eventID}" class="block p-6">
+                    <!-- Data e hora -->
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3">
+                            <span class="text-sm font-black text-purple-400 uppercase tracking-tight">${day}</span>
+                            <div class="w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+                            <span class="text-sm font-black text-white tracking-tight">${time}</span>
                         </div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                            ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
-                        </span>
                     </div>
-
-                    <div class="opacity-30">
-                        <span class="text-2xl font-black italic text-white">VS</span>
-                    </div>
-
-                    <!-- Equipa Fora -->
-                    <div class="flex flex-col items-center flex-1">
-                        <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                            <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
-                            <img src="${awayLogo}" 
-                                class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
-                                alt="away">
+                    
+                    <!-- Equipas -->
+                    <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
+                        <!-- Equipa Casa -->
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                                <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
+                                <img src="${homeLogo}" 
+                                    class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
+                                    alt="home">
+                            </div>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                                ${home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa'}
+                            </span>
                         </div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
-                            ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
-                        </span>
+
+                        <div class="opacity-30">
+                            <span class="text-2xl font-black italic text-white">VS</span>
+                        </div>
+
+                        <!-- Equipa Fora -->
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
+                                <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
+                                <img src="${awayLogo}" 
+                                    class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
+                                    alt="away">
+                            </div>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">
+                                ${away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora'}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            </a>
+                </a>
             
             <!-- Botão de Palpite -->
             <div class="px-6 pb-6">
