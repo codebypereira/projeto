@@ -77,48 +77,76 @@ window.handleTeamClickByCode = async (code, name) => {
 };
 
 window.handleTeamClick = async (teamID) => {
-    const baseID = String(teamID).split('_')[0].toUpperCase();
-    console.log("%c 🚀 [OPERAÇÃO RESGATE] BUSCANDO MONACO + HISTÓRICO: " + baseID, "color: #00f2ff; font-weight: bold;");
+    // 1. Extração Inteligente da Base
+    // Se o ID for "LIVERPOOL_UEFA", base vira "LIVERPOOL"
+    // Se o ID for "REAL_MADRID_UEFA", base vira "REAL_MADRID"
+    const parts = String(teamID).toUpperCase().split('_');
+    let baseID = parts[0];
+    
+    // Caso especial para nomes compostos tipo REAL MADRID, ATLETICO MADRID, etc.
+    if (["REAL", "ATLETICO", "MAN", "BAYERN"].includes(baseID) && parts[1]) {
+        baseID = `${parts[0]}_${parts[1]}`;
+    }
+
+    console.log("%c 🚀 [HÍBRIDO] TRADUZINDO IDS PARA: " + baseID, "color: #00f2ff; font-weight: bold;");
     
     if (window.UI && typeof window.UI.showLoading === 'function') {
         window.UI.showLoading('search-results');
     }
 
+    // 2. Define os IDs específicos e as Ligas conforme a documentação da sua API
+    const idChampions = `${baseID}_UEFA_CHAMPIONS_LEAGUE`;
+    let idDomestic = "";
+    let domesticLeague = "";
+
+    // Mapeamento de Ligas e IDs Nacionais
+    if (baseID.includes("REAL_MADRID") || baseID.includes("BARCELONA")) {
+        domesticLeague = "LA_LIGA";
+        idDomestic = `${baseID}_LA_LIGA`;
+    } else if (baseID.includes("LIVERPOOL") || baseID.includes("CITY") || baseID.includes("ARSENAL")) {
+        domesticLeague = "EPL";
+        idDomestic = `${baseID}_EPL`;
+    } else if (baseID.includes("BAYERN_MUNICH") || baseID.includes("DORTMUND")) {
+        domesticLeague = "BUNDESLIGA";
+        idDomestic = `${baseID}_BUNDESLIGA`;
+    }
+
     try {
-        // BUSCA EM DUAS FRENTES PARA BURLAR O LIMITE DA API
-        const [stats, blocoJaneiro, blocoAnterior] = await Promise.all([
+        const startsAfter = "2025-10-15";
+        const startsBefore = "2026-01-23"; // Data de hoje
+
+        // 3. Monta a lista de promessas (Sempre Champions + Nacional se houver)
+        const promises = [
+            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", startsAfter, startsBefore, idChampions)
+        ];
+
+        if (domesticLeague && idDomestic) {
+            promises.push(window.GD_API.fetchEndedMatches(domesticLeague, startsAfter, startsBefore, idDomestic));
+        }
+
+        // Executa todas as buscas em paralelo
+        const [stats, ...matchResults] = await Promise.all([
             window.GD_API.fetchTeamFullStats(teamID),
-            // Busca 1: Só Janeiro de 2026 (Foco no Monaco)
-            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", "2026-01-01", "2026-01-26"),
-            // Busca 2: Outubro a Dezembro de 2025 (Foco nas Rodadas 3 a 6)
-            window.GD_API.fetchEndedMatches("UEFA_CHAMPIONS_LEAGUE", "2025-10-15", "2025-12-31")
+            ...promises
         ]);
 
-        // Une os dois blocos
-        let matchesArray = [...(blocoJaneiro || []), ...(blocoAnterior || [])];
-        console.log(`📊 Total bruto coletado: ${matchesArray.length} jogos.`);
-
-        // Filtro de Identidade (Só o Real Madrid, sem Villarreal)
-        let teamHistory = matchesArray.filter(m => {
-            if (!m.teams?.home || !m.teams?.away) return false;
-            const hID = String(m.teams.home.teamID || "").toUpperCase().split('_')[0];
-            const aID = String(m.teams.away.teamID || "").toUpperCase().split('_')[0];
-            return hID === baseID || aID === baseID;
-        });
-
-        // Ordenação por data (Mais recente primeiro)
-        teamHistory.sort((a, b) => {
+        // Une os resultados de todas as ligas
+        let allMatches = matchResults.flat();
+        
+        // 4. Ordenação Cronológica (Mais recente no topo)
+        allMatches.sort((a, b) => {
             const timeA = new Date(a.status?.startsAt || a.startsAt || 0).getTime();
             const timeB = new Date(b.status?.startsAt || b.startsAt || 0).getTime();
             return timeB - timeA;
         });
 
-        // Pega o Top 5 (Agora o Monaco TEM que estar no topo)
-        const last5Matches = teamHistory.slice(0, 5);
+        // 5. Remove possíveis duplicatas e pega os 5 últimos
+        const uniqueMatches = Array.from(new Map(allMatches.map(m => [m.id, m])).values());
+        const last5Matches = uniqueMatches.slice(0, 5);
         
-        console.log("✅ RESULTADO DA OPERAÇÃO:");
         console.table(last5Matches.map(m => ({
             Data: m.status?.startsAt || m.startsAt,
+            Liga: m.leagueID,
             Jogo: `${m.teams.home.names.short} ${m.teams.home.score} x ${m.teams.away.score} ${m.teams.away.names.short}`
         })));
 
@@ -127,7 +155,7 @@ window.handleTeamClick = async (teamID) => {
         }
 
     } catch (err) {
-        console.error("🚨 ERRO NO RESGATE DE DADOS:", err);
+        console.error("🚨 ERRO NA TRADUÇÃO DE IDS:", err);
     }
 };
 

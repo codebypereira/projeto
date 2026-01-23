@@ -81,36 +81,42 @@ const GD_API = {
     /**
      * 2. BUSCA DE PARTIDAS TERMINADAS (COM FILTRO DE DATA)
      */
-    async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null) {
+    async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null, teamID = null) {
         try {
-            // 1. Limpa as datas para o formato YYYY-MM-DD
             const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
             const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
 
-            // 2. Monta a URL base (sem filtros fixos que duplicam)
-            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&limit=200`;
+            // 1. URL base com limite equilibrado (como são duas buscas, 100 tá ótimo)
+            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&limit=100`;
 
-            // 3. Adiciona a Liga (prioriza o que vem no argumento)
-            const activeLeague = leagueID || window.currentLeague || "UEFA_CHAMPIONS_LEAGUE";
-            url += `&leagueID=${activeLeague}`;
+            // 2. Prioridade Total ao teamID (Isso mata os "intrusos" tipo Real Betis)
+            if (teamID) {
+                url += `&teamID=${teamID}`;
+            }
 
-            // 4. Adiciona as datas APENAS UMA VEZ
+            // 3. Prioridade Total ao leagueID enviado pelo handleTeamClick
+            // Removemos o "ALL" e garantimos que ele use exatamente a liga da vez
+            if (leagueID && leagueID !== "ALL") {
+                url += `&leagueID=${leagueID}`;
+            } else if (!leagueID && window.currentLeague) {
+                // Fallback apenas se não vier nada no argumento
+                url += `&leagueID=${window.currentLeague}`;
+            }
+
+            // 4. Datas formatadas
             if (dateAfter) url += `&startsAfter=${dateAfter}`;
             if (dateBefore) url += `&startsBefore=${dateBefore}`;
 
-            console.log("📡 [API] URL FINAL CORRIGIDA:", url);
+            console.log(`📡 [API] Chamada Híbrida: ${leagueID || 'Geral'} | Time: ${teamID}`);
 
             const response = await fetch(url);
             
-            if (!response.ok) {
-                console.error("❌ Erro na API (Status):", response.status);
-                return [];
-            }
-
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
             const result = await response.json();
             return result.data || result || [];
         } catch (error) {
-            console.error("🚨 Erro ao buscar jogos:", error);
+            console.error("🚨 Erro na busca do histórico:", error);
             return [];
         }
     },
