@@ -8,44 +8,67 @@
 // 1. FUNÇÕES GLOBAIS DE CLIQUE & LIGAS (ESSENCIAL)
 // ========================================================
 
+// --- FUNÇÃO PARA TROCAR LIGA (Atualizada para suportar Live) ---
+// --- FUNÇÃO PARA TROCAR LIGA (MANTIDA ORIGINAL) ---
+
+window.allLoadedMatches = [];
+window.activeGame = null; 
+
 window.changeSport = async (leagueID, leagueName) => {
     console.log("🏆 Trocando para liga:", leagueID);
     window.currentLeague = leagueID;
 
-    // 1. Atualizar o Título Dinâmico (Ajustado para o seu ID: current-league-title)
     const titleEl = document.getElementById('current-league-title');
-    if (titleEl) {
-        titleEl.innerText = leagueName ? leagueName.toUpperCase() : "TODAS AS LIGAS";
-    }
+    if (titleEl) titleEl.innerText = leagueName ? leagueName.toUpperCase() : leagueID;
 
-    // 2. Tratamento visual dos botões (Procurando pelo texto dentro dos botões)
-    document.querySelectorAll('aside button').forEach(btn => {
-        // Remove as classes de ativo de todos
-        btn.classList.remove('bg-white/5', 'text-purple-400', 'border-purple-500/30');
-        btn.classList.add('text-gray-400', 'border-transparent');
-
-        // Se o texto do botão for igual ao nome da liga, destaca ele
-        if (leagueName && btn.innerText.includes(leagueName)) {
-            btn.classList.remove('text-gray-400', 'border-transparent');
-            btn.classList.add('bg-white/5', 'text-purple-400', 'border-purple-500/30');
-        }
-    });
-
-    // 3. Recarrega os jogos no container com feedback visual
-    if (window.GD_API && window.GD_API.fetchMatches) {
-        const container = document.getElementById('matches-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-20">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-4"></div>
-                    <p class="text-white font-black uppercase tracking-widest text-[10px] animate-pulse">Sincronizando ${leagueName}...</p>
-                </div>
-            `;
-        }
-        await window.GD_API.fetchMatches(leagueID);
+    if (window.location.pathname.includes('live.html')) {
+        await window.loadLiveMatches(leagueID);
+    } else {
+        if (window.GD_API) await window.GD_API.fetchMatches(leagueID);
     }
 };
 
+window.loadLiveMatches = async (leagueID) => {
+
+    const liveMatches = allMatches.filter(m => {
+    const isStarted = m.status?.started === true;
+    const state = String(m.status?.state || "").toUpperCase();
+    // Verifica se não está acabado nem cancelado
+    return isStarted && !['FINISHED', 'FINAL', 'CANCELLED', 'POSTPONED'].includes(state);
+});
+    if (!window.GD_API) return;
+    
+    const container = document.getElementById('live-matches-container');
+    if (container) {
+        container.innerHTML = `<div class="col-span-full text-center py-20 text-red-500 animate-pulse font-black uppercase text-[10px]">Verificando Jogos em Andamento...</div>`;
+    }
+
+    try {
+        // Busca os jogos da liga selecionada ou La Liga (que você sabe que tem jogo agora)
+        const targetLeague = leagueID || window.currentLeague || 'LALIGA';
+        const allMatches = await window.GD_API.fetchMatches(targetLeague);
+        
+        console.log("📡 Dados brutos da API:", allMatches);
+
+        // O SEGREDO ESTÁ AQUI:
+        // 1. m.status.started === true (O jogo começou)
+        // 2. m.status.state NÃO pode ser 'FINISHED' (O jogo não acabou)
+     const liveMatches = allMatches.filter(m => {
+    const isStarted = m.status?.started === true;
+    const state = String(m.status?.state || "").toUpperCase();
+    // Verifica se não está acabado nem cancelado
+    return isStarted && !['FINISHED', 'FINAL', 'CANCELLED', 'POSTPONED'].includes(state);
+});
+
+        console.log(`✅ Jogos filtrados (Iniciados e não finalizados):`, liveMatches);
+
+        if (window.UI && window.UI.renderLiveCards) {
+            window.UI.renderLiveCards(liveMatches);
+        }
+    } catch (e) {
+        console.error("Erro no Live:", e);
+    }
+};
 window.handleTeamClickByCode = async (code, name) => {
     console.log("%c 🚨 [SISTEMA] CLIQUE DETECTADO NO TIME: " + name, "background: #9333ea; color: white; padding: 8px; font-weight: bold; border-radius: 4px;");
     
@@ -214,7 +237,6 @@ window.handleTeamClick = async (teamKey) => {
         console.error("🚨 ERRO NO DASHBOARD:", err);
     }
 };
-
 // ========================================================
 // 2. INICIALIZAÇÃO DO DOCUMENTO (DOMContentLoaded)
 // ========================================================
@@ -222,15 +244,23 @@ window.handleTeamClick = async (teamKey) => {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("%c 🚀 GoalDash Main: Engine Iniciada", "color: #10b981; font-weight: bold;");
 
-    // Inicialização da interface de usuário (Navbar/Login)
+    // 1. Inicialização da interface de usuário (Navbar/Login)
     if (window.updateUserUI) {
         window.updateUserUI();
     }
 
-    // Carrega a Champions por padrão
+    // Parâmetros da URL
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id');
     const action = urlParams.get('action');
+    const path = window.location.pathname;
+
+    // --- LÓGICA ESPECÍFICA PARA LIVE.HTML ---
+    if (path.includes('live.html')) {
+        console.log("📡 Modo Live Ativado");
+        // Força o carregamento inicial (Champions por defeito ou a atual)
+        await window.loadLiveMatches(window.currentLeague || 'UEFA_CHAMPIONS_LEAGUE');
+    }
 
     // --- LOGICA DE REDIRECIONAMENTOS ---
     if (action === 'login') {
@@ -248,7 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- VERIFICAÇÃO DE PÁGINA: STATS ---
-    if (window.location.pathname.includes('stats.html')) {
+    if (path.includes('stats.html')) {
         console.log("Página detectada: Estatísticas");
 
         const popularTeamsData = [
@@ -331,7 +361,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
+// --- LÓGICA PARA PÁGINA DE DETALHES ---
+if (window.location.pathname.includes('matchdetails.html')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const matchId = urlParams.get('id');
 
+    if (matchId && window.GD_API) {
+        console.log("🔎 Procurando jogo ID:", matchId);
+        
+        const leaguesToTry = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1', 'INTERNATIONAL_SOCCER'];
+        
+        const tryFetch = async (index) => {
+            if (index >= leaguesToTry.length) {
+                console.error("❌ Jogo não encontrado em nenhuma liga.");
+                return;
+            }
+
+            const league = leaguesToTry[index];
+            const matches = await window.GD_API.fetchMatches(league);
+            const selectedMatch = matches.find(m => String(m.eventID) === String(matchId));
+
+          if (selectedMatch) {
+    console.log("✅ Jogo encontrado!");
+    
+    // GUARDA O OBJETO PARA SEMPRE
+    window.activeGame = selectedMatch; 
+    
+    if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
+    
+    // Chama a aba inicial
+    showTab('formacao'); 
+                selectedMatch.leagueName = league.replace(/_/g, ' ');
+                
+                if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
+                
+                // Carrega a aba padrão (ex: Odds ou Formação) após um pequeno delay
+                setTimeout(() => {
+                    if (typeof window.showTab === 'function') window.showTab('formacao');
+                }, 300);
+
+            } else {
+                tryFetch(index + 1);
+            }
+        };
+
+        tryFetch(0);
+    }
+}
     setupAuthListeners();
 });
 
@@ -441,41 +517,37 @@ window.handlePalpiteClick = (id, home, away) => {
     }
 };
 
-window.handlePredictionSubmit = async () => {
+window.handlePredictionSubmit = async (e) => { // Recebe o evento
     const hScore = document.getElementById('modal-home-score').value;
     const aScore = document.getElementById('modal-away-score').value;
-    const btn = event.currentTarget;
+    
+    // Pega o botão de forma segura
+    const btn = e ? e.currentTarget : document.querySelector('#prediction-modal button[onclick*="handlePredictionSubmit"]');
 
     if (hScore === "" || aScore === "") {
         alert("Por favor, preenche ambos os campos do palpite, cria!");
         return;
     }
 
-    btn.innerText = "A ENVIAR PALPITE...";
-    btn.disabled = true;
+    if (btn) {
+        btn.innerText = "A ENVIAR PALPITE...";
+        btn.disabled = true;
+    }
 
     const success = await window.GD_API.submitPrediction(hScore, aScore);
     
     if (success) {
-        const history = JSON.parse(localStorage.getItem('goalDash_history') || '[]');
-        history.unshift({
-            predictionID: Date.now(),
-            id: window.activeGame.id,
-            homeTeam: window.activeGame.home,
-            awayTeam: window.activeGame.away,
-            homeScore: hScore,
-            awayScore: aScore,
-            date: new Date().toLocaleString('pt-PT')
-        });
-        localStorage.setItem('goalDash_history', JSON.stringify(history));
+        // ... resto da lógica de sucesso ...
         alert("Palpite registado com sucesso!");
         document.getElementById('prediction-modal').classList.add('hidden');
     } else {
         alert("Erro ao enviar o palpite para o servidor.");
     }
     
-    btn.innerText = "ENVIAR PALPITE";
-    btn.disabled = false;
+    if (btn) {
+        btn.innerText = "ENVIAR PALPITE";
+        btn.disabled = false;
+    }
 };
 
 // LIMPAR HISTÓRICO COMPLETO NA MOCKAPI
@@ -602,7 +674,6 @@ window.logout = () => {
         localStorage.removeItem('goalDash_username');
         window.location.href = 'index.html';
     }
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
 };
 
 // --- CONTROLO DE MODAIS DE LOGIN ---

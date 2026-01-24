@@ -1,136 +1,260 @@
 /**
  * GoalDash - INTERFACE (ui.js)
- * COMPLETO: Stats, Matches, Live, Header, Dashboard e History.
+ * VERSÃO DEFINITIVA: 2026 - FULL EDITION
+ * Stats, Matches, Live, Header, Dashboard, History e Match Details.
  */
 
 window.UI = {
-    // 1. Estados Globais
     showLoading: (containerId) => {
         const container = document.getElementById(containerId);
         if (container) {
-            container.innerHTML = `<div class="col-span-full text-center py-20 text-purple-500 animate-pulse font-black uppercase tracking-widest text-[10px]">Sincronizando Dados...</div>`;
+            container.innerHTML = `<div class="col-span-full text-center py-20 text-purple-500 animate-pulse font-black uppercase tracking-widest text-[10px]">Sincronizando...</div>`;
         }
     },
 
-    // 2. CONTADOR DE GREENS (Status do Cria)
-    renderUserStats: async () => {
-        const username = localStorage.getItem('goalDash_username');
-        const container = document.getElementById('user-stats-display');
-        if (!username || !container) return;
+renderMatchHeader: function(match) {
 
-        try {
-            const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
-            const data = await res.json();
-            const meusGreens = data.filter(p => p.username === username && p.status === 'green').length;
+    console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
+    const container = document.getElementById('match-header');
+    if (!container) return;
 
-            container.innerHTML = `
-                <div class="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 p-6 rounded-[2.5rem] flex items-center justify-between animate-in fade-in zoom-in duration-500 mb-8">
-                    <div>
-                        <p class="text-[10px] font-black text-purple-400 uppercase tracking-[3px] mb-1">Status do Cria</p>
-                        <h3 class="text-2xl font-black italic text-white uppercase tracking-tighter">${username}</h3>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total de Greens</p>
-                        <div class="flex items-center gap-2 justify-end">
-                            <span class="text-4xl font-black text-green-400 italic">${meusGreens}</span>
-                            <span class="text-2xl animate-bounce">🔥</span>
-                        </div>
+    // 1. DATA E HORA (Ajustado para maior legibilidade)
+    const rawDate = match.status?.startsAt || match.startsAt;
+    let dataDisplay = "";
+    let horaDisplay = "";
+
+    if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            dataDisplay = `${dia}/${mes}`;
+            horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+    }
+
+    // 2. LOGOS (Sua função original do data.js)
+    const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
+    const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
+
+    const hasStarted = match.status?.started === true;
+    
+    // Conteúdo Central (VS ou Placar)
+    const scoreContent = hasStarted 
+        ? `<div class="flex items-center justify-center font-[1000]">
+             ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
+           </div>`
+        : `<div class="flex items-center justify-center h-full">
+             <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
+           </div>`;
+
+    container.innerHTML = `
+        <div class="flex flex-col items-center mb-12">
+            <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
+                <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
+                    ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
+                </span>
+            </div>
+            
+            <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
+                <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
+                <span class="text-purple-500 opacity-50">|</span>
+                <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
+            <div class="flex-1 flex flex-col items-center gap-6">
+                <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                    ${match.teams.home.names.long}
+                </h2>
+            </div>
+
+            <div class="flex flex-col items-center gap-8">
+                <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
+                    <div class="relative z-10">
+                        ${scoreContent}
                     </div>
                 </div>
-            `;
-        } catch (e) { console.error("Erro stats:", e); }
-    },
+                
+                <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
+                    <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
+                        ${match.status?.displayLong || 'Upcoming'}
+                    </span>
+                </div>
+            </div>
 
-    // 3. PARTIDAS AO VIVO (LIVE) - NOMES CORRIGIDOS
-    renderLiveMatches: (containerId, matches) => {
-        const container = document.getElementById(containerId);
+            <div class="flex-1 flex flex-col items-center gap-6">
+                <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                    ${match.teams.away.names.long}
+                </h2>
+            </div>
+        </div>
+    `;
+},
+renderLineups: function(match) {
+    const content = document.getElementById('tab-content');
+    if (!content) return;
+
+    // Se o objeto players não existir
+    if (!match.players) {
+        content.innerHTML = `<div class="py-20 text-center text-gray-500 uppercase text-[10px] font-black italic">Informação das equipas ainda não disponível.</div>`;
+        return;
+    }
+
+    // TRANSFORMAÇÃO: Converte o dicionário em Array para podermos filtrar
+    const allPlayers = Object.values(match.players);
+    
+    // FILTRAGEM: Separa pelo ID do time (homeID vs awayID)
+    const homePlayers = allPlayers.filter(p => p.teamID === match.homeID);
+    const awayPlayers = allPlayers.filter(p => p.teamID === match.awayID);
+
+    const playerRow = (p, color) => `
+        <div class="flex items-center gap-4 bg-white/[0.03] p-4 rounded-2xl border border-white/5 hover:border-purple-500/20 transition-all group">
+            <div class="w-10 h-10 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black ${color}">
+                ${p.number || '—'}
+            </div>
+            <div class="flex flex-col">
+                <span class="text-sm font-black uppercase text-white/90 group-hover:text-purple-400 transition-colors">${p.name}</span>
+                <span class="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Titular</span>
+            </div>
+        </div>
+    `;
+
+    content.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 max-w-6xl mx-auto px-4 animate-fadeIn">
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 px-2 mb-6">
+                    <div class="w-1 h-6 bg-purple-500 rounded-full"></div>
+                    <h3 class="text-lg font-black uppercase italic">${match.homeName}</h3>
+                </div>
+                <div class="grid gap-2">${homePlayers.map(p => playerRow(p, 'text-purple-500')).join('')}</div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 px-2 mb-6">
+                    <div class="w-1 h-6 bg-gray-500 rounded-full"></div>
+                    <h3 class="text-lg font-black uppercase italic">${match.awayName}</h3>
+                </div>
+                <div class="grid gap-2">${awayPlayers.map(p => playerRow(p, 'text-gray-400')).join('')}</div>
+            </div>
+        </div>
+    `;
+},
+renderH2H: function(match) {
+    console.log("📊 Dados para H2H:", match.h2h);
+    const content = document.getElementById('tab-content');
+    
+    // Se a sua API enviar o H2H dentro do objeto match
+    const history = match.h2h || [];
+
+    content.innerHTML = `
+        <div class="max-w-4xl mx-auto py-10 animate-fadeIn">
+            <div class="bg-white/5 border border-white/10 rounded-[3rem] p-10">
+                <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Histórico Recente</h3>
+                <div class="space-y-4">
+                    ${history.length > 0 ? history.map(game => `
+                        <div class="flex items-center justify-between bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
+                            <span class="text-[10px] font-bold text-gray-500 uppercase">${new Date(game.date).toLocaleDateString('pt-BR')}</span>
+                            <div class="flex items-center gap-6">
+                                <span class="font-black italic uppercase text-sm">${game.homeTeam}</span>
+                                <span class="bg-purple-500/20 text-purple-400 px-4 py-1 rounded-lg font-black italic">${game.score}</span>
+                                <span class="font-black italic uppercase text-sm">${game.awayTeam}</span>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-center text-gray-500 font-black uppercase text-[10px]">Sem confrontos diretos registados recentemente.</p>'}
+                </div>
+            </div>
+        </div>
+    `;
+},
+    // 4. CARDS AO VIVO (Página live.html)
+    renderLiveCards: (matches) => {
+        const container = document.getElementById('live-matches-container');
         if (!container) return;
-        container.innerHTML = "";
 
         if (!matches || matches.length === 0) {
-            container.innerHTML = `<div class="col-span-full text-center py-10 opacity-30 font-black uppercase text-[10px] tracking-widest">Nenhuma partida em destaque no momento</div>`;
+            container.innerHTML = `
+                <div class="col-span-full py-20 text-center opacity-30 uppercase text-[10px] font-black tracking-[0.2em]">
+                    Nenhum jogo ao vivo no momento
+                </div>`;
             return;
         }
 
-        matches.forEach(m => {
+        container.innerHTML = matches.map(m => {
             const home = m.teams?.home;
             const away = m.teams?.away;
+            const scoreH = m.status?.score?.reg?.home?.points ?? m.status?.score?.home ?? 0;
+            const scoreA = m.status?.score?.reg?.away?.points ?? m.status?.score?.away ?? 0;
+            const hLogo = window.getTeamLogo(home?.names?.short, home?.names?.medium);
+            const aLogo = window.getTeamLogo(away?.names?.short, away?.names?.medium);
+            const time = m.status?.clock ? `${m.status.clock}'` : (m.status?.state || "LIVE").replace('_', ' ');
 
-            // Lógica de nomes igual à que você mandou
-            const hName = home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa';
-            const aName = away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora';
-
-            const homeLogo = window.getTeamLogo(home?.names?.short, home?.names?.medium);
-            const awayLogo = window.getTeamLogo(away?.names?.short, away?.names?.medium);
-            
-            const homeScore = m.status?.score?.home ?? 0;
-            const awayScore = m.status?.score?.away ?? 0;
-            const timeLive = m.status?.liveTime || 'LIVE';
-
-            const card = document.createElement('div');
-            card.className = "match-card bg-purple-600/5 border border-purple-500/20 rounded-3xl hover:border-purple-500/50 transition-all group relative overflow-hidden shadow-2xl";
-            
-            card.innerHTML = `
-                <a href="matchdetails.html?id=${m.eventID}" class="block p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center gap-2">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                            </span>
-                            <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">${timeLive}</span>
-                        </div>
-                        <div class="bg-white/5 px-3 py-1 rounded-full text-[10px] font-black text-white/50 uppercase italic">Ao Vivo</div>
+            return `
+            <div onclick="window.location.href='matchdetails.html?id=${m.eventID}'" 
+                 class="group relative bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-[2.5rem] hover:border-purple-500/50 transition-all cursor-pointer shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                        <span class="relative flex h-1.5 w-1.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                        </span>
+                        <span class="text-red-500 text-[9px] font-black uppercase tracking-tighter">${time}</span>
                     </div>
-                    
-                    <div class="flex items-center justify-between w-full gap-4 mb-6 text-center">
-                        <div class="flex flex-col items-center flex-1">
-                            <img src="${homeLogo}" class="w-12 h-12 object-contain mb-2" onerror="this.src='Images/favi.svg'">
-                            <span class="text-[9px] font-black text-slate-400 uppercase line-clamp-1">${hName}</span>
+                    <span class="text-gray-500 text-[9px] font-black uppercase tracking-widest">${m.leagueName || 'AO VIVO'}</span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1 text-center">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
+                            <img src="${hLogo}" class="max-w-full max-h-full object-contain drop-shadow-lg" onerror="this.src='Images/favi.svg'">
                         </div>
-                        <div class="flex flex-col items-center">
-                            <span class="text-3xl font-black italic text-white tracking-tighter">${homeScore} - ${awayScore}</span>
-                        </div>
-                        <div class="flex flex-col items-center flex-1">
-                            <img src="${awayLogo}" class="w-12 h-12 object-contain mb-2" onerror="this.src='Images/favi.svg'">
-                            <span class="text-[9px] font-black text-slate-400 uppercase line-clamp-1">${aName}</span>
+                        <p class="text-[10px] font-black text-white uppercase truncate px-1">${home?.names?.medium || home?.names?.short}</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 shadow-inner flex items-center gap-4">
+                            <span class="text-4xl font-black italic text-white tabular-nums">${scoreH}</span>
+                            <span class="text-purple-500 font-black animate-pulse">:</span>
+                            <span class="text-4xl font-black italic text-white tabular-nums">${scoreA}</span>
                         </div>
                     </div>
-                </a>`;
-            container.appendChild(card);
-        });
+                    <div class="flex-1 text-center">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
+                            <img src="${aLogo}" class="max-w-full max-h-full object-contain drop-shadow-lg" onerror="this.src='Images/favi.svg'">
+                        </div>
+                        <p class="text-[10px] font-black text-white uppercase truncate px-1">${away?.names?.medium || away?.names?.short}</p>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
     },
 
-    // 4. RENDERIZAÇÃO DE JOGOS (Design Próximos Jogos) - NOMES CORRIGIDOS
+    // 5. RENDERIZAÇÃO DE JOGOS (Página Inicial/Index)
     renderMatches: (containerId, matches) => {
         const container = document.getElementById(containerId);
         if (!container) return;
-        container.innerHTML = "";
 
         if (!matches || matches.length === 0) {
             container.innerHTML = `<div class="col-span-full text-center py-20 opacity-30 font-black uppercase text-xs">Sem eventos disponíveis</div>`;
             return;
         }
 
+        container.innerHTML = "";
         matches.forEach(m => {
-            const home = m.teams?.home;
-            const away = m.teams?.away;
+            const hName = m.teams?.home?.names?.medium || m.teams?.home?.names?.short || 'Casa';
+            const aName = m.teams?.away?.names?.medium || m.teams?.away?.names?.short || 'Fora';
+            const hLogo = window.getTeamLogo(m.teams?.home?.names?.short, hName);
+            const aLogo = window.getTeamLogo(m.teams?.away?.names?.short, aName);
 
-            // Prioridade de nomes EXATAMENTE como no seu código de referência
-            const hName = home?.names?.medium || home?.names?.long || home?.names?.short || 'Casa';
-            const aName = away?.names?.medium || away?.names?.long || away?.names?.short || 'Fora';
-
-            const homeLogo = window.getTeamLogo(home?.names?.short, home?.names?.medium);
-            const awayLogo = window.getTeamLogo(away?.names?.short, away?.names?.medium);
-
-            const rawDate = m.status?.startsAt || m.startsAt;
+            const rawDate = m.status?.startsAt || m.startsAt || m.kickoff;
             let day = "--/--", time = "--:--";
             if (rawDate) {
-                const gameDate = new Date(rawDate);
-                if (!isNaN(gameDate.getTime())) {
-                    day = gameDate.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-                    time = gameDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-                }
+                const d = new Date(rawDate);
+                day = d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+                time = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
             }
 
             const card = document.createElement('div');
@@ -146,24 +270,18 @@ window.UI = {
                     </div>
                     <div class="flex items-center justify-between w-full gap-4 mb-10 text-center">
                         <div class="flex flex-col items-center flex-1">
-                            <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                                <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-600"></div>
-                                <img src="${homeLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" onerror="this.src='Images/favi.svg'">
-                            </div>
+                            <img src="${hLogo}" class="w-16 h-16 object-contain mb-4 group-hover:-translate-y-2 transition-transform duration-500" onerror="this.src='Images/favi.svg'">
                             <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${hName}</span>
                         </div>
                         <div class="opacity-30"><span class="text-2xl font-black italic text-white">VS</span></div>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="relative mb-4 group-hover:-translate-y-2 transition-transform duration-500">
-                                <div class="absolute inset-0 rounded-full blur-xl opacity-30 bg-pink-600"></div>
-                                <img src="${awayLogo}" class="relative z-10 w-16 h-16 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" onerror="this.src='Images/favi.svg'">
-                            </div>
+                            <img src="${aLogo}" class="w-16 h-16 object-contain mb-4 group-hover:-translate-y-2 transition-transform duration-500" onerror="this.src='Images/favi.svg'">
                             <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-white transition-colors line-clamp-1">${aName}</span>
                         </div>
                     </div>
                 </a>
                 <div class="px-6 pb-6">
-                    <button onclick="handlePalpiteClick('${m.eventID}', '${hName.replace(/'/g, "\\'")}', '${aName.replace(/'/g, "\\")}')" 
+                    <button onclick="event.preventDefault(); window.handlePalpiteClick('${m.eventID}', '${hName.replace(/'/g, "\\'")}', '${aName.replace(/'/g, "\\")}')" 
                         class="w-full py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-white/5 to-white/10 border border-white/10 hover:from-purple-600 hover:to-pink-600 transition-all duration-500 shadow-xl cursor-pointer relative z-20">
                         Dar meu palpite
                     </button>
@@ -171,39 +289,37 @@ window.UI = {
             container.appendChild(card);
         });
     },
+    // 6. HISTÓRICO (Página History)
+    renderHistory: async () => {
+        const container = document.getElementById('history-container');
+        if (!container) return;
+        const username = localStorage.getItem('goalDash_username');
+        if (!username) return;
 
-    // 5. Cabeçalho MatchDetails - NOMES CORRIGIDOS
-    renderMatchHeader: (match) => {
-        const container = document.getElementById('match-header');
-        if (!container || !match) return;
-        
-        const hName = match.teams?.home?.names?.medium || match.teams?.home?.names?.long || "Casa";
-        const aName = match.teams?.away?.names?.medium || match.teams?.away?.names?.long || "Fora";
-        
-        const hLogo = window.getTeamLogo(match.teams?.home?.names?.short, hName);
-        const aLogo = window.getTeamLogo(match.teams?.away?.names?.short, aName);
+        try {
+            const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
+            const data = await res.json();
+            const meusPalpites = data.filter(p => p.username === username);
+            
+            if (meusPalpites.length === 0) {
+                container.innerHTML = `<p class="text-white/20 text-center py-20 font-black uppercase">Sem palpites ainda!</p>`;
+                return;
+            }
 
-        container.innerHTML = `
-            <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden animate-in fade-in duration-500">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                    <div class="flex-1 text-center">
-                        <img src="${hLogo}" class="w-20 h-20 mx-auto mb-4 object-contain">
-                        <h1 class="text-xl font-black uppercase italic tracking-tighter text-white">${hName}</h1>
+            container.innerHTML = meusPalpites.reverse().map(p => `
+                <div class="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4">
+                    <span class="text-white font-black uppercase text-xs flex-1 text-right">${p.matchName?.split(' vs ')[0] || 'Casa'}</span>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic">${p.homeScore} - ${p.awayScore}</div>
+                        <span class="text-[8px] font-black ${p.status === 'green' ? 'text-green-400' : 'text-purple-400'} uppercase mt-2">${(p.status || 'PENDENTE').toUpperCase()}</span>
                     </div>
-                    <div class="text-center">
-                        <div class="text-[10px] font-black text-purple-500 uppercase tracking-[3px] mb-2">${match.displayDay || '--/--'}</div>
-                        <div class="text-6xl font-black italic tracking-tighter text-white">${match.status?.score?.home ?? 0} - ${match.status?.score?.away ?? 0}</div>
-                        <div class="text-[10px] font-black text-gray-500 uppercase mt-2">${match.status?.liveTime || 'Início: ' + match.displayTime}</div>
-                    </div>
-                    <div class="flex-1 text-center">
-                        <img src="${aLogo}" class="w-20 h-20 mx-auto mb-4 object-contain">
-                        <h1 class="text-xl font-black uppercase italic tracking-tighter text-white">${aName}</h1>
-                    </div>
-                </div>
-            </div>`;
+                    <span class="text-white font-black uppercase text-xs flex-1 text-left">${p.matchName?.split(' vs ')[1] || 'Fora'}</span>
+                    <div class="text-[10px] text-white/40 font-bold">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '--/--'}</div>
+                </div>`).join('');
+        } catch (e) { console.error("Erro histórico:", e); }
     },
 
-    // 6. Dashboard e Estatísticas
+    // 7. DASHBOARD (Página Stats)
     renderPopularTeams: (teams) => {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
@@ -275,8 +391,7 @@ window.UI = {
                     <h2 class="text-4xl md:text-5xl uppercase italic font-black text-white tracking-tighter">${data.name || "Time Desconhecido"}</h2>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-in slide-in-from-bottom-4 duration-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5">
                     <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente</h3>
                     <div class="flex gap-3 justify-center md:justify-start">
@@ -286,7 +401,6 @@ window.UI = {
                         }).join('') : '<p class="text-gray-600 text-[10px] uppercase font-black">Sem jogos recentes...</p>'}
                     </div>
                 </div>
-                
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5 flex flex-col justify-center">
                     <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Aproveitamento Real</p>
                     <div class="text-4xl font-black italic text-white text-center md:text-left">
@@ -294,9 +408,8 @@ window.UI = {
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 animate-in slide-in-from-bottom-8 duration-1000">
-                <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8 text-center md:text-left">Resultados Oficiais</h3>
+            <div class="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
+                <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Últimos Confrontos</h3>
                 <div class="space-y-4">
                     ${endedMatches.length > 0 ? endedMatches.map(match => {
                         const hScore = match.teams?.home?.score ?? 0;
@@ -333,37 +446,9 @@ window.UI = {
                         `;
                     }).join('') : `<p class="text-center text-gray-500 text-[10px] font-black uppercase py-4">Nenhum dado encontrado.</p>`}
                 </div>
-            </div>
-        `;
-    },
-
-    // 7. Histórico (MockAPI)
-    renderHistory: async () => {
-        const container = document.getElementById('history-container');
-        if (!container) return;
-        const username = localStorage.getItem('goalDash_username');
-        if (!username) return;
-
-        try {
-            const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
-            const data = await res.json();
-            const meusPalpites = data.filter(p => p.username === username);
-            if (meusPalpites.length === 0) {
-                container.innerHTML = `<p class="text-white/20 text-center py-20 font-black uppercase">Sem palpites ainda!</p>`;
-                return;
-            }
-            container.innerHTML = meusPalpites.reverse().map(p => `
-                <div class="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4">
-                    <span class="text-white font-black uppercase text-xs flex-1 text-right">${p.matchName?.split(' vs ')[0] || 'Casa'}</span>
-                    <div class="flex flex-col items-center">
-                        <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic">${p.homeScore} - ${p.awayScore}</div>
-                        <span class="text-[8px] font-black ${p.status === 'green' ? 'text-green-400' : 'text-purple-400'} uppercase mt-2">${(p.status || 'PENDENTE').toUpperCase()}</span>
-                    </div>
-                    <span class="text-white font-black uppercase text-xs flex-1 text-left">${p.matchName?.split(' vs ')[1] || 'Fora'}</span>
-                    <div class="text-[10px] text-white/40 font-bold">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '--/--'}</div>
-                </div>`).join('');
-        } catch (e) { console.error(e); }
+            </div>`;
     }
+    
 };
 
 window.GD_UI = window.UI;

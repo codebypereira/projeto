@@ -7,6 +7,10 @@
     <title>Goal Dash - Detalhes do Jogo</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
     <link rel="stylesheet" href="styles/styles.css" />
 </head>
 <body class="bg-[#050505] min-h-screen flex flex-col text-white font-sans">
@@ -76,64 +80,35 @@
 
         </section>
     </main>
-
-   <script src="js/data.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/main.js"></script>
-
     <script>
-        // DEBUG ESTRATÉGICO
-        window.addEventListener('load', () => {
-            console.group("🔍 Debug GoalDash - Match Details");
-            
-            // 1. Verificar se os arquivos JS foram carregados
-            console.log("📁 Data.js carregado:", typeof window.getTeamLogo !== 'undefined');
-            console.log("📁 API.js carregado:", typeof window.GD_API !== 'undefined');
-            console.log("📁 UI.js carregado:", typeof window.UI !== 'undefined');
-            console.log("📁 UI.renderMatchHeader existe:", typeof window.UI?.renderMatchHeader !== 'undefined');
+   // Função das abas
+function showTab(tabName) {
+    const match = window.activeGame;
+    const content = document.getElementById('tab-content');
+    if (!content) return;
 
-            // 2. Verificar Parâmetros da URL
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            console.log("🆔 ID extraído da URL:", id);
+    // 1. Cores dos botões
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-white', 'border-purple-500');
+        btn.classList.add('text-gray-400', 'border-transparent');
+    });
+    const activeBtn = document.getElementById('btn-' + tabName);
+    if (activeBtn) activeBtn.classList.add('text-white', 'border-purple-500');
 
-            // 3. Verificar estado da variável global de jogos
-            console.log("⚽ Jogos na memória (window.allLoadedMatches):", window.allLoadedMatches);
+    // 2. Verificação do objeto
+    if (!match) {
+        content.innerHTML = "Carregando dados...";
+        return;
+    }
 
-            // 4. Testar se o container de destino existe no HTML
-            const headerContainer = document.getElementById('match-header');
-            console.log("🏗️ Elemento 'match-header' encontrado:", !!headerContainer);
-
-            if (!id) {
-                console.warn("⚠️ Alerta: Nenhum ID foi passado na URL! A página não sabe o que carregar.");
-            }
-
-            console.groupEnd();
-        });
-
-        // Função das abas
-        function showTab(tabName) {
-            console.log("📑 Trocando para aba:", tabName);
-            const content = document.getElementById('tab-content');
-            if(!content) {
-                console.error("❌ Erro: Elemento 'tab-content' não existe no HTML!");
-                return;
-            }
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('text-white', 'border-purple-500');
-                btn.classList.add('text-gray-400', 'border-transparent');
-            });
-
-            const activeBtn = document.getElementById('btn-' + tabName);
-            if (activeBtn) {
-                activeBtn.classList.add('text-white', 'border-purple-500');
-                activeBtn.classList.remove('text-gray-400', 'border-transparent');
-            }
-
-            content.innerHTML = `<div class="py-10 text-center opacity-50 uppercase text-[10px] font-black tracking-widest">Conteúdo de ${tabName} em breve...</div>`;
-        }
+    // 3. Renderização (CHAMADA DIRETA)
+    if (tabName === 'formacao') {
+        window.UI.renderLineups(match);
+    } else if (tabName === 'h2h') {
+        window.UI.renderH2H(match);
+    }
+    // NÃO COLOQUE NADA DEPOIS DISSO QUE MUDE O content.innerHTML
+}
     </script>
 </body>
 </html>
