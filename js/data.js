@@ -31,7 +31,7 @@ const GD_DATA = {
         { id: 8636, name: "Inter" },
         { id: 9772, name: "Benfica" },
         { id: 9773, name: "FC Porto" },
-        { id: 9768, name: "Sporting" },
+        { id: 9768, name: "Corinthians" },
         { id: 9765, name: "Flamengo" }
     ],
 

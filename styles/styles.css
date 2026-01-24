@@ -1,78 +1,71 @@
 /**
  * FOLHA DE ESTILO: Goal Dash UI System
- * CONCEITO: Glassmorphism & High-Contrast Neon
- * DESCRIÇÃO: Define a identidade visual do projeto, focando-se em legibilidade 
- * de dados desportivos, profundidade visual com desfoque de fundo (backdrop-filter)
- * e tipografia técnica.
+ * CONCEITO: Glassmorphism Ultra & Background Lock
+ * DESCRIÇÃO: Identidade visual focada em profundidade e transparência.
  */
 
 /* ============================================================================
-   1. IMPORTAÇÕES E CONFIGURAÇÃO GLOBAL
+   1. CONFIGURAÇÃO GLOBAL E FIXAÇÃO DE FUNDO
    ============================================================================ */
 @charset "UTF-8";
 
-/* Inter: Utilizada para UI e texto geral | Roboto Mono: Utilizada para dados numéricos */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 body {
-    padding-top: 65px; /* Compensa a Navbar fixa */
-    overflow: auto !important;
-    background-color: #1a1033 !important;
-    /* Gradiente Radial para criar profundidade no fundo da página */
-    background-image: radial-gradient(circle at top right, #2d1b5d, #1a1033);
+    padding-top: 80px; /* Altura exata da Nav para evitar buracos */
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #0f0a1e;
+    
+    /* O segredo para não vazar: Fundo fixo e cobrindo toda a tela */
+    background-image: radial-gradient(circle at top right, #2d1b5d, #0f0a1e);
+    background-attachment: fixed; 
+    background-size: cover;
+    
+    color: white;
     font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased; /* Suavização de fontes em browsers Webkit */
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Bloqueio de scroll quando modais estão ativos */
 body.modal-open {
     overflow: hidden !important;
     height: 100vh;
 }
 
 /* ============================================================================
-   2. TIPOGRAFIA TÉCNICA (Data Display)
+   2. TIPOGRAFIA TÉCNICA
    ============================================================================ */
-
-/** * Design Decision: Uso de fontes Monoespaçadas para números.
- * Garante que os dígitos tenham a mesma largura (tabular-nums), evitando que
- * a interface "trema" quando os scores ou odds mudam.
- */
-.score-number, 
-.timer-clock, 
-.odds-value {
+.score-number, .timer-clock, .odds-value {
     font-family: 'Roboto Mono', monospace;
     font-variant-numeric: tabular-nums;
 }
 
-/* Títulos com estilo "Racing/Sport" - Negrito, Itálico e Tracking apertado */
 h1, h2, .logo-text {
-    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-style: italic;
     letter-spacing: -0.05em;
+    text-transform: uppercase;
 }
 
 /* ============================================================================
-   3. COMPONENTES DE INTERFACE (UI)
+   3. NAVEGAÇÃO (Glassmorphism Forçado)
    ============================================================================ */
-
-/* Efeito Glassmorphism: Transparência + Desfoque de Fundo */
-.glass { 
-    background: rgba(30, 41, 59, 0.7); 
-    backdrop-filter: blur(10px); 
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.color-bg {
-    background-color: #400c48 ;
-}
-
-/* Estados de Navegação e Tabs */
-.tab-active { 
-    border-bottom: 3px solid #a855f7; 
-    color: white; 
+.glass-nav {
+    /* Opacidade menor (0.7) + Blur alto (20px) = Efeito de vidro real */
+    background: rgba(15, 10, 30, 0.7); 
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 80px;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 .nav-active {
@@ -81,78 +74,68 @@ h1, h2, .logo-text {
     transform: translateY(-2px);
 }
 
-/* Gestão de Modais */
+.tab-active { 
+    border-bottom: 3px solid #a855f7; 
+    color: white; 
+}
+
+/* ============================================================================
+   4. COMPONENTES E UTILITÁRIOS
+   ============================================================================ */
+.glass { 
+    background: rgba(30, 41, 59, 0.6); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.color-bg { background-color: #400c48; }
+
 .modal-overlay {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease-in-out;
 }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-.modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Reset de inputs numéricos (remove setas padrão dos browsers) */
 input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ============================================================================
+   5. VISUALIZAÇÃO DE RESULTADOS
+   ============================================================================ */
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.1); }
+    50% { box-shadow: 0 0 15px rgba(var(--glow-color), 0.4); }
+    100% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.1); }
 }
 
-input[type=number] {
-  -moz-appearance: textfield;
+.card-win { 
+    --glow-color: 34, 197, 94; 
+    border-left: 4px solid #22c55e !important;
+    animation: glowPulse 2s infinite ease-in-out;
+}
+.card-draw { --glow-color: 234, 179, 8; border-left: 4px solid #eab308 !important; }
+.card-loss { --glow-color: 239, 68, 68; border-left: 4px solid #ef4444 !important; }
+
+.league-label {
+    font-size: 8px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
 }
 
 /* ============================================================================
-   4. ANIMAÇÕES (Micro-interactions)
+   6. ANIMAÇÕES
    ============================================================================ */
-
-/* Animação de Ciclo para o Carrossel de Destaques */
 @keyframes fadeCarousel {
     0%, 33.33% { opacity: 1 }
     38%, 95% { opacity: 0 }
     100% { opacity: 1 }
 }
-
 .animate-carousel-1 { animation: fadeCarousel 15s infinite; }
 .animate-carousel-2 { animation: fadeCarousel 15s infinite; animation-delay: 6s; }
 .animate-carousel-3 { animation: fadeCarousel 15s infinite; animation-delay: 10s; }
-
-/* ============================================================================
-   5. VISUALIZAÇÃO TÁTICA (Soccer Field)
-   ============================================================================ */
-
-/**
- * .soccer-field
- * Representação geométrica de um campo utilizando gradientes lineares
- * para simular as linhas de marcação e o padrão da relva.
- */
-.soccer-field {
-    background: linear-gradient(to bottom, #14532d, #166534); /* Verde escuro profissional */
-    background-image: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
-    position: relative;
-    border: 4px solid rgba(255,255,255,0.1);
-    border-radius: 2rem;
-    aspect-ratio: 3/4; 
-    overflow: hidden;
-}
-
-/* Posicionamento absoluto dos nós (jogadores) no campo */
-.player-node {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-}
-
-/* Badge de Performance (Rating do Jogador) */
-.rating-badge {
-    font-size: 8px;
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-weight: 900;
-    color: white;
-    z-index: 10;
-}

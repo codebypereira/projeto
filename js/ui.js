@@ -335,59 +335,116 @@ renderH2H: function(match) {
         const initialView = document.getElementById('initial-view');
         if (!resultsContainer || !initialView) return;
 
-        const currentTeamID = data.id || ""; 
+        // --- IDENTIFICAÇÃO ANTI-RIVAL (CITY vs UNITED) ---
+        const currentID = String(data.id || "").toUpperCase();
+        
+        const isMyTeam = (targetID) => {
+            const id = String(targetID || "").toUpperCase();
+            if (currentID.includes("CITY")) {
+                return id.includes("CITY") && !id.includes("UNITED");
+            }
+            const base = currentID.split('_')[0];
+            return id.includes(base);
+        };
+
         const statsReal = endedMatches.reduce((acc, m) => {
             const hScore = m.teams?.home?.score ?? 0;
             const aScore = m.teams?.away?.score ?? 0;
-            const isHome = String(m.teams?.home?.teamID) === String(currentTeamID);
+            const homeID = m.teams?.home?.teamID;
+            const awayID = m.teams?.away?.teamID;
             
-            if (hScore === aScore) acc.form.push('E');
-            else if (isHome) {
-                if (hScore > aScore) { acc.wins++; acc.form.push('V'); }
+            const isHome = isMyTeam(homeID);
+            const isAway = isMyTeam(awayID);
+
+            if (hScore === aScore) {
+                acc.form.push('E');
+            } else if (isHome) {
+                if (hScore > aScore) { acc.form.push('V'); acc.wins++; }
                 else acc.form.push('D');
-            } else {
-                if (aScore > hScore) { acc.wins++; acc.form.push('V'); }
+            } else if (isAway) {
+                if (aScore > hScore) { acc.form.push('V'); acc.wins++; }
                 else acc.form.push('D');
             }
             return acc;
         }, { wins: 0, form: [] });
 
-        const winRate = endedMatches.length > 0 ? ((statsReal.wins / endedMatches.length) * 100).toFixed(0) : "0";
+        const winRate = endedMatches.length > 0 
+            ? ((statsReal.wins / endedMatches.length) * 100).toFixed(0) 
+            : "0";
+        
         const formaExibida = statsReal.form.slice(0, 5);
 
         initialView.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
 
+        let dashLogo = data.logo || `https://api.dicebear.com/7.x/initials/svg?seed=${data.name || 'TM'}&backgroundColor=a855f7`;
+
         resultsContainer.innerHTML = `
-            <button onclick="location.reload()" class="mb-8 text-purple-400 font-black flex items-center gap-2 text-[10px] tracking-widest cursor-pointer">← VOLTAR</button>
-            <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8">
-                <img src="${window.getTeamLogo(data.code, data.name)}" class="w-24 h-24 object-contain shadow-2xl">
+            <button onclick="location.reload()" class="mb-8 text-purple-400 font-black flex items-center gap-2 text-[10px] tracking-widest cursor-pointer hover:text-white transition-colors">
+                ← VOLTAR PARA LIGAS
+            </button>
+            
+            <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 animate-in fade-in duration-500">
+                <img src="${dashLogo}" class="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(147,51,234,0.3)]" onerror="this.src='Images/favi.svg'">
                 <div>
                     <p class="text-[10px] font-black text-purple-500 uppercase tracking-[3px] mb-1">Estatísticas do Time</p>
-                    <h2 class="text-4xl md:text-5xl uppercase italic font-black text-white tracking-tighter">${data.name}</h2>
+                    <h2 class="text-4xl md:text-5xl uppercase italic font-black text-white tracking-tighter">${data.name || "Time Desconhecido"}</h2>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5">
-                    <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8 text-center md:text-left">Forma Recente</h3>
+                    <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente</h3>
                     <div class="flex gap-3 justify-center md:justify-start">
-                        ${formaExibida.map(res => `<div class="${res === 'V' ? 'bg-green-500' : res === 'D' ? 'bg-red-500' : 'bg-gray-500'} w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic">${res}</div>`).join('')}
+                        ${formaExibida.length > 0 ? formaExibida.map(res => {
+                            let color = res === 'V' ? 'bg-green-500 shadow-green-500/20' : res === 'D' ? 'bg-red-500 shadow-red-500/20' : 'bg-yellow-500 shadow-yellow-500/20';
+                            return `<div class="${color} w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg animate-bounce-short">${res}</div>`;
+                        }).join('') : '<p class="text-gray-600 text-[10px] uppercase font-black">Sem jogos recentes...</p>'}
                     </div>
                 </div>
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5 flex flex-col justify-center">
-                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Aproveitamento</p>
-                    <div class="text-3xl font-black italic text-white text-center md:text-left">${winRate}% <span class="text-sm text-purple-500 not-italic uppercase ml-2 tracking-widest">Win Rate</span></div>
+                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Aproveitamento Real</p>
+                    <div class="text-4xl font-black italic text-white text-center md:text-left">
+                        ${winRate}% <span class="text-sm text-purple-500 not-italic uppercase ml-2 tracking-widest">Win Rate</span>
+                    </div>
                 </div>
             </div>
             <div class="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
                 <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Últimos Confrontos</h3>
                 <div class="space-y-4">
-                    ${endedMatches.map(match => `
-                        <div class="flex items-center justify-between bg-white/[0.02] border border-white/5 p-5 rounded-2xl">
-                            <div class="flex-1 text-right text-[11px] font-black uppercase text-white">${match.teams.home.names.medium}</div>
-                            <div class="bg-black/40 px-4 py-2 rounded-xl border border-white/10 min-w-[80px] text-center mx-4 text-purple-400 font-black italic">${match.teams.home.score} - ${match.teams.away.score}</div>
-                            <div class="flex-1 text-left text-[11px] font-black uppercase text-white">${match.teams.away.names.medium}</div>
-                        </div>`).join('')}
+                    ${endedMatches.length > 0 ? endedMatches.map(match => {
+                        const hScore = match.teams?.home?.score ?? 0;
+                        const aScore = match.teams?.away?.score ?? 0;
+                        
+                        const isHome = isMyTeam(match.teams?.home?.teamID);
+                        const myScore = isHome ? hScore : aScore;
+                        const oppScore = isHome ? aScore : hScore;
+                        
+                        let statusClass = "card-draw border-yellow-500/20";
+                        if (myScore > oppScore) statusClass = "card-win border-green-500/20";
+                        else if (myScore < oppScore) statusClass = "card-loss border-red-500/20";
+
+                        // --- MUDANÇA AQUI: USA O NOME TRADUZIDO QUE PASSAMOS ---
+                        const leagueLabel = match.leagueDisplayName || (match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA");
+
+                        return `
+                            <div class="flex items-center justify-between bg-white/[0.02] border p-5 rounded-2xl hover:bg-white/[0.08] transition-all group ${statusClass}">
+                                <div class="flex flex-col gap-1 flex-1">
+                                    <span class="text-[7px] font-black text-white/40 uppercase tracking-[2px]">${leagueLabel}</span>
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex-1 text-right">
+                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${match.teams?.home?.names?.medium}</span>
+                                        </div>
+                                        <div class="bg-black/40 px-4 py-2 rounded-xl border border-white/10 min-w-[85px] text-center shadow-inner">
+                                            <span class="text-lg font-black italic text-white">${hScore} - ${aScore}</span>
+                                        </div>
+                                        <div class="flex-1 text-left">
+                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${match.teams?.away?.names?.medium}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('') : `<p class="text-center text-gray-500 text-[10px] font-black uppercase py-4">Nenhum dado encontrado.</p>`}
                 </div>
             </div>`;
     }
