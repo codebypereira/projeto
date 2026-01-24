@@ -81,34 +81,48 @@
         </section>
     </main>
     <script>
-   // Função das abas
-function showTab(tabName) {
-    const match = window.activeGame;
-    const content = document.getElementById('tab-content');
-    if (!content) return;
+    function showTab(tabName) {
+        const match = window.activeGame; // O main.js deve salvar o jogo aqui
+        const content = document.getElementById('tab-content');
+        if (!content) return;
 
-    // 1. Cores dos botões
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-white', 'border-purple-500');
-        btn.classList.add('text-gray-400', 'border-transparent');
-    });
-    const activeBtn = document.getElementById('btn-' + tabName);
-    if (activeBtn) activeBtn.classList.add('text-white', 'border-purple-500');
+        // 1. Cores dos botões
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('text-white', 'border-purple-500');
+            btn.classList.add('text-gray-400', 'border-transparent');
+        });
+        const activeBtn = document.getElementById('btn-' + tabName);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-gray-400', 'border-transparent');
+            activeBtn.classList.add('text-white', 'border-purple-500');
+        }
 
-    // 2. Verificação do objeto
-    if (!match) {
-        content.innerHTML = "Carregando dados...";
-        return;
+        // 2. Verificação do objeto
+        if (!match) {
+            content.innerHTML = `<div class="py-20 text-center text-purple-500 animate-pulse font-black uppercase tracking-widest text-[10px]">Aguardando sincronização de dados...</div>`;
+            return;
+        }
+
+        // 3. Renderização Conforme a Aba
+        console.log("Navegando para aba:", tabName);
+
+        switch(tabName) {
+            case 'formacoes':
+                window.UI.renderLineups(match);
+                break;
+            case 'estatisticas':
+                window.UI.renderStats(match); // Essa é a função que adicionamos no ui.js
+                break;
+            case 'h2h':
+                window.UI.renderH2H(match);
+                break;
+            case 'sumario':
+            default:
+                // Se você não tiver renderSumario, pode deixar uma mensagem ou criar a função
+                content.innerHTML = `<div class="py-20 text-center text-gray-500 uppercase text-[10px] font-black italic">O sumário da partida estará disponível em breve.</div>`;
+                break;
+        }
     }
-
-    // 3. Renderização (CHAMADA DIRETA)
-    if (tabName === 'formacao') {
-        window.UI.renderLineups(match);
-    } else if (tabName === 'h2h') {
-        window.UI.renderH2H(match);
-    }
-    // NÃO COLOQUE NADA DEPOIS DISSO QUE MUDE O content.innerHTML
-}
     </script>
 </body>
 </html>

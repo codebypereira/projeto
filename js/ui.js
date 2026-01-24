@@ -12,166 +12,230 @@ window.UI = {
         }
     },
 
-renderMatchHeader: function(match) {
+    renderMatchHeader: function(match) {
 
-    console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
-    const container = document.getElementById('match-header');
-    if (!container) return;
+        console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
+        const container = document.getElementById('match-header');
+        if (!container) return;
 
-    // 1. DATA E HORA (Ajustado para maior legibilidade)
-    const rawDate = match.status?.startsAt || match.startsAt;
-    let dataDisplay = "";
-    let horaDisplay = "";
+        // 1. DATA E HORA (Ajustado para maior legibilidade)
+        const rawDate = match.status?.startsAt || match.startsAt;
+        let dataDisplay = "";
+        let horaDisplay = "";
 
-    if (rawDate) {
-        const d = new Date(rawDate);
-        if (!isNaN(d.getTime())) {
-            const dia = String(d.getDate()).padStart(2, '0');
-            const mes = String(d.getMonth() + 1).padStart(2, '0');
-            dataDisplay = `${dia}/${mes}`;
-            horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        if (rawDate) {
+            const d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+                const dia = String(d.getDate()).padStart(2, '0');
+                const mes = String(d.getMonth() + 1).padStart(2, '0');
+                dataDisplay = `${dia}/${mes}`;
+                horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
         }
-    }
 
-    // 2. LOGOS (Sua função original do data.js)
-    const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
-    const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
+        // 2. LOGOS (Sua função original do data.js)
+        const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
+        const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
 
-    const hasStarted = match.status?.started === true;
-    
-    // Conteúdo Central (VS ou Placar)
-    const scoreContent = hasStarted 
-        ? `<div class="flex items-center justify-center font-[1000]">
-             ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
-           </div>`
-        : `<div class="flex items-center justify-center h-full">
-             <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
-           </div>`;
+        const hasStarted = match.status?.started === true;
+        
+        // Conteúdo Central (VS ou Placar)
+        const scoreContent = hasStarted 
+            ? `<div class="flex items-center justify-center font-[1000]">
+                ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
+            </div>`
+            : `<div class="flex items-center justify-center h-full">
+                <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
+            </div>`;
 
-    container.innerHTML = `
-        <div class="flex flex-col items-center mb-12">
-            <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
-                <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
-                    ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
-                </span>
-            </div>
-            
-            <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
-                <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
-                <span class="text-purple-500 opacity-50">|</span>
-                <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
-            <div class="flex-1 flex flex-col items-center gap-6">
-                <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                    ${match.teams.home.names.long}
-                </h2>
-            </div>
-
-            <div class="flex flex-col items-center gap-8">
-                <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
-                    <div class="relative z-10">
-                        ${scoreContent}
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
-                    <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
-                    <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
-                        ${match.status?.displayLong || 'Upcoming'}
+        container.innerHTML = `
+            <div class="flex flex-col items-center mb-12">
+                <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
+                    <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
+                        ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
                     </span>
                 </div>
-            </div>
-
-            <div class="flex-1 flex flex-col items-center gap-6">
-                <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                    ${match.teams.away.names.long}
-                </h2>
-            </div>
-        </div>
-    `;
-},
-renderLineups: function(match) {
-    const content = document.getElementById('tab-content');
-    if (!content) return;
-
-    // Se o objeto players não existir
-    if (!match.players) {
-        content.innerHTML = `<div class="py-20 text-center text-gray-500 uppercase text-[10px] font-black italic">Informação das equipas ainda não disponível.</div>`;
-        return;
-    }
-
-    // TRANSFORMAÇÃO: Converte o dicionário em Array para podermos filtrar
-    const allPlayers = Object.values(match.players);
-    
-    // FILTRAGEM: Separa pelo ID do time (homeID vs awayID)
-    const homePlayers = allPlayers.filter(p => p.teamID === match.homeID);
-    const awayPlayers = allPlayers.filter(p => p.teamID === match.awayID);
-
-    const playerRow = (p, color) => `
-        <div class="flex items-center gap-4 bg-white/[0.03] p-4 rounded-2xl border border-white/5 hover:border-purple-500/20 transition-all group">
-            <div class="w-10 h-10 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black ${color}">
-                ${p.number || '—'}
-            </div>
-            <div class="flex flex-col">
-                <span class="text-sm font-black uppercase text-white/90 group-hover:text-purple-400 transition-colors">${p.name}</span>
-                <span class="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Titular</span>
-            </div>
-        </div>
-    `;
-
-    content.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 max-w-6xl mx-auto px-4 animate-fadeIn">
-            <div class="space-y-4">
-                <div class="flex items-center gap-3 px-2 mb-6">
-                    <div class="w-1 h-6 bg-purple-500 rounded-full"></div>
-                    <h3 class="text-lg font-black uppercase italic">${match.homeName}</h3>
+                
+                <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
+                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
+                    <span class="text-purple-500 opacity-50">|</span>
+                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
                 </div>
-                <div class="grid gap-2">${homePlayers.map(p => playerRow(p, 'text-purple-500')).join('')}</div>
             </div>
 
-            <div class="space-y-4">
-                <div class="flex items-center gap-3 px-2 mb-6">
-                    <div class="w-1 h-6 bg-gray-500 rounded-full"></div>
-                    <h3 class="text-lg font-black uppercase italic">${match.awayName}</h3>
+            <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
+                <div class="flex-1 flex flex-col items-center gap-6">
+                    <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                        ${match.teams.home.names.long}
+                    </h2>
                 </div>
-                <div class="grid gap-2">${awayPlayers.map(p => playerRow(p, 'text-gray-400')).join('')}</div>
-            </div>
-        </div>
-    `;
-},
-renderH2H: function(match) {
-    console.log("📊 Dados para H2H:", match.h2h);
-    const content = document.getElementById('tab-content');
-    
-    // Se a sua API enviar o H2H dentro do objeto match
-    const history = match.h2h || [];
 
-    content.innerHTML = `
-        <div class="max-w-4xl mx-auto py-10 animate-fadeIn">
-            <div class="bg-white/5 border border-white/10 rounded-[3rem] p-10">
-                <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Histórico Recente</h3>
+                <div class="flex flex-col items-center gap-8">
+                    <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
+                        <div class="relative z-10">
+                            ${scoreContent}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
+                        <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
+                        <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
+                            ${match.status?.displayLong || 'Upcoming'}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center gap-6">
+                    <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                        ${match.teams.away.names.long}
+                    </h2>
+                </div>
+            </div>
+        `;
+    },
+
+    renderLineups: function(match) {
+        const content = document.getElementById('tab-content');
+        if (!content) return;
+
+        // Se o objeto players não existir
+        if (!match.players) {
+            content.innerHTML = `<div class="py-20 text-center text-gray-500 uppercase text-[10px] font-black italic">Informação das equipas ainda não disponível.</div>`;
+            return;
+        }
+
+        // TRANSFORMAÇÃO: Converte o dicionário em Array para podermos filtrar
+        const allPlayers = Object.values(match.players);
+        
+        // FILTRAGEM: Separa pelo ID do time (homeID vs awayID)
+        const homePlayers = allPlayers.filter(p => p.teamID === match.homeID);
+        const awayPlayers = allPlayers.filter(p => p.teamID === match.awayID);
+
+        const playerRow = (p, color) => `
+            <div class="flex items-center gap-4 bg-white/[0.03] p-4 rounded-2xl border border-white/5 hover:border-purple-500/20 transition-all group">
+                <div class="w-10 h-10 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black ${color}">
+                    ${p.number || '—'}
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-black uppercase text-white/90 group-hover:text-purple-400 transition-colors">${p.name}</span>
+                    <span class="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Titular</span>
+                </div>
+            </div>
+        `;
+
+        content.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 max-w-6xl mx-auto px-4 animate-fadeIn">
                 <div class="space-y-4">
-                    ${history.length > 0 ? history.map(game => `
-                        <div class="flex items-center justify-between bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
-                            <span class="text-[10px] font-bold text-gray-500 uppercase">${new Date(game.date).toLocaleDateString('pt-BR')}</span>
-                            <div class="flex items-center gap-6">
-                                <span class="font-black italic uppercase text-sm">${game.homeTeam}</span>
-                                <span class="bg-purple-500/20 text-purple-400 px-4 py-1 rounded-lg font-black italic">${game.score}</span>
-                                <span class="font-black italic uppercase text-sm">${game.awayTeam}</span>
+                    <div class="flex items-center gap-3 px-2 mb-6">
+                        <div class="w-1 h-6 bg-purple-500 rounded-full"></div>
+                        <h3 class="text-lg font-black uppercase italic">${match.homeName}</h3>
+                    </div>
+                    <div class="grid gap-2">${homePlayers.map(p => playerRow(p, 'text-purple-500')).join('')}</div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 px-2 mb-6">
+                        <div class="w-1 h-6 bg-gray-500 rounded-full"></div>
+                        <h3 class="text-lg font-black uppercase italic">${match.awayName}</h3>
+                    </div>
+                    <div class="grid gap-2">${awayPlayers.map(p => playerRow(p, 'text-gray-400')).join('')}</div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderH2H: function(match) {
+        console.log("📊 Dados para H2H:", match.h2h);
+        const content = document.getElementById('tab-content');
+        
+        // Se a sua API enviar o H2H dentro do objeto match
+        const history = match.h2h || [];
+
+        content.innerHTML = `
+            <div class="max-w-4xl mx-auto py-10 animate-fadeIn">
+                <div class="bg-white/5 border border-white/10 rounded-[3rem] p-10">
+                    <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Histórico Recente</h3>
+                    <div class="space-y-4">
+                        ${history.length > 0 ? history.map(game => `
+                            <div class="flex items-center justify-between bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase">${new Date(game.date).toLocaleDateString('pt-BR')}</span>
+                                <div class="flex items-center gap-6">
+                                    <span class="font-black italic uppercase text-sm">${game.homeTeam}</span>
+                                    <span class="bg-purple-500/20 text-purple-400 px-4 py-1 rounded-lg font-black italic">${game.score}</span>
+                                    <span class="font-black italic uppercase text-sm">${game.awayTeam}</span>
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-center text-gray-500 font-black uppercase text-[10px]">Sem confrontos diretos registados recentemente.</p>'}
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    renderStats: function(match) {
+        const content = document.getElementById('tab-content');
+        if (!content) return;
+
+        // Acessando os dados conforme o seu log: match.results['1h'] ou match.results.reg
+        const statsData = match.results?.['1h'] || match.results?.reg || match.results?.game;
+
+        if (!statsData) {
+            content.innerHTML = `
+                <div class="py-20 text-center animate-fadeIn">
+                    <p class="text-gray-500 uppercase text-[10px] font-black italic tracking-[0.2em]">Estatísticas em tempo real ainda não disponíveis.</p>
+                </div>`;
+            return;
+        }
+
+        const home = statsData.home || {};
+        const away = statsData.away || {};
+
+        // Mapeamento EXATO dos campos do seu console
+        const scouts = [
+            { label: 'Chutes no Gol', key: 'shots_onGoal' },
+            { label: 'Chutes Totais', key: 'shots' },
+            { label: 'Passes Certos', key: 'passes_accurate' },
+            { label: 'Intercepções', key: 'interceptions' },
+            { label: 'Cortes (Clearances)', key: 'clearances' },
+            { label: 'Bolas Longas Certas', key: 'longBalls_accurate' },
+            { label: 'Dribles Totais', key: 'dribbles_attempted' }
+        ];
+
+        content.innerHTML = `
+            <div class="max-w-3xl mx-auto py-10 px-4 animate-fadeIn">
+                <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Scout Detalhado (1º Tempo)</h3>
+                
+                ${scouts.map(s => {
+                    const valH = home[s.key] || 0;
+                    const valA = away[s.key] || 0;
+                    const total = (valH + valA) || 1; // Evita divisão por zero
+                    const pctH = (valH / total) * 100;
+
+                    return `
+                        <div class="mb-8 group">
+                            <div class="flex justify-between items-end mb-2 font-black uppercase tracking-widest">
+                                <div class="text-white text-2xl italic">${valH}</div>
+                                <div class="text-gray-500 text-[9px] mb-1 font-bold">${s.label}</div>
+                                <div class="text-white text-2xl italic">${valA}</div>
+                            </div>
+                            <div class="h-2 bg-white/5 rounded-full overflow-hidden flex border border-white/5 shadow-inner">
+                                <div class="h-full bg-gradient-to-r from-purple-600 to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all duration-1000 ease-out" style="width: ${pctH}%"></div>
+                                <div class="h-full bg-gradient-to-l from-red-600 to-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all duration-1000 ease-out" style="width: ${100 - pctH}%"></div>
                             </div>
                         </div>
-                    `).join('') : '<p class="text-center text-gray-500 font-black uppercase text-[10px]">Sem confrontos diretos registados recentemente.</p>'}
+                    `;
+                }).join('')}
+                
+                <div class="mt-12 p-6 bg-purple-500/5 border border-purple-500/10 rounded-3xl">
+                    <p class="text-[9px] text-center text-purple-400/50 font-black uppercase tracking-[0.2em]">
+                        Dados fornecidos via Goal Dash Real-Time Stats
+                    </p>
                 </div>
             </div>
-        </div>
-    `;
-},
+        `;
+    },
     // 4. CARDS AO VIVO (Página live.html)
     renderLiveCards: (matches) => {
         const container = document.getElementById('live-matches-container');
@@ -188,15 +252,26 @@ renderH2H: function(match) {
         container.innerHTML = matches.map(m => {
             const home = m.teams?.home;
             const away = m.teams?.away;
-            const scoreH = m.status?.score?.reg?.home?.points ?? m.status?.score?.home ?? 0;
-            const scoreA = m.status?.score?.reg?.away?.points ?? m.status?.score?.away ?? 0;
+
+            // 1. PLACAR: Prioridade total para o objeto teams que vimos no log
+            const scoreH = home?.score ?? m.status?.score?.reg?.home?.points ?? 0;
+            const scoreA = away?.score ?? m.status?.score?.reg?.away?.points ?? 0;
+            
             const hLogo = window.getTeamLogo(home?.names?.short, home?.names?.medium);
             const aLogo = window.getTeamLogo(away?.names?.short, away?.names?.medium);
-            const time = m.status?.clock ? `${m.status.clock}'` : (m.status?.state || "LIVE").replace('_', ' ');
+            
+            // 2. TEMPO: Pega o clock (minutos) ou o estado (1H, HT, 2H)
+            const time = m.status?.clock 
+                ? `${m.status.clock}'` 
+                : (m.status?.state || "LIVE").replace('_', ' ');
+
+            // 3. LIGA: Se leagueName for genérico, tenta o seasonWeek (ex: Premier League 25/26)
+            const leagueDisplayName = m.info?.seasonWeek || m.leagueName || 'AO VIVO';
 
             return `
             <div onclick="window.location.href='matchdetails.html?id=${m.eventID}'" 
-                 class="group relative bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-[2.5rem] hover:border-purple-500/50 transition-all cursor-pointer shadow-2xl">
+                class="group relative bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-[2.5rem] hover:border-purple-500/50 transition-all cursor-pointer shadow-2xl">
+                
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
                         <span class="relative flex h-1.5 w-1.5">
@@ -205,8 +280,9 @@ renderH2H: function(match) {
                         </span>
                         <span class="text-red-500 text-[9px] font-black uppercase tracking-tighter">${time}</span>
                     </div>
-                    <span class="text-gray-500 text-[9px] font-black uppercase tracking-widest">${m.leagueName || 'AO VIVO'}</span>
+                    <span class="text-gray-500 text-[9px] font-black uppercase tracking-widest">${leagueDisplayName}</span>
                 </div>
+
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex-1 text-center">
                         <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
@@ -214,6 +290,7 @@ renderH2H: function(match) {
                         </div>
                         <p class="text-[10px] font-black text-white uppercase truncate px-1">${home?.names?.medium || home?.names?.short}</p>
                     </div>
+
                     <div class="flex flex-col items-center">
                         <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 shadow-inner flex items-center gap-4">
                             <span class="text-4xl font-black italic text-white tabular-nums">${scoreH}</span>
@@ -221,6 +298,7 @@ renderH2H: function(match) {
                             <span class="text-4xl font-black italic text-white tabular-nums">${scoreA}</span>
                         </div>
                     </div>
+
                     <div class="flex-1 text-center">
                         <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
                             <img src="${aLogo}" class="max-w-full max-h-full object-contain drop-shadow-lg" onerror="this.src='Images/favi.svg'">

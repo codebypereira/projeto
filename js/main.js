@@ -29,44 +29,51 @@ window.changeSport = async (leagueID, leagueName) => {
 };
 
 window.loadLiveMatches = async (leagueID) => {
-
-    const liveMatches = allMatches.filter(m => {
-    const isStarted = m.status?.started === true;
-    const state = String(m.status?.state || "").toUpperCase();
-    // Verifica se não está acabado nem cancelado
-    return isStarted && !['FINISHED', 'FINAL', 'CANCELLED', 'POSTPONED'].includes(state);
-});
-    if (!window.GD_API) return;
-    
+    // 1. Pega o container e mostra o loading primeiro
     const container = document.getElementById('live-matches-container');
     if (container) {
         container.innerHTML = `<div class="col-span-full text-center py-20 text-red-500 animate-pulse font-black uppercase text-[10px]">Verificando Jogos em Andamento...</div>`;
     }
 
+    if (!window.GD_API) {
+        console.error("🚨 API Não carregada");
+        return;
+    }
+
     try {
-        // Busca os jogos da liga selecionada ou La Liga (que você sabe que tem jogo agora)
+        // 2. Define qual liga buscar
         const targetLeague = leagueID || window.currentLeague || 'LALIGA';
+        
+        // 3. BUSCA OS DADOS (Aqui é onde a allMatches nasce)
         const allMatches = await window.GD_API.fetchMatches(targetLeague);
         
         console.log("📡 Dados brutos da API:", allMatches);
 
-        // O SEGREDO ESTÁ AQUI:
-        // 1. m.status.started === true (O jogo começou)
-        // 2. m.status.state NÃO pode ser 'FINISHED' (O jogo não acabou)
-     const liveMatches = allMatches.filter(m => {
-    const isStarted = m.status?.started === true;
-    const state = String(m.status?.state || "").toUpperCase();
-    // Verifica se não está acabado nem cancelado
-    return isStarted && !['FINISHED', 'FINAL', 'CANCELLED', 'POSTPONED'].includes(state);
-});
+        if (!allMatches || !Array.isArray(allMatches)) {
+            if (container) container.innerHTML = `<div class="col-span-full text-center py-20 text-white/20 font-black uppercase text-[10px]">Nenhum dado recebido da API.</div>`;
+            return;
+        }
 
-        console.log(`✅ Jogos filtrados (Iniciados e não finalizados):`, liveMatches);
+        // 4. FILTRAGEM (Agora sim allMatches existe!)
+        const liveMatches = allMatches.filter(m => {
+            const isStarted = m.status?.started === true;
+            const state = String(m.status?.state || "").toUpperCase();
+            // Verifica se começou e se NÃO terminou/cancelou
+            return isStarted && !['FINISHED', 'FINAL', 'CANCELLED', 'POSTPONED'].includes(state);
+        });
 
-        if (window.UI && window.UI.renderLiveCards) {
+        console.log(`✅ Jogos filtrados:`, liveMatches);
+
+        // 5. RENDERIZAÇÃO
+        if (liveMatches.length === 0) {
+            if (container) container.innerHTML = `<div class="col-span-full text-center py-20 text-white/40 font-black uppercase text-[10px]">Nenhum jogo ao vivo nesta liga agora.</div>`;
+        } else if (window.UI && window.UI.renderLiveCards) {
             window.UI.renderLiveCards(liveMatches);
         }
+        
     } catch (e) {
-        console.error("Erro no Live:", e);
+        console.error("🚨 Erro fatal no Live:", e);
+        if (container) container.innerHTML = `<div class="col-span-full text-center py-20 text-red-500 font-black uppercase text-[10px]">Erro ao conectar com o servidor.</div>`;
     }
 };
 window.handleTeamClickByCode = async (code, name) => {
