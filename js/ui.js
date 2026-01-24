@@ -222,14 +222,11 @@ window.UI = {
         // --- IDENTIFICAÇÃO ANTI-RIVAL (CITY vs UNITED) ---
         const currentID = String(data.id || "").toUpperCase();
         
-        // Função interna para checar se o time no jogo é o SEU time
         const isMyTeam = (targetID) => {
             const id = String(targetID || "").toUpperCase();
-            // Se estamos buscando City, ele tem que ter CITY e NÃO ter UNITED
             if (currentID.includes("CITY")) {
                 return id.includes("CITY") && !id.includes("UNITED");
             }
-            // Lógica para outros times (Real, Barça, etc) continua por inclusão simples
             const base = currentID.split('_')[0];
             return id.includes(base);
         };
@@ -237,7 +234,6 @@ window.UI = {
         const statsReal = endedMatches.reduce((acc, m) => {
             const hScore = m.teams?.home?.score ?? 0;
             const aScore = m.teams?.away?.score ?? 0;
-            
             const homeID = m.teams?.home?.teamID;
             const awayID = m.teams?.away?.teamID;
             
@@ -307,8 +303,6 @@ window.UI = {
                         const aScore = match.teams?.away?.score ?? 0;
                         
                         const isHome = isMyTeam(match.teams?.home?.teamID);
-                        const isAway = isMyTeam(match.teams?.away?.teamID);
-                        
                         const myScore = isHome ? hScore : aScore;
                         const oppScore = isHome ? aScore : hScore;
                         
@@ -316,12 +310,13 @@ window.UI = {
                         if (myScore > oppScore) statusClass = "card-win border-green-500/20";
                         else if (myScore < oppScore) statusClass = "card-loss border-red-500/20";
 
-                        const leagueLabel = match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA";
+                        // --- MUDANÇA AQUI: USA O NOME TRADUZIDO QUE PASSAMOS ---
+                        const leagueLabel = match.leagueDisplayName || (match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA");
 
                         return `
                             <div class="flex items-center justify-between bg-white/[0.02] border p-5 rounded-2xl hover:bg-white/[0.08] transition-all group ${statusClass}">
                                 <div class="flex flex-col gap-1 flex-1">
-                                    <span class="text-[7px] font-black text-white/20 uppercase tracking-[2px]">${leagueLabel}</span>
+                                    <span class="text-[7px] font-black text-white/40 uppercase tracking-[2px]">${leagueLabel}</span>
                                     <div class="flex items-center gap-4">
                                         <div class="flex-1 text-right">
                                             <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${match.teams?.home?.names?.medium}</span>
