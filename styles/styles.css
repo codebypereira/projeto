@@ -16,7 +16,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 body {
-    padding-top: 65px; /* Compensa a Navbar fixa */
+    padding-top: 80px; /* Compensa a Navbar fixa */
     overflow: auto !important;
     background-color: #1a1033 !important;
     /* Gradiente Radial para criar profundidade no fundo da página */
