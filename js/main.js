@@ -524,11 +524,18 @@ window.handlePalpiteClick = (id, home, away) => {
     }
 };
 
-window.handlePredictionSubmit = async (e) => { // Recebe o evento
+window.handlePredictionSubmit = async (e) => {
     const hScore = document.getElementById('modal-home-score').value;
     const aScore = document.getElementById('modal-away-score').value;
     
-    // Pega o botão de forma segura
+    // IMPORTANTE: Pegar os dados do jogo ativo
+    const match = window.activeGame;
+
+    if (!match) {
+        alert("Erro: Nenhum jogo selecionado, cria!");
+        return;
+    }
+
     const btn = e ? e.currentTarget : document.querySelector('#prediction-modal button[onclick*="handlePredictionSubmit"]');
 
     if (hScore === "" || aScore === "") {
@@ -541,12 +548,20 @@ window.handlePredictionSubmit = async (e) => { // Recebe o evento
         btn.disabled = true;
     }
 
-    const success = await window.GD_API.submitPrediction(hScore, aScore);
+    // Agora passamos TUDO para a API: scores, id do jogo e nomes dos times
+    const success = await window.GD_API.submitPrediction(
+        hScore, 
+        aScore, 
+        match.eventID || match.id, 
+        `${match.teams?.home?.names?.long} vs ${match.teams?.away?.names?.long}`
+    );
     
     if (success) {
-        // ... resto da lógica de sucesso ...
-        alert("Palpite registado com sucesso!");
+        alert("Palpite registrado com sucesso!");
         document.getElementById('prediction-modal').classList.add('hidden');
+        // Limpa os campos para o próximo palpite
+        document.getElementById('modal-home-score').value = '';
+        document.getElementById('modal-away-score').value = '';
     } else {
         alert("Erro ao enviar o palpite para o servidor.");
     }

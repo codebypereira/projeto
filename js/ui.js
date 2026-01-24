@@ -148,27 +148,46 @@ window.UI = {
     },
 
     renderH2H: function(match) {
-        console.log("📊 Dados para H2H:", match.h2h);
+        console.log("📊 Dados para H2H:", match?.h2h);
         const content = document.getElementById('tab-content');
-        
-        // Se a sua API enviar o H2H dentro do objeto match
-        const history = match.h2h || [];
+        if (!content) return;
+
+        // Se o h2h vier dentro do match ou se for uma array vazia
+        const history = match?.h2h || [];
 
         content.innerHTML = `
-            <div class="max-w-4xl mx-auto py-10 animate-fadeIn">
-                <div class="bg-white/5 border border-white/10 rounded-[3rem] p-10">
-                    <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Histórico Recente</h3>
-                    <div class="space-y-4">
-                        ${history.length > 0 ? history.map(game => `
-                            <div class="flex items-center justify-between bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
-                                <span class="text-[10px] font-bold text-gray-500 uppercase">${new Date(game.date).toLocaleDateString('pt-BR')}</span>
-                                <div class="flex items-center gap-6">
-                                    <span class="font-black italic uppercase text-sm">${game.homeTeam}</span>
-                                    <span class="bg-purple-500/20 text-purple-400 px-4 py-1 rounded-lg font-black italic">${game.score}</span>
-                                    <span class="font-black italic uppercase text-sm">${game.awayTeam}</span>
+            <div class="max-w-4xl mx-auto py-6 animate-fadeIn">
+                <div class="bg-white/5 border border-white/10 rounded-[3rem] p-6 md:p-10">
+                    <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-8">Confrontos Diretos</h3>
+                    
+                    <div class="space-y-3">
+                        ${history.length > 0 ? history.map(game => {
+                            // Tratamento de placar: caso venha "2-1" ou objeto
+                            const displayScore = game.score || `${game.homeScore} - ${game.awayScore}`;
+                            const gameDate = game.date ? new Date(game.date).toLocaleDateString('pt-BR') : 'Data n/a';
+
+                            return `
+                                <div class="flex flex-col md:flex-row items-center justify-between bg-white/[0.02] p-5 rounded-[2rem] border border-white/5 hover:border-purple-500/30 transition-all group">
+                                    <span class="text-[9px] font-bold text-white/30 uppercase mb-2 md:mb-0">${gameDate}</span>
+                                    
+                                    <div class="flex items-center justify-center gap-4 md:gap-8 w-full md:w-auto">
+                                        <span class="font-black italic uppercase text-xs text-right flex-1 md:flex-none w-[100px] truncate">${game.homeTeam || 'Casa'}</span>
+                                        
+                                        <div class="bg-purple-500/10 group-hover:bg-purple-500/20 px-5 py-2 rounded-xl border border-purple-500/20 transition-colors">
+                                            <span class="text-purple-400 font-black italic text-sm">${displayScore}</span>
+                                        </div>
+                                        
+                                        <span class="font-black italic uppercase text-xs text-left flex-1 md:flex-none w-[100px] truncate">${game.awayTeam || 'Fora'}</span>
+                                    </div>
+                                    
+                                    <span class="hidden md:block text-[9px] font-bold text-white/10 uppercase">${game.competition || 'LEAGUE'}</span>
                                 </div>
+                            `;
+                        }).join('') : `
+                            <div class="py-10 text-center">
+                                <p class="text-gray-500 font-black uppercase text-[10px] tracking-widest">Sem confrontos diretos registrados.</p>
                             </div>
-                        `).join('') : '<p class="text-center text-gray-500 font-black uppercase text-[10px]">Sem confrontos diretos registados recentemente.</p>'}
+                        `}
                     </div>
                 </div>
             </div>
@@ -375,6 +394,7 @@ window.UI = {
         if (!username) return;
 
         try {
+            // 1. Busca os seus palpites na MockAPI
             const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
             const data = await res.json();
             const meusPalpites = data.filter(p => p.username === username);
@@ -384,17 +404,86 @@ window.UI = {
                 return;
             }
 
-            container.innerHTML = meusPalpites.reverse().map(p => `
-                <div class="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4">
-                    <span class="text-white font-black uppercase text-xs flex-1 text-right">${p.matchName?.split(' vs ')[0] || 'Casa'}</span>
-                    <div class="flex flex-col items-center">
-                        <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic">${p.homeScore} - ${p.awayScore}</div>
-                        <span class="text-[8px] font-black ${p.status === 'green' ? 'text-green-400' : 'text-purple-400'} uppercase mt-2">${(p.status || 'PENDENTE').toUpperCase()}</span>
-                    </div>
-                    <span class="text-white font-black uppercase text-xs flex-1 text-left">${p.matchName?.split(' vs ')[1] || 'Fora'}</span>
-                    <div class="text-[10px] text-white/40 font-bold">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '--/--'}</div>
-                </div>`).join('');
-        } catch (e) { console.error("Erro histórico:", e); }
+            // 2. Busca jogos atuais/recentes para conferir os resultados
+            // Dica: Se quiser conferir ligas específicas, pode fazer múltiplos fetchs ou usar o window.allLoadedMatches
+            const leagues = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1'];
+            let liveData = [];
+            
+            // Vamos tentar pegar os jogos carregados globalmente primeiro
+            if (window.allLoadedMatches && window.allLoadedMatches.length > 0) {
+                liveData = window.allLoadedMatches;
+            } else if (window.GD_API) {
+                // Fallback: Busca da Premier League como exemplo (ou a liga atual)
+                liveData = await window.GD_API.fetchMatches('EPL');
+            }
+
+            container.innerHTML = meusPalpites.reverse().map(p => {
+                // 3. Tenta encontrar o jogo real correspondente ao palpite
+                const jogoReal = liveData.find(m => String(m.eventID) === String(p.matchId));
+                
+                let statusLabel = 'PENDENTE';
+                let statusClass = 'text-purple-400';
+                let bgClass = 'bg-white/5 border-white/10';
+                let placarRealHtml = '';
+
+                if (jogoReal && jogoReal.teams) {
+                    const realH = jogoReal.teams.home.score;
+                    const realA = jogoReal.teams.away.score;
+                    const estado = (jogoReal.status?.state || "").toUpperCase();
+
+                    // Só valida se o jogo acabou (FINAL ou FINISHED)
+                    if (['FINAL', 'FINISHED'].includes(estado)) {
+                        const acertou = (Number(p.homeScore) === Number(realH) && Number(p.awayScore) === Number(realA));
+                        
+                        if (acertou) {
+                            statusLabel = 'GREEN';
+                            statusClass = 'text-green-400';
+                            bgClass = 'bg-green-500/5 border-green-500/20';
+                        } else {
+                            statusLabel = 'RED';
+                            statusClass = 'text-red-500';
+                            bgClass = 'bg-red-500/5 border-red-500/20';
+                        }
+                        placarRealHtml = `<div class="text-[9px] text-white/30 mt-1 uppercase">Resultado Real: ${realH} - ${realA}</div>`;
+                    } else if (jogoReal.status?.started) {
+                        statusLabel = 'AO VIVO';
+                        statusClass = 'text-yellow-400 animate-pulse';
+                    }
+                }
+
+                return `
+                    <div class="${bgClass} border p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4 transition-all duration-500">
+                        <span class="text-white font-black uppercase text-xs flex-1 text-center md:text-right">
+                            ${p.homeTeam || p.matchName?.split(' vs ')[0] || 'Casa'}
+                        </span>
+                        
+                        <div class="flex flex-col items-center min-w-[120px]">
+                            <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic border border-white/5">
+                                ${p.homeScore} - ${p.awayScore}
+                            </div>
+                            <span class="text-[8px] font-black ${statusClass} uppercase mt-2 tracking-[0.2em]">
+                                ${statusLabel}
+                            </span>
+                            ${placarRealHtml}
+                        </div>
+
+                        <span class="text-white font-black uppercase text-xs flex-1 text-center md:text-left">
+                            ${p.awayTeam || p.matchName?.split(' vs ')[1] || 'Fora'}
+                        </span>
+
+                        <div class="flex flex-col items-end">
+                            <div class="text-[10px] text-white/40 font-bold">
+                                ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '--/--'}
+                            </div>
+                            <button onclick="window.deletePrediction('${p.id}')" class="text-[9px] text-red-500/50 hover:text-red-500 font-black mt-2 uppercase transition-all">Apagar</button>
+                        </div>
+                    </div>`;
+            }).join('');
+
+        } catch (e) { 
+            console.error("Erro histórico:", e);
+            container.innerHTML = `<p class="text-red-500 text-center py-20 font-black">Erro ao carregar histórico.</p>`;
+        }
     },
 
     // 7. DASHBOARD (Página Stats)

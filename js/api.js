@@ -211,24 +211,46 @@ const GD_API = {
      * 6. ENVIO DE PALPITE
      */
     async submitPrediction(h, a) {
-        if (!window.activeGame) return false;
+        if (!window.activeGame) {
+            console.error("❌ Nenhum jogo ativo para palpitar!");
+            return false;
+        }
+
+        const game = window.activeGame;
+
+        // Capturando os nomes e IDs reais conforme a estrutura da sua API
+        const hName = game.teams?.home?.names?.long || game.home || "Time Casa";
+        const aName = game.teams?.away?.names?.long || game.away || "Time Fora";
+        const mId = game.eventID || game.id;
+
         const payload = {
-            matchId: window.activeGame.id,
-            matchName: `${window.activeGame.home} vs ${window.activeGame.away}`,
+            matchId: String(mId), 
+            matchName: `${hName} vs ${aName}`,
+            homeTeam: hName, // Adicionei para facilitar a renderização do histórico
+            awayTeam: aName,
             username: localStorage.getItem('goalDash_username'),
             homeScore: parseInt(h),
             awayScore: parseInt(a),
             status: "pendente",
             createdAt: new Date().toISOString()
         };
+
         try {
             const res = await fetch(window.CONFIG.MOCK_API_PREDICTIONS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            return res.ok;
-        } catch (e) { return false; }
+
+            if (res.ok) {
+                console.log("%c ✅ PALPITE ENVIADO!", "color: #10b981; font-weight: bold;");
+                return true;
+            }
+            return false;
+        } catch (e) { 
+            console.error("🚨 Erro ao enviar palpite:", e);
+            return false; 
+        }
     },
 
     /**
@@ -291,6 +313,25 @@ const GD_API = {
 
         } catch (e) { 
             console.error("🚨 Erro no checkGreens:", e); 
+        }
+    },
+
+    async fetchH2H(teamAId, teamBId) {
+        try {
+            // Buscamos jogos terminados da liga atual
+            const league = window.currentLeague || 'EPL';
+            const matches = await this.fetchMatches(league); 
+            
+            // Filtramos apenas os jogos onde os dois se enfrentaram
+            const h2hMatches = matches.filter(m => {
+                const teams = [String(m.teams.home.id), String(m.teams.away.id)];
+                return teams.includes(String(teamAId)) && teams.includes(String(teamBId));
+            });
+
+            return h2hMatches.slice(0, 5); // Retorna os últimos 5 confrontos
+        } catch (e) {
+            console.error("Erro no H2H:", e);
+            return [];
         }
     }
 };
