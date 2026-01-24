@@ -298,11 +298,3 @@ const GD_API = {
 // Exportação Global
 window.GD_API = GD_API;
 window.fetchMatches = (id) => GD_API.fetchMatches(id);
-
-// Inicialização Automática ao carregar a página
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        GD_API.fetchMatches();
-        GD_API.checkMyGreens();
-    }, 200);
-});
