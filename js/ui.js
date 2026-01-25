@@ -370,16 +370,12 @@ window.UI = {
     renderHistory: async () => {
         const container = document.getElementById('history-container');
         if (!container) return;
-        
         const username = localStorage.getItem('goalDash_username');
-        if (!username) {
-            container.innerHTML = `<p class="text-white/20 text-center py-20 font-black uppercase tracking-widest text-xs">Faça login para ver seu histórico</p>`;
-            return;
-        }
+        if (!username) return;
 
         try {
-            // 1. Busca os palpites na MockAPI
-            const res = await fetch(window.CONFIG.MOCK_API_PREDICTIONS);
+            // 1. Busca os seus palpites na MockAPI
+            const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
             const data = await res.json();
             const meusPalpites = data.filter(p => p.username === username);
             
@@ -399,7 +395,7 @@ window.UI = {
             }
 
             container.innerHTML = meusPalpites.reverse().map(p => {
-                // 3. Cruzamento de dados: Palpite vs Jogo Real
+                // 3. Tenta encontrar o jogo real correspondente ao palpite
                 const jogoReal = liveData.find(m => String(m.eventID) === String(p.matchId));
                 
                 let statusLabel = 'PENDENTE';
@@ -412,6 +408,7 @@ window.UI = {
                     const realA = jogoReal.teams.away.score;
                     const estado = (jogoReal.status?.state || "").toUpperCase();
 
+                    // Só valida se o jogo acabou (FINAL ou FINISHED)
                     if (['FINAL', 'FINISHED'].includes(estado)) {
                         const acertou = (Number(p.homeScore) === Number(realH) && Number(p.awayScore) === Number(realA));
                         
@@ -432,13 +429,13 @@ window.UI = {
                 }
 
                 return `
-                    <div class="${bgClass} border p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4 transition-all duration-500 hover:scale-[1.01]">
+                    <div class="${bgClass} border p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 mb-4 transition-all duration-500">
                         <span class="text-white font-black uppercase text-xs flex-1 text-center md:text-right">
                             ${p.homeTeam || p.matchName?.split(' vs ')[0] || 'Casa'}
                         </span>
                         
                         <div class="flex flex-col items-center min-w-[120px]">
-                            <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic border border-white/5 shadow-lg">
+                            <div class="bg-purple-600/20 px-6 py-3 rounded-2xl text-white font-black italic border border-white/5">
                                 ${p.homeScore} - ${p.awayScore}
                             </div>
                             <span class="text-[8px] font-black ${statusClass} uppercase mt-2 tracking-[0.2em]">
@@ -451,18 +448,18 @@ window.UI = {
                             ${p.awayTeam || p.matchName?.split(' vs ')[1] || 'Fora'}
                         </span>
 
-                        <div class="flex flex-col items-end min-w-[80px]">
+                        <div class="flex flex-col items-end">
                             <div class="text-[10px] text-white/40 font-bold">
                                 ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '--/--'}
                             </div>
-                            <button onclick="window.deletePrediction('${p.id}')" class="text-[9px] text-red-500/50 hover:text-red-500 font-black mt-2 uppercase transition-all cursor-pointer">Apagar</button>
+                            <button onclick="window.deletePrediction('${p.id}')" class="text-[9px] text-red-500/50 hover:text-red-500 font-black mt-2 uppercase transition-all">Apagar</button>
                         </div>
                     </div>`;
             }).join('');
 
         } catch (e) { 
             console.error("Erro histórico:", e);
-            container.innerHTML = `<p class="text-red-500 text-center py-20 font-black uppercase text-xs">Erro ao carregar dados do servidor.</p>`;
+            container.innerHTML = `<p class="text-red-500 text-center py-20 font-black">Erro ao carregar histórico.</p>`;
         }
     },
 
@@ -475,8 +472,8 @@ window.UI = {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
         grid.innerHTML = teams.map(team => `
-            <div onclick="window.handleTeamClickByCode('${team.id}', '${team.name}')" class="group bg-white/5 border border-white/5 p-4 rounded-3xl flex flex-col items-center gap-4 hover:border-purple-500/50 cursor-pointer transition-all active:scale-95">
-                <img src="${window.getTeamLogo('', team.name) || 'Images/favi.svg'}" class="w-12 h-12 object-contain group-hover:scale-110 transition-transform" onerror="this.src='Images/favi.svg'">
+            <div onclick="window.handleTeamClickByCode('${team.code}', '${team.name}')" class="group bg-white/5 border border-white/5 p-4 rounded-3xl flex flex-col items-center gap-4 hover:border-purple-500/50 cursor-pointer transition-all">
+                <img src="${window.getTeamLogo(team.code, team.name)}" class="w-12 h-12 object-contain" onerror="this.src='Images/favi.svg'">
                 <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-white">${team.name}</span>
             </div>`).join('');
     },
@@ -492,22 +489,26 @@ window.UI = {
         const initialView = document.getElementById('initial-view');
         if (!resultsContainer || !initialView) return;
 
-        // --- LÓGICA DE IDENTIFICAÇÃO DE TIME (WINS/LOSSES) ---
+        // --- IDENTIFICAÇÃO ANTI-RIVAL (CITY vs UNITED) ---
         const currentID = String(data.id || "").toUpperCase();
         
         const isMyTeam = (targetID) => {
             const id = String(targetID || "").toUpperCase();
-            return id === currentID;
+            if (currentID.includes("CITY")) {
+                return id.includes("CITY") && !id.includes("UNITED");
+            }
+            const base = currentID.split('_')[0];
+            return id.includes(base);
         };
 
         const statsReal = endedMatches.reduce((acc, m) => {
             const hScore = m.teams?.home?.score ?? 0;
             const aScore = m.teams?.away?.score ?? 0;
-            const homeID = String(m.teams?.home?.id);
-            const awayID = String(m.teams?.away?.id);
+            const homeID = m.teams?.home?.teamID;
+            const awayID = m.teams?.away?.teamID;
             
-            const isHome = homeID === currentID;
-            const isAway = awayID === currentID;
+            const isHome = isMyTeam(homeID);
+            const isAway = isMyTeam(awayID);
 
             if (hScore === aScore) {
                 acc.form.push('E');
@@ -530,46 +531,43 @@ window.UI = {
         initialView.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
 
-        // Layout do Dashboard
+        let dashLogo = data.logo || `https://api.dicebear.com/7.x/initials/svg?seed=${data.name || 'TM'}&backgroundColor=a855f7`;
+
         resultsContainer.innerHTML = `
             <button onclick="location.reload()" class="mb-8 text-purple-400 font-black flex items-center gap-2 text-[10px] tracking-widest cursor-pointer hover:text-white transition-colors">
-                ← VOLTAR PARA BUSCA
+                ← VOLTAR PARA LIGAS
             </button>
             
-            <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <img src="${window.getTeamLogo('', data.name)}" class="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(147,51,234,0.3)]" onerror="this.src='Images/favi.svg'">
+            <div class="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 mb-8 animate-in fade-in duration-500">
+                <img src="${dashLogo}" class="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(147,51,234,0.3)]" onerror="this.src='Images/favi.svg'">
                 <div>
                     <p class="text-[10px] font-black text-purple-500 uppercase tracking-[3px] mb-1">Estatísticas do Time</p>
                     <h2 class="text-4xl md:text-5xl uppercase italic font-black text-white tracking-tighter">${data.name || "Time Desconhecido"}</h2>
                 </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5">
                     <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Forma Recente</h3>
                     <div class="flex gap-3 justify-center md:justify-start">
                         ${formaExibida.length > 0 ? formaExibida.map(res => {
-                            let color = res === 'V' ? 'bg-green-500' : res === 'D' ? 'bg-red-500' : 'bg-yellow-500';
-                            return `<div class="${color} w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg">${res}</div>`;
-                        }).join('') : '<p class="text-gray-600 text-[10px] uppercase font-black">Sem dados recentes</p>'}
+                            let color = res === 'V' ? 'bg-green-500 shadow-green-500/20' : res === 'D' ? 'bg-red-500 shadow-red-500/20' : 'bg-yellow-500 shadow-yellow-500/20';
+                            return `<div class="${color} w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg animate-bounce-short">${res}</div>`;
+                        }).join('') : '<p class="text-gray-600 text-[10px] uppercase font-black">Sem jogos recentes...</p>'}
                     </div>
                 </div>
                 <div class="bg-black/30 p-8 rounded-[2rem] border border-white/5 flex flex-col justify-center">
-                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2">Aproveitamento</p>
-                    <div class="text-4xl font-black italic text-white">
+                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Aproveitamento Real</p>
+                    <div class="text-4xl font-black italic text-white text-center md:text-left">
                         ${winRate}% <span class="text-sm text-purple-500 not-italic uppercase ml-2 tracking-widest">Win Rate</span>
                     </div>
                 </div>
             </div>
-
             <div class="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
                 <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-8">Últimos Confrontos</h3>
                 <div class="space-y-4">
                     ${endedMatches.length > 0 ? endedMatches.map(match => {
                         const hScore = match.teams?.home?.score ?? 0;
                         const aScore = match.teams?.away?.score ?? 0;
-                        const homeName = match.teams?.home?.names?.medium || "Time A";
-                        const awayName = match.teams?.away?.names?.medium || "Time B";
                         
                         const isHome = isMyTeam(match.teams?.home?.teamID);
                         const myScore = isHome ? hScore : aScore;
@@ -582,18 +580,18 @@ window.UI = {
                         const leagueLabel = match.leagueDisplayName || (match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA");
 
                         return `
-                            <div class="flex items-center justify-between bg-white/[0.02] border border-white/5 p-5 rounded-2xl hover:bg-white/[0.08] transition-all group">
+                            <div class="flex items-center justify-between bg-white/[0.02] border p-5 rounded-2xl hover:bg-white/[0.08] transition-all group ${statusClass}">
                                 <div class="flex flex-col gap-1 flex-1">
-                                    <span class="text-[7px] font-black text-white/40 uppercase tracking-[2px]">MATCHDAY</span>
+                                    <span class="text-[7px] font-black text-white/40 uppercase tracking-[2px]">${leagueLabel}</span>
                                     <div class="flex items-center gap-4">
                                         <div class="flex-1 text-right">
-                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${homeName}</span>
+                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${match.teams?.home?.names?.medium}</span>
                                         </div>
                                         <div class="bg-black/40 px-4 py-2 rounded-xl border border-white/10 min-w-[85px] text-center shadow-inner">
                                             <span class="text-lg font-black italic text-white">${hScore} - ${aScore}</span>
                                         </div>
                                         <div class="flex-1 text-left">
-                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${awayName}</span>
+                                            <span class="text-[11px] font-black text-white uppercase tracking-tighter group-hover:text-purple-400 transition-colors">${match.teams?.away?.names?.medium}</span>
                                         </div>
                                     </div>
                                 </div>
