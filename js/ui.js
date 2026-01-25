@@ -12,91 +12,99 @@ window.UI = {
         }
     },
 
-    renderMatchHeader: function(match) {
+ renderMatchHeader: function(match) {
+    console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
+    const container = document.getElementById('match-header');
+    if (!container) return;
 
-        console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
-        const container = document.getElementById('match-header');
-        if (!container) return;
+    // 1. DATA E HORA
+    const rawDate = match.status?.startsAt || match.startsAt;
+    let dataDisplay = "", horaDisplay = "";
 
-        // 1. DATA E HORA (Ajustado para maior legibilidade)
-        const rawDate = match.status?.startsAt || match.startsAt;
-        let dataDisplay = "";
-        let horaDisplay = "";
-
-        if (rawDate) {
-            const d = new Date(rawDate);
-            if (!isNaN(d.getTime())) {
-                const dia = String(d.getDate()).padStart(2, '0');
-                const mes = String(d.getMonth() + 1).padStart(2, '0');
-                dataDisplay = `${dia}/${mes}`;
-                horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            }
+    if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            dataDisplay = `${dia}/${mes}`;
+            horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         }
+    }
 
-        // 2. LOGOS (Sua função original do data.js)
-        const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
-        const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
+    // 2. LOGOS
+    const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
+    const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
 
-        const hasStarted = match.status?.started === true;
-        
-        // Conteúdo Central (VS ou Placar)
-        const scoreContent = hasStarted 
-            ? `<div class="flex items-center justify-center font-[1000]">
-                ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
-            </div>`
-            : `<div class="flex items-center justify-center h-full">
-                <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
-            </div>`;
+    const hasStarted = match.status?.started === true;
+    
+    // Conteúdo Central (VS ou Placar)
+    const scoreContent = hasStarted 
+        ? `<div class="flex items-center justify-center font-[1000]">
+            ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
+           </div>`
+        : `<div class="flex items-center justify-center h-full">
+            <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
+           </div>`;
 
-        container.innerHTML = `
-            <div class="flex flex-col items-center mb-12">
-                <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
-                    <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
-                        ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
-                    </span>
+    // 3. PREPARAÇÃO DOS DADOS PARA O BOTÃO
+    // Sanitização de nomes para evitar erros com apóstrofos (Ex: Cote d'Ivoire)
+    const hNameSafe = match.teams.home.names.medium.replace(/'/g, "\\'");
+    const aNameSafe = match.teams.away.names.medium.replace(/'/g, "\\'");
+    const mID = match.eventID || match.id;
+
+    container.innerHTML = `
+        <div class="flex flex-col items-center mb-12">
+            <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
+                <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
+                    ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
+                </span>
+            </div>
+            
+            <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
+                <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
+                <span class="text-purple-500 opacity-50">|</span>
+                <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
+            <div class="flex-1 flex flex-col items-center gap-6">
+                <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                    ${match.teams.home.names.long}
+                </h2>
+            </div>
+
+            <div class="flex flex-col items-center gap-8">
+                <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
+                    <div class="relative z-10">
+                        ${scoreContent}
+                    </div>
                 </div>
                 
-                <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
-                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
-                    <span class="text-purple-500 opacity-50">|</span>
-                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
+                <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
+                    <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
+                        ${match.status?.displayLong || 'Upcoming'}
+                    </span>
                 </div>
+
+                <button onclick="window.handlePalpiteClick('${mID}', '${hNameSafe}', '${aNameSafe}')" 
+                    class="mt-4 px-8 py-3 rounded-xl text-[10px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-300 cursor-pointer border border-white/20 shadow-xl">
+                    Dar meu palpite
+                </button>
             </div>
 
-            <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
-                <div class="flex-1 flex flex-col items-center gap-6">
-                    <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                        ${match.teams.home.names.long}
-                    </h2>
-                </div>
-
-                <div class="flex flex-col items-center gap-8">
-                    <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
-                        <div class="relative z-10">
-                            ${scoreContent}
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
-                        <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
-                        <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
-                            ${match.status?.displayLong || 'Upcoming'}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="flex-1 flex flex-col items-center gap-6">
-                    <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                        ${match.teams.away.names.long}
-                    </h2>
-                </div>
+            <div class="flex-1 flex flex-col items-center gap-6">
+                <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                    ${match.teams.away.names.long}
+                </h2>
             </div>
-        `;
-    },
-
+        </div>
+    `;
+},
     renderLineups: function(match) {
         const content = document.getElementById('tab-content');
         if (!content) return;
@@ -147,52 +155,6 @@ window.UI = {
         `;
     },
 
-    renderH2H: function(match) {
-        console.log("📊 Dados para H2H:", match?.h2h);
-        const content = document.getElementById('tab-content');
-        if (!content) return;
-
-        // Se o h2h vier dentro do match ou se for uma array vazia
-        const history = match?.h2h || [];
-
-        content.innerHTML = `
-            <div class="max-w-4xl mx-auto py-6 animate-fadeIn">
-                <div class="bg-white/5 border border-white/10 rounded-[3rem] p-6 md:p-10">
-                    <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-8">Confrontos Diretos</h3>
-                    
-                    <div class="space-y-3">
-                        ${history.length > 0 ? history.map(game => {
-                            // Tratamento de placar: caso venha "2-1" ou objeto
-                            const displayScore = game.score || `${game.homeScore} - ${game.awayScore}`;
-                            const gameDate = game.date ? new Date(game.date).toLocaleDateString('pt-BR') : 'Data n/a';
-
-                            return `
-                                <div class="flex flex-col md:flex-row items-center justify-between bg-white/[0.02] p-5 rounded-[2rem] border border-white/5 hover:border-purple-500/30 transition-all group">
-                                    <span class="text-[9px] font-bold text-white/30 uppercase mb-2 md:mb-0">${gameDate}</span>
-                                    
-                                    <div class="flex items-center justify-center gap-4 md:gap-8 w-full md:w-auto">
-                                        <span class="font-black italic uppercase text-xs text-right flex-1 md:flex-none w-[100px] truncate">${game.homeTeam || 'Casa'}</span>
-                                        
-                                        <div class="bg-purple-500/10 group-hover:bg-purple-500/20 px-5 py-2 rounded-xl border border-purple-500/20 transition-colors">
-                                            <span class="text-purple-400 font-black italic text-sm">${displayScore}</span>
-                                        </div>
-                                        
-                                        <span class="font-black italic uppercase text-xs text-left flex-1 md:flex-none w-[100px] truncate">${game.awayTeam || 'Fora'}</span>
-                                    </div>
-                                    
-                                    <span class="hidden md:block text-[9px] font-bold text-white/10 uppercase">${game.competition || 'LEAGUE'}</span>
-                                </div>
-                            `;
-                        }).join('') : `
-                            <div class="py-10 text-center">
-                                <p class="text-gray-500 font-black uppercase text-[10px] tracking-widest">Sem confrontos diretos registrados.</p>
-                            </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-        `;
-    },
     renderStats: function(match) {
         const content = document.getElementById('tab-content');
         if (!content) return;

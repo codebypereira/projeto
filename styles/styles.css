@@ -127,15 +127,3 @@ input[type=number] { -moz-appearance: textfield; }
     letter-spacing: 1.5px;
     margin-bottom: 4px;
 }
-
-/* ============================================================================
-   6. ANIMAÇÕES
-   ============================================================================ */
-@keyframes fadeCarousel {
-    0%, 33.33% { opacity: 1 }
-    38%, 95% { opacity: 0 }
-    100% { opacity: 1 }
-}
-.animate-carousel-1 { animation: fadeCarousel 15s infinite; }
-.animate-carousel-2 { animation: fadeCarousel 15s infinite; animation-delay: 6s; }
-.animate-carousel-3 { animation: fadeCarousel 15s infinite; animation-delay: 10s; }

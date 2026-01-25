@@ -1,8 +1,20 @@
 /**
- * GoalDash - SISTEMA CENTRAL (api.js)
- * Versão Master: Conectividade UI + Greens + Auth
+ * GoalDash - SISTEMA CENTRAL DE DADOS (api.js)
+ * ========================================================
+ * Este módulo orquestra toda a comunicação entre o front-end 
+ * e os serviços externos (SportsGameOdds API e MockAPI).
+ * * Responsabilidades:
+ * - Consumo de dados desportivos em tempo real.
+ * - Gestão de persistência de utilizadores e palpites.
+ * - Lógica de validação de resultados (Greens/Reds).
+ * * @version 2.5.0 - Master Edition
+ * @author GoalDash Academic Project
  */
 
+/**
+ * Configurações globais de Endpoints e Credenciais
+ * @constant {Object}
+ */
 window.CONFIG = {
     API_KEY: 'cc48942721f415ae287937399dd882c7',
     MOCK_API_PREDICTIONS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
@@ -10,30 +22,40 @@ window.CONFIG = {
     BASE_URL_V2: 'https://api.sportsgameodds.com/v2'
 };
 
+/** @global {Array} allLoadedMatches - Cache em memória dos jogos carregados na sessão atual */
 window.allLoadedMatches = [];
+/** @global {Object|null} activeGame - Referência ao jogo selecionado para detalhe ou palpite */
 window.activeGame = null;    
+/** @global {string} currentLeague - Identificador da liga ativa no contexto global */
 window.currentLeague = 'EPL';
+/** @global {Object} previousScores - Histórico temporário para deteção de alterações de placar */
 window.previousScores = {}; 
 
 const GD_API = {
 
     /**
-     * 1. BUSCA DE JOGOS ATIVOS
+     * 1. BUSCA DE JOGOS ATIVOS/AGENDADOS
+     * Obtém os próximos eventos de uma liga específica e normaliza os dados.
+     * * @async
+     * @param {string|null} leagueID - ID da liga (ex: 'EPL'). Se nulo, utiliza a liga atual.
+     * @returns {Promise<Array>} Lista de objetos de jogo formatados.
      */
     async fetchMatches(leagueID = null) {
         if (leagueID) window.currentLeague = leagueID;
 
-       if (window.UI && window.UI.showLoading) {
-    const loaderId = document.getElementById('live-matches-container') ? 'live-matches-container' : 'matches-container';
-    window.UI.showLoading(loaderId);
-}
+        // Ativa indicador visual de carregamento (Spinner)
+        if (window.UI && window.UI.showLoading) {
+            const loaderId = document.getElementById('live-matches-container') ? 'live-matches-container' : 'matches-container';
+            window.UI.showLoading(loaderId);
+        }
 
         try {
-            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
+            const url = `${window.CONFIG.BASE_URL_V2}/events?apiKey=${window.CONFIG.API_KEY}&leagueID=${window.currentLeague}&oddsAvailable=true`;
             const response = await fetch(url);
             const result = await response.json();
             const data = result.data || [];
 
+            // Normalização do objeto da API para a estrutura interna do GoalDash
             window.allLoadedMatches = data.map(m => {
                 const hID = m.teams?.home?.teamID || m.homeTeamID || "SEM_ID";
                 const aID = m.teams?.away?.teamID || m.awayTeamID || "SEM_ID";
@@ -65,7 +87,7 @@ const GD_API = {
                 };
             });
 
-            console.log(`✅ ${window.allLoadedMatches.length} jogos carregados.`);
+            console.log(`✅ [API] ${window.allLoadedMatches.length} jogos carregados.`);
             
             if (window.UI && window.UI.renderMatches) {
                 window.UI.renderMatches('matches-container', window.allLoadedMatches);
@@ -74,56 +96,57 @@ const GD_API = {
             return window.allLoadedMatches;
 
         } catch (error) {
-            console.error("Erro ao carregar jogos:", error);
+            console.error("🚨 [API] Erro ao carregar jogos:", error);
             return [];
         }
     },
 
     /**
-     * 2. BUSCA DE PARTIDAS TERMINADAS (COM FILTRO DE DATA)
+     * 2. BUSCA DE PARTIDAS TERMINADAS (HISTÓRICO)
+     * Recupera jogos finalizados com filtros avançados de data e equipa.
+     * * @async
+     * @param {string} leagueID - ID da liga para filtrar.
+     * @param {string} startsAfter - Data inicial (ISO String).
+     * @param {string} startsBefore - Data final (ISO String).
+     * @param {number} teamID - ID específico da equipa (opcional).
+     * @returns {Promise<Array>}
      */
     async fetchEndedMatches(leagueID = null, startsAfter = null, startsBefore = null, teamID = null) {
         try {
             const dateAfter = startsAfter ? startsAfter.substring(0, 10) : "";
             const dateBefore = startsBefore ? startsBefore.substring(0, 10) : "";
 
-            // 1. URL base com limite equilibrado (como são duas buscas, 100 tá ótimo)
-            let url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&limit=100`;
+            let url = `${window.CONFIG.BASE_URL_V2}/events?apiKey=${window.CONFIG.API_KEY}&limit=100`;
 
-            // 2. Prioridade Total ao teamID (Isso mata os "intrusos" tipo Real Betis)
-            if (teamID) {
-                url += `&teamID=${teamID}`;
-            }
+            if (teamID) url += `&teamID=${teamID}`;
 
-            // 3. Prioridade Total ao leagueID enviado pelo handleTeamClick
-            // Removemos o "ALL" e garantimos que ele use exatamente a liga da vez
             if (leagueID && leagueID !== "ALL") {
                 url += `&leagueID=${leagueID}`;
             } else if (!leagueID && window.currentLeague) {
-                // Fallback apenas se não vier nada no argumento
                 url += `&leagueID=${window.currentLeague}`;
             }
 
-            // 4. Datas formatadas
             if (dateAfter) url += `&startsAfter=${dateAfter}`;
             if (dateBefore) url += `&startsBefore=${dateBefore}`;
 
             console.log(`📡 [API] Chamada Híbrida: ${leagueID || 'Geral'} | Time: ${teamID}`);
 
             const response = await fetch(url);
-            
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const result = await response.json();
             return result.data || result || [];
         } catch (error) {
-            console.error("🚨 Erro na busca do histórico:", error);
+            console.error("🚨 [API] Erro na busca do histórico:", error);
             return [];
         }
     },
 
     /**
      * 3. BUSCA DE EQUIPA POR NOME
+     * Utilitário para localizar o teamID de uma equipa na memória local.
+     * * @param {string} name - Nome da equipa.
+     * @returns {string} O ID da equipa encontrado ou um ID gerado como fallback.
      */
     searchTeamByName: async (name) => {
         const searchTerm = name.toLowerCase().trim();
@@ -139,12 +162,17 @@ const GD_API = {
     },
 
     /**
-     * 4. ESTATÍSTICAS E FORMA
+     * 4. ESTATÍSTICAS E FORMA RECENTE
+     * Calcula o desempenho (V, E, D) dos últimos 8 jogos de uma equipa.
+     * * @async
+     * @param {string} teamID - Identificador único da equipa.
+     * @param {string} leagueID - Liga para contexto da busca.
+     * @returns {Promise<Object|null>} Objeto com forma, nome e histórico.
      */
     async fetchTeamFullStats(teamID, leagueID = null) {
         try {
             const league = leagueID || window.currentLeague;
-            const url = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&teamID=${teamID}&leagueID=${league}&finalized=true&limit=8`;
+            const url = `${window.CONFIG.BASE_URL_V2}/events?apiKey=${window.CONFIG.API_KEY}&teamID=${teamID}&leagueID=${league}&finalized=true&limit=8`;
             const response = await fetch(url);
             const result = await response.json();
             const matches = result.data || [];
@@ -175,17 +203,22 @@ const GD_API = {
                 }))
             };
         } catch (err) {
-            console.error("Erro nas stats:", err);
+            console.error("🚨 [API] Erro nas stats:", err);
             return null;
         }
     },
 
     /**
-     * 5. AUTENTICAÇÃO
+     * 5. AUTENTICAÇÃO - LOGIN
+     * Verifica credenciais no MockAPI.
+     * * @async
+     * @param {string} username - Nome de utilizador ou Email.
+     * @param {string} password - Palavra-passe.
+     * @returns {Promise<Object>} Resposta de sucesso ou erro.
      */
     async loginUser(username, password) {
         try {
-            const response = await fetch(CONFIG.MOCK_API_USERS);
+            const response = await fetch(window.CONFIG.MOCK_API_USERS);
             const users = await response.json();
             const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase());
             if (user && user.password === password) return { success: true, username: user.username };
@@ -193,12 +226,18 @@ const GD_API = {
         } catch (e) { return { success: false, error: "Erro na ligação." }; }
     },
 
+    /**
+     * 5.1 AUTENTICAÇÃO - REGISTO
+     * Cria um novo utilizador no MockAPI.
+     * * @async
+     * @param {Object} userData - Dados do novo utilizador.
+     */
     async registerUser(userData) {
         try {
-            const response = await fetch(CONFIG.MOCK_API_USERS);
+            const response = await fetch(window.CONFIG.MOCK_API_USERS);
             const users = await response.json();
             if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) return { success: false, error: "Nome já existe!" };
-            const createRes = await fetch(CONFIG.MOCK_API_USERS, {
+            const createRes = await fetch(window.CONFIG.MOCK_API_USERS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
@@ -208,17 +247,19 @@ const GD_API = {
     },
 
     /**
-     * 6. ENVIO DE PALPITE
+     * 6. SUBMISSÃO DE PALPITE
+     * Regista a previsão do utilizador para um jogo específico.
+     * * @async
+     * @param {number|string} h - Gols equipa casa.
+     * @param {number|string} a - Gols equipa fora.
      */
     async submitPrediction(h, a) {
         if (!window.activeGame) {
-            console.error("❌ Nenhum jogo ativo para palpitar!");
+            console.error("❌ [API] Nenhum jogo ativo para palpitar!");
             return false;
         }
 
         const game = window.activeGame;
-
-        // Capturando os nomes e IDs reais conforme a estrutura da sua API
         const hName = game.teams?.home?.names?.long || game.home || "Time Casa";
         const aName = game.teams?.away?.names?.long || game.away || "Time Fora";
         const mId = game.eventID || game.id;
@@ -226,7 +267,7 @@ const GD_API = {
         const payload = {
             matchId: String(mId), 
             matchName: `${hName} vs ${aName}`,
-            homeTeam: hName, // Adicionei para facilitar a renderização do histórico
+            homeTeam: hName, 
             awayTeam: aName,
             username: localStorage.getItem('goalDash_username'),
             homeScore: parseInt(h),
@@ -243,56 +284,57 @@ const GD_API = {
             });
 
             if (res.ok) {
-                console.log("%c ✅ PALPITE ENVIADO!", "color: #10b981; font-weight: bold;");
+                console.log("%c ✅ [API] PALPITE ENVIADO!", "color: #10b981; font-weight: bold;");
                 return true;
             }
             return false;
         } catch (e) { 
-            console.error("🚨 Erro ao enviar palpite:", e);
+            console.error("🚨 [API] Erro ao enviar palpite:", e);
             return false; 
         }
     },
 
     /**
      * 7. CONFERÊNCIA AUTOMÁTICA DE GREENS
+     * Compara os palpites pendentes do utilizador com os resultados reais 
+     * dos últimos 15 dias e atualiza o estado para 'green' ou 'red'.
+     * * @async
      */
     async checkMyGreens() {
-        console.log("🚀 Verificando Green/Red (Filtro Recentes)...");
+        console.log("🚀 [System] Verificando Green/Red...");
         try {
-            const resPred = await fetch(CONFIG.MOCK_API_PREDICTIONS);
+            const resPred = await fetch(window.CONFIG.MOCK_API_PREDICTIONS);
             const allPreds = await resPred.json();
             const username = localStorage.getItem('goalDash_username');
             if (!username) return;
 
             const myPending = allPreds.filter(p => p.username === username && p.status === "pendente");
-            if (myPending.length === 0) return console.log("✅ Nada pendente para conferir.");
+            if (myPending.length === 0) return console.log("✅ [System] Nada pendente.");
 
-            // FILTRAGEM DE DATA: Pegar jogos de no máximo 15 dias atrás
+            // Filtro temporal para otimização da chamada
             const dataLimite = new Date();
             dataLimite.setDate(dataLimite.getDate() - 15);
-            const startsAfter = dataLimite.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+            const startsAfter = dataLimite.toISOString().split('T')[0];
 
-            // Fetch com startsAfter para ignorar 2024/2025
-            const urlReal = `${CONFIG.BASE_URL_V2}/events?apiKey=${CONFIG.API_KEY}&leagueID=${window.currentLeague}&finalized=true&startsAfter=${startsAfter}&limit=50`;
+            const urlReal = `${window.CONFIG.BASE_URL_V2}/events?apiKey=${window.CONFIG.API_KEY}&leagueID=${window.currentLeague}&finalized=true&startsAfter=${startsAfter}&limit=50`;
             
             const resReal = await fetch(urlReal);
             const realData = await resReal.json();
             const finishedMatches = realData.data || [];
 
             for (let palpite of myPending) {
-                const jogoReal = finishedMatches.find(m => m.eventID === palpite.matchId);
+                const jogoReal = finishedMatches.find(m => String(m.eventID) === String(palpite.matchId));
 
                 if (jogoReal) {
                     const rH = jogoReal.status?.score?.home ?? 0;
                     const rA = jogoReal.status?.score?.away ?? 0;
                     
-                    // Lógica de Green (Placar exato)
                     const isGreen = (palpite.homeScore === rH && palpite.awayScore === rA);
                     const newStatus = isGreen ? "green" : "red";
                     
-                    console.log(`🎯 Resultado Processado: ${palpite.matchName} -> ${newStatus.toUpperCase()}`);
+                    console.log(`🎯 [System] Processado: ${palpite.matchName} -> ${newStatus.toUpperCase()}`);
 
-                    await fetch(`${CONFIG.MOCK_API_PREDICTIONS}/${palpite.id}`, {
+                    await fetch(`${window.CONFIG.MOCK_API_PREDICTIONS}/${palpite.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -304,38 +346,20 @@ const GD_API = {
                 }
             }
             
-            console.log("🏁 Greens atualizados!");
+            console.log("🏁 [System] Greens atualizados!");
             
-            // Se a UI de stats existir, atualiza ela logo após o check
             if (window.UI && window.UI.renderUserStats) {
                 window.UI.renderUserStats();
             }
 
         } catch (e) { 
-            console.error("🚨 Erro no checkGreens:", e); 
-        }
-    },
-
-    async fetchH2H(teamAId, teamBId) {
-        try {
-            // Buscamos jogos terminados da liga atual
-            const league = window.currentLeague || 'EPL';
-            const matches = await this.fetchMatches(league); 
-            
-            // Filtramos apenas os jogos onde os dois se enfrentaram
-            const h2hMatches = matches.filter(m => {
-                const teams = [String(m.teams.home.id), String(m.teams.away.id)];
-                return teams.includes(String(teamAId)) && teams.includes(String(teamBId));
-            });
-
-            return h2hMatches.slice(0, 5); // Retorna os últimos 5 confrontos
-        } catch (e) {
-            console.error("Erro no H2H:", e);
-            return [];
+            console.error("🚨 [System] Erro no checkGreens:", e); 
         }
     }
 };
 
-// Exportação Global
+/**
+ * Exposição Global dos Métodos
+ */
 window.GD_API = GD_API;
 window.fetchMatches = (id) => GD_API.fetchMatches(id);
