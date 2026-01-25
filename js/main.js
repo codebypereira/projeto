@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const internalTeam = Object.values(SEARCH_DATABASE).find(t => 
                             t.id === query || 
                             t.code === query ||
-                            t.id === query.replace(/ /g, "_") // Tenta com underline tbm
+                            t.id === query.replace(/ /g, "_") 
                         );
 
                         if (internalTeam) {
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             window.handleTeamClick(internalTeam.id);
                         } 
                         else {
-                            // 3. SÓ VAI NA API SE REALMENTE NÃO TIVER NO SEU BANCO
+                            
                             console.log("🌐 Buscando na API externa...");
                             const teamID = await window.GD_API.searchTeamByName(query);
                             if (teamID) window.handleTeamClick(teamID);
@@ -532,14 +532,14 @@ window.handlePredictionSubmit = async (e) => {
     const match = window.activeGame;
 
     if (!match) {
-        alert("Erro: Nenhum jogo selecionado, cria!");
+        alert("Erro: Nenhum jogo selecionado!");
         return;
     }
 
     const btn = e ? e.currentTarget : document.querySelector('#prediction-modal button[onclick*="handlePredictionSubmit"]');
 
     if (hScore === "" || aScore === "") {
-        alert("Por favor, preenche ambos os campos do palpite, cria!");
+        alert("Por favor, preenche ambos os campos do palpite!");
         return;
     }
 
@@ -577,7 +577,7 @@ window.clearHistory = async () => {
     const username = localStorage.getItem('goalDash_username');
     if (!username) return;
 
-    if (confirm("Desejas mesmo apagar todo o teu histórico de palpites, cria?")) {
+    if (confirm("Desejas mesmo apagar todo o teu histórico de palpites?")) {
         try {
             // 1. Pega todos os palpites da API
             const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
@@ -587,7 +587,7 @@ window.clearHistory = async () => {
             const meusPalpites = data.filter(p => p.username === username);
 
             if (meusPalpites.length === 0) {
-                alert("Teu histórico já tá limpo, cria!");
+                alert("O teu histórico já está limpo!");
                 return;
             }
 
@@ -639,7 +639,7 @@ window.deletePrediction = async (apiID) => {
 };
 
 // ========================================================
-// 5. GESTÃO DE UI GERAL E MODAIS (AQUI ESTÁ TUDO!)
+// 5. GESTÃO DE UI GERAL E MODAIS 
 // ========================================================
 
 window.updateUserUI = () => {
@@ -692,7 +692,7 @@ window.updateUserUI = () => {
 };
 
 window.logout = () => {
-    if (confirm("Desejas mesmo sair da tua conta, cria?")) {
+    if (confirm("Desejas mesmo sair da tua conta?")) {
         localStorage.removeItem('goalDash_username');
         window.location.href = 'index.html';
     }
