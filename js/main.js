@@ -8,12 +8,16 @@
 // 1. FUNÇÕES GLOBAIS DE CLIQUE & LIGAS (ESSENCIAL)
 // ========================================================
 
-// --- FUNÇÃO PARA TROCAR LIGA (Atualizada para suportar Live) ---
-// --- FUNÇÃO PARA TROCAR LIGA (MANTIDA ORIGINAL) ---
-
+/** @type {Array} Armazena temporariamente todas as partidas carregadas */
 window.allLoadedMatches = [];
+/** @type {Object|null} Armazena os dados da partida ativa/selecionada */
 window.activeGame = null; 
 
+/**
+ * Altera a liga atual e recarrega os dados dependendo da página.
+ * @param {string} leagueID - ID da liga (ex: 'EPL', 'LA_LIGA').
+ * @param {string} [leagueName] - Nome amigável da liga para exibição.
+ */
 window.changeSport = async (leagueID, leagueName) => {
     console.log("🏆 Trocando para liga:", leagueID);
     window.currentLeague = leagueID;
@@ -28,6 +32,10 @@ window.changeSport = async (leagueID, leagueName) => {
     }
 };
 
+/**
+ * Carrega e filtra partidas ao vivo para a página live.html.
+ * @param {string} leagueID - ID da liga para filtrar.
+ */
 window.loadLiveMatches = async (leagueID) => {
     // 1. Pega o container e mostra o loading primeiro
     const container = document.getElementById('live-matches-container');
@@ -76,6 +84,12 @@ window.loadLiveMatches = async (leagueID) => {
         if (container) container.innerHTML = `<div class="col-span-full text-center py-20 text-red-500 font-black uppercase text-[10px]">Erro ao conectar com o servidor.</div>`;
     }
 };
+
+/**
+ * Manipula o clique num time através do nome/código para buscar o ID e abrir o Scout.
+ * @param {string} code - Código do time.
+ * @param {string} name - Nome do time.
+ */
 window.handleTeamClickByCode = async (code, name) => {
     console.log("%c 🚨 [SISTEMA] CLIQUE DETECTADO NO TIME: " + name, "background: #9333ea; color: white; padding: 8px; font-weight: bold; border-radius: 4px;");
     
@@ -106,6 +120,9 @@ window.handleTeamClickByCode = async (code, name) => {
     }
 };
 
+/** * Banco de dados local para mapeamento de busca e normalização de nomes/ligas.
+ * @type {Object} 
+ */
 const SEARCH_DATABASE = {
     //La Liga
     "REAL MADRID": { id: "REAL_MADRID", league: "LA_LIGA", code: "RMA"}, "BARCELONA": { id: "BARCELONA", league: "LA_LIGA", code: "BAR"}, "VILLARREAL": { id: "VILLARREAL", league: "LA_LIGA", code: "VIL"}, "ATLETICO DE MADRI": { id: "ATLETICO_MADRID", league: "LA_LIGA", code: "ATM"}, "ESPANYOL": { id: "ESPANYOL", league: "LA_LIGA", code: "ESP"},
@@ -138,6 +155,10 @@ const SEARCH_DATABASE = {
     "NANTES": { id: "NANTES", league: "FR_LIGUE_1", code: "FCN"}, "AUXERRE": { id: "AUXERRE", league: "FR_LIGUE_1", code: "AJA"}, "METZ": { id: "METZ", league: "FR_LIGUE_1", code: "FCM"}
 };
 
+/**
+ * Função principal para exibir o dashboard (Scout) de um time, buscando dados domésticos e europeus.
+ * @param {string} teamKey - Chave ou ID do time.
+ */
 window.handleTeamClick = async (teamKey) => {
     // 1. LIMPEZA TOTAL DA CHAVE (Underline para Espaço + Remover Ligas)
     // Isso garante que "BORUSSIA_MONCHENGLADBACH" vire "BORUSSIA MONCHENGLADBACH"
@@ -244,6 +265,7 @@ window.handleTeamClick = async (teamKey) => {
         console.error("🚨 ERRO NO DASHBOARD:", err);
     }
 };
+
 // ========================================================
 // 2. INICIALIZAÇÃO DO DOCUMENTO (DOMContentLoaded)
 // ========================================================
@@ -323,7 +345,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } 
                     else {
                         // 2. TENTA BUSCAR POR ID OU CODE DENTRO DO BANCO
-                        // Isso resolve se você digitar "BMG" ou "BORUSSIA_MONCHENGLADBACH"
                         const internalTeam = Object.values(SEARCH_DATABASE).find(t => 
                             t.id === query || 
                             t.code === query ||
@@ -335,7 +356,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             window.handleTeamClick(internalTeam.id);
                         } 
                         else {
-                            
                             console.log("🌐 Buscando na API externa...");
                             const teamID = await window.GD_API.searchTeamByName(query);
                             if (teamID) window.handleTeamClick(teamID);
@@ -368,63 +388,72 @@ document.addEventListener('DOMContentLoaded', async () => {
             await window.GD_API.fetchMatches(leagueToLoad);
         }
     }
-// --- LÓGICA PARA PÁGINA DE DETALHES ---
-if (window.location.pathname.includes('matchdetails.html')) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const matchId = urlParams.get('id');
 
-    if (matchId && window.GD_API) {
-        console.log("🔎 Procurando jogo ID:", matchId);
-        
-        const leaguesToTry = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1', 'INTERNATIONAL_SOCCER'];
-        
-        const tryFetch = async (index) => {
-            if (index >= leaguesToTry.length) {
-                console.error("❌ Jogo não encontrado em nenhuma liga.");
-                return;
-            }
+    // --- LÓGICA PARA PÁGINA DE DETALHES ---
+    if (window.location.pathname.includes('matchdetails.html')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchId = urlParams.get('id');
 
-            const league = leaguesToTry[index];
-            const matches = await window.GD_API.fetchMatches(league);
-            const selectedMatch = matches.find(m => String(m.eventID) === String(matchId));
+        if (matchId && window.GD_API) {
+            console.log("🔎 Procurando jogo ID:", matchId);
+            
+            const leaguesToTry = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1', 'INTERNATIONAL_SOCCER'];
+            
+            const tryFetch = async (index) => {
+                if (index >= leaguesToTry.length) {
+                    console.error("❌ Jogo não encontrado em nenhuma liga.");
+                    return;
+                }
 
-          if (selectedMatch) {
-    console.log("✅ Jogo encontrado!");
-    
-    // GUARDA O OBJETO PARA SEMPRE
-    window.activeGame = selectedMatch; 
-    
-    if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
-    
-    // Chama a aba inicial
-    showTab('formacao'); 
-                selectedMatch.leagueName = league.replace(/_/g, ' ');
-                
-                if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
-                
-                // Carrega a aba padrão (ex: Odds ou Formação) após um pequeno delay
-                setTimeout(() => {
-                    if (typeof window.showTab === 'function') window.showTab('formacao');
-                }, 300);
+                const league = leaguesToTry[index];
+                const matches = await window.GD_API.fetchMatches(league);
+                const selectedMatch = matches.find(m => String(m.eventID) === String(matchId));
 
-            } else {
-                tryFetch(index + 1);
-            }
-        };
+                if (selectedMatch) {
+                    console.log("✅ Jogo encontrado!");
+                    
+                    // GUARDA O OBJETO PARA SEMPRE
+                    window.activeGame = selectedMatch; 
+                    
+                    if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
+                    
+                    // Chama a aba inicial
+                    showTab('formacao'); 
+                    selectedMatch.leagueName = league.replace(/_/g, ' ');
+                    
+                    if (window.UI.renderMatchHeader) window.UI.renderMatchHeader(selectedMatch);
+                    
+                    // Carrega a aba padrão após um pequeno delay
+                    setTimeout(() => {
+                        if (typeof window.showTab === 'function') window.showTab('formacao');
+                    }, 300);
 
-        tryFetch(0);
+                } else {
+                    tryFetch(index + 1);
+                }
+            };
+
+            tryFetch(0);
+        }
     }
-}
     setupAuthListeners();
 });
-
 // ========================================================
 // 3. SISTEMA DE AUTENTICAÇÃO E FORMULÁRIOS
 // ========================================================
 
+/**
+ * Configura os event listeners para os formulários de login e registro.
+ * Gere o estado dos botões, mensagens de erro e persistência no localStorage.
+ * @function setupAuthListeners
+ */
 function setupAuthListeners() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
+        /**
+         * Handler de submissão do formulário de Login.
+         * @param {SubmitEvent} e - O evento de submissão do formulário.
+         */
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
             const userField = document.getElementById('login-user');
@@ -458,6 +487,10 @@ function setupAuthListeners() {
 
     const authForm = document.getElementById('auth-form');
     if (authForm) {
+        /**
+         * Handler de submissão do formulário de Registro/Criação de Conta.
+         * @param {SubmitEvent} e - O evento de submissão do formulário.
+         */
         authForm.onsubmit = async (e) => {
             e.preventDefault();
             const user = document.getElementById('auth-user').value.trim();
@@ -502,6 +535,13 @@ function setupAuthListeners() {
 // 4. LÓGICA DE PALPITES & HISTÓRICO
 // ========================================================
 
+/**
+ * Prepara e abre o modal de palpite para um jogo específico.
+ * @function handlePalpiteClick
+ * @param {string|number} id - ID único do jogo.
+ * @param {string} home - Nome da equipa da casa.
+ * @param {string} away - Nome da equipa de fora.
+ */
 window.handlePalpiteClick = (id, home, away) => {
     const activeUser = localStorage.getItem('goalDash_username');
     if (!activeUser) {
@@ -524,11 +564,14 @@ window.handlePalpiteClick = (id, home, away) => {
     }
 };
 
+/**
+ * Submete o palpite preenchido no modal para a API.
+ * @function handlePredictionSubmit
+ * @param {Event} [e] - Evento de clique opcional.
+ */
 window.handlePredictionSubmit = async (e) => {
     const hScore = document.getElementById('modal-home-score').value;
     const aScore = document.getElementById('modal-away-score').value;
-    
-    // IMPORTANTE: Pegar os dados do jogo ativo
     const match = window.activeGame;
 
     if (!match) {
@@ -548,18 +591,16 @@ window.handlePredictionSubmit = async (e) => {
         btn.disabled = true;
     }
 
-    // Agora passamos TUDO para a API: scores, id do jogo e nomes dos times
     const success = await window.GD_API.submitPrediction(
         hScore, 
         aScore, 
         match.eventID || match.id, 
-        `${match.teams?.home?.names?.long} vs ${match.teams?.away?.names?.long}`
+        `${match.teams?.home?.names?.long || match.home} vs ${match.teams?.away?.names?.long || match.away}`
     );
     
     if (success) {
         alert("Palpite registrado com sucesso!");
         document.getElementById('prediction-modal').classList.add('hidden');
-        // Limpa os campos para o próximo palpite
         document.getElementById('modal-home-score').value = '';
         document.getElementById('modal-away-score').value = '';
     } else {
@@ -572,18 +613,20 @@ window.handlePredictionSubmit = async (e) => {
     }
 };
 
-// LIMPAR HISTÓRICO COMPLETO NA MOCKAPI
+/**
+ * Apaga todos os palpites do utilizador logado na API e no armazenamento local.
+ * @async
+ * @function clearHistory
+ */
 window.clearHistory = async () => {
     const username = localStorage.getItem('goalDash_username');
     if (!username) return;
 
     if (confirm("Desejas mesmo apagar todo o teu histórico de palpites?")) {
         try {
-            // 1. Pega todos os palpites da API
             const res = await fetch('https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions');
             const data = await res.json();
             
-            // 2. Filtra só os que são seus
             const meusPalpites = data.filter(p => p.username === username);
 
             if (meusPalpites.length === 0) {
@@ -593,7 +636,6 @@ window.clearHistory = async () => {
 
             console.log(`🗑️ Apagando ${meusPalpites.length} palpites...`);
 
-            // 3. Deleta um por um na API (a MockAPI exige delete individual por ID)
             const deletePromises = meusPalpites.map(p => 
                 fetch(`https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions/${p.id}`, {
                     method: 'DELETE'
@@ -601,13 +643,10 @@ window.clearHistory = async () => {
             );
 
             await Promise.all(deletePromises);
-
-            // 4. Limpa o LocalStorage também pra não sobrar rastro
             localStorage.removeItem('goalDash_history');
 
             console.log("🧹 Tudo limpo!");
 
-            // 5. Atualiza a interface sem dar reload na página toda
             if (window.GD_UI && window.GD_UI.renderHistory) {
                 window.GD_UI.renderHistory();
             } else {
@@ -621,11 +660,15 @@ window.clearHistory = async () => {
     }
 };
 
-// APAGAR PALPITE ÚNICO
+/**
+ * Apaga um palpite individual através do seu ID na API.
+ * @async
+ * @function deletePrediction
+ * @param {string|number} apiID - ID do recurso na MockAPI.
+ */
 window.deletePrediction = async (apiID) => {
     if (confirm("Apagar este palpite especificamente?")) {
         try {
-            // Deleta direto pelo ID da API
             await fetch(`https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions/${apiID}`, {
                 method: 'DELETE'
             });
@@ -642,6 +685,10 @@ window.deletePrediction = async (apiID) => {
 // 5. GESTÃO DE UI GERAL E MODAIS 
 // ========================================================
 
+/**
+ * Atualiza os elementos da interface (Header/Dropdown) com base no estado de login do utilizador.
+ * @function updateUserUI
+ */
 window.updateUserUI = () => {
     const user = localStorage.getItem('goalDash_username');
     const userMenuBtn = document.getElementById('user-menu-btn');
@@ -691,6 +738,10 @@ window.updateUserUI = () => {
     }
 };
 
+/**
+ * Limpa os dados de sessão e redireciona para a home.
+ * @function logout
+ */
 window.logout = () => {
     if (confirm("Desejas mesmo sair da tua conta?")) {
         localStorage.removeItem('goalDash_username');
@@ -698,19 +749,20 @@ window.logout = () => {
     }
 };
 
-// --- CONTROLO DE MODAIS DE LOGIN ---
+// --- CONTROLO DE MODAIS ---
+
+/** Abre o modal de login. */
 window.openLoginModal = () => {
-    console.log("🔓 Abrindo Modal de Login");
     const m = document.getElementById('login-modal');
     if (m) {
         m.classList.remove('hidden');
         m.classList.add('flex');
-        // Reset de mensagens de erro ao abrir
         const msg = document.getElementById('login-message');
         if (msg) msg.classList.add('hidden');
     }
 };
 
+/** Fecha o modal de login. */
 window.closeLoginModal = () => {
     const m = document.getElementById('login-modal');
     if (m) {
@@ -719,9 +771,8 @@ window.closeLoginModal = () => {
     }
 };
 
-// --- CONTROLO DE MODAIS DE REGISTRO ---
+/** Abre o modal de registro/auth. */
 window.openAuthModal = () => {
-    console.log("📝 Abrindo Modal de Registro");
     const m = document.getElementById('auth-modal');
     if (m) {
         m.classList.remove('hidden');
@@ -731,6 +782,7 @@ window.openAuthModal = () => {
     }
 };
 
+/** Fecha o modal de registro/auth. */
 window.closeAuthModal = () => {
     const m = document.getElementById('auth-modal');
     if (m) {
@@ -739,7 +791,7 @@ window.closeAuthModal = () => {
     }
 };
 
-// --- CONTROLO DE MODAL DE PALPITE ---
+/** Fecha o modal de envio de palpite. */
 window.closePredictionModal = () => {
     const m = document.getElementById('prediction-modal');
     if (m) {
@@ -748,27 +800,28 @@ window.closePredictionModal = () => {
     }
 };
 
-// --- SWITCH ENTRE LOGIN E REGISTRO ---
+/** Faz a transição visual entre o modal de registro para o de login. */
 window.switchToLogin = () => {
     window.closeAuthModal();
     setTimeout(() => window.openLoginModal(), 100);
 };
 
+/** Faz a transição visual entre o modal de login para o de registro. */
 window.switchToRegister = () => {
     window.closeLoginModal();
     setTimeout(() => window.openAuthModal(), 100);
 };
 
-// --- LISTENER GLOBAL PARA FECHAR TUDO AO CLICAR FORA ---
+/**
+ * Event Listener global para fechar modais e dropdowns ao clicar fora deles (backdrop).
+ */
 document.addEventListener('click', (e) => {
-    // Fechar Dropdown de Usuário
     const drop = document.getElementById('user-dropdown');
     const btn = document.getElementById('user-menu-btn');
     if (drop && btn && !btn.contains(e.target) && !drop.contains(e.target)) {
         drop.classList.add('hidden');
     }
 
-    // Fechar Modais ao clicar no Backdrop (fundo escuro)
     const loginModal = document.getElementById('login-modal');
     if (e.target === loginModal) window.closeLoginModal();
 

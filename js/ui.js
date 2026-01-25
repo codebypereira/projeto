@@ -5,6 +5,11 @@
  */
 
 window.UI = {
+    /**
+     * Exibe um estado de carregamento (spinner/texto) num contentor específico.
+     * @function showLoading
+     * @param {string} containerId - O ID do elemento HTML onde o loading será renderizado.
+     */
     showLoading: (containerId) => {
         const container = document.getElementById(containerId);
         if (container) {
@@ -12,116 +17,123 @@ window.UI = {
         }
     },
 
- renderMatchHeader: function(match) {
-    console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
-    const container = document.getElementById('match-header');
-    if (!container) return;
+    /**
+     * Renderiza o cabeçalho detalhado de um jogo, incluindo equipas, logos, placar e botão de palpite.
+     * @function renderMatchHeader
+     * @param {Object} match - Objeto contendo os dados da partida.
+     */
+    renderMatchHeader: function(match) {
+        console.log("⚽ OBJETO DO JOGO COMPLETO:", match);
+        const container = document.getElementById('match-header');
+        if (!container) return;
 
-    // 1. DATA E HORA
-    const rawDate = match.status?.startsAt || match.startsAt;
-    let dataDisplay = "", horaDisplay = "";
+        // 1. DATA E HORA
+        const rawDate = match.status?.startsAt || match.startsAt;
+        let dataDisplay = "", horaDisplay = "";
 
-    if (rawDate) {
-        const d = new Date(rawDate);
-        if (!isNaN(d.getTime())) {
-            const dia = String(d.getDate()).padStart(2, '0');
-            const mes = String(d.getMonth() + 1).padStart(2, '0');
-            dataDisplay = `${dia}/${mes}`;
-            horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        if (rawDate) {
+            const d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+                const dia = String(d.getDate()).padStart(2, '0');
+                const mes = String(d.getMonth() + 1).padStart(2, '0');
+                dataDisplay = `${dia}/${mes}`;
+                horaDisplay = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
         }
-    }
 
-    // 2. LOGOS
-    const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
-    const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
+        // 2. LOGOS
+        const homeLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.home.names.short, match.teams.home.names.medium) : 'Images/favi.svg';
+        const awayLogo = window.getTeamLogo ? window.getTeamLogo(match.teams.away.names.short, match.teams.away.names.medium) : 'Images/favi.svg';
 
-    const hasStarted = match.status?.started === true;
-    
-    // Conteúdo Central (VS ou Placar)
-    const scoreContent = hasStarted 
-        ? `<div class="flex items-center justify-center font-[1000]">
-            ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
-           </div>`
-        : `<div class="flex items-center justify-center h-full">
-            <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
-           </div>`;
+        const hasStarted = match.status?.started === true;
+        
+        // Conteúdo Central (VS ou Placar)
+        const scoreContent = hasStarted 
+            ? `<div class="flex items-center justify-center font-[1000]">
+                ${match.teams.home.score} <span class="text-purple-500 mx-3">-</span> ${match.teams.away.score}
+               </div>`
+            : `<div class="flex items-center justify-center h-full">
+                <span class="text-white/10 text-5xl md:text-6xl tracking-[0.25em] font-[1000] italic uppercase">VS</span>
+               </div>`;
 
-    // 3. PREPARAÇÃO DOS DADOS PARA O BOTÃO
-    // Sanitização de nomes para evitar erros com apóstrofos (Ex: Cote d'Ivoire)
-    const hNameSafe = match.teams.home.names.medium.replace(/'/g, "\\'");
-    const aNameSafe = match.teams.away.names.medium.replace(/'/g, "\\'");
-    const mID = match.eventID || match.id;
+        // 3. PREPARAÇÃO DOS DADOS PARA O BOTÃO
+        const hNameSafe = match.teams.home.names.medium.replace(/'/g, "\\'");
+        const aNameSafe = match.teams.away.names.medium.replace(/'/g, "\\'");
+        const mID = match.eventID || match.id;
 
-    container.innerHTML = `
-        <div class="flex flex-col items-center mb-12">
-            <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
-                <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
-                    ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
-                </span>
-            </div>
-            
-            <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
-                <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
-                <span class="text-purple-500 opacity-50">|</span>
-                <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
-            <div class="flex-1 flex flex-col items-center gap-6">
-                <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                    ${match.teams.home.names.long}
-                </h2>
-            </div>
-
-            <div class="flex flex-col items-center gap-8">
-                <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
-                    <div class="relative z-10">
-                        ${scoreContent}
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
-                    <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
-                    <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
-                        ${match.status?.displayLong || 'Upcoming'}
+        container.innerHTML = `
+            <div class="flex flex-col items-center mb-12">
+                <div class="bg-purple-500/10 border border-purple-500/20 px-8 py-2 rounded-full mb-6">
+                    <span class="text-sm md:text-base font-black uppercase tracking-[0.3em] text-purple-400">
+                        ${match.info?.seasonWeek || "UEFA CHAMPIONS LEAGUE"}
                     </span>
                 </div>
-
-                <button onclick="window.handlePalpiteClick('${mID}', '${hNameSafe}', '${aNameSafe}')" 
-                    class="mt-4 px-8 py-3 rounded-xl text-[10px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-300 cursor-pointer border border-white/20 shadow-xl">
-                    Dar meu palpite
-                </button>
+                
+                <div class="flex gap-6 text-gray-400 text-xs md:text-sm font-black uppercase tracking-[0.4em]">
+                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${dataDisplay}</span>
+                    <span class="text-purple-500 opacity-50">|</span>
+                    <span class="text-white border-b-2 border-purple-500/30 pb-1">${horaDisplay}</span>
+                </div>
             </div>
 
-            <div class="flex-1 flex flex-col items-center gap-6">
-                <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
-                <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
-                    ${match.teams.away.names.long}
-                </h2>
+            <div class="flex items-center justify-between gap-4 w-full max-w-6xl mx-auto px-4">
+                <div class="flex-1 flex flex-col items-center gap-6">
+                    <img src="${homeLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                        ${match.teams.home.names.long}
+                    </h2>
+                </div>
+
+                <div class="flex flex-col items-center gap-8">
+                    <div class="flex items-center justify-center text-7xl md:text-9xl font-[1000] italic tracking-tighter bg-white/5 border border-white/10 rounded-[3rem] w-[200px] h-[130px] md:w-[300px] md:h-[180px] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent"></div>
+                        <div class="relative z-10">
+                            ${scoreContent}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 bg-white/10 border border-white/10 px-6 py-2 rounded-full shadow-lg">
+                        <span class="w-2.5 h-2.5 rounded-full ${hasStarted ? 'bg-red-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}"></span>
+                        <span class="text-[11px] font-black uppercase tracking-[0.2em] ${hasStarted ? 'text-red-500' : 'text-green-500'}">
+                            ${match.status?.displayLong || 'Upcoming'}
+                        </span>
+                    </div>
+
+                    <button onclick="window.handlePalpiteClick('${mID}', '${hNameSafe}', '${aNameSafe}')" 
+                        class="mt-4 px-8 py-3 rounded-xl text-[10px] font-black text-white uppercase tracking-[3px] bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-300 cursor-pointer border border-white/20 shadow-xl">
+                        Dar meu palpite
+                    </button>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center gap-6">
+                    <img src="${awayLogo}" class="w-28 h-28 md:w-44 md:h-44 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.25)]">
+                    <h2 class="text-2xl md:text-4xl font-[1000] uppercase tracking-tighter text-center leading-tight italic">
+                        ${match.teams.away.names.long}
+                    </h2>
+                </div>
             </div>
-        </div>
-    `;
-},
+        `;
+    },
+
+    /**
+     * Renderiza as formações (titulares) de ambas as equipas no separador correspondente.
+     * @function renderLineups
+     * @param {Object} match - Objeto da partida contendo a lista de jogadores.
+     */
     renderLineups: function(match) {
         const content = document.getElementById('tab-content');
         if (!content) return;
 
-        // Se o objeto players não existir
         if (!match.players) {
             content.innerHTML = `<div class="py-20 text-center text-gray-500 uppercase text-[10px] font-black italic">Informação das equipas ainda não disponível.</div>`;
             return;
         }
 
-        // TRANSFORMAÇÃO: Converte o dicionário em Array para podermos filtrar
         const allPlayers = Object.values(match.players);
-        
-        // FILTRAGEM: Separa pelo ID do time (homeID vs awayID)
         const homePlayers = allPlayers.filter(p => p.teamID === match.homeID);
         const awayPlayers = allPlayers.filter(p => p.teamID === match.awayID);
 
+        /** Helper para gerar a linha visual do jogador */
         const playerRow = (p, color) => `
             <div class="flex items-center gap-4 bg-white/[0.03] p-4 rounded-2xl border border-white/5 hover:border-purple-500/20 transition-all group">
                 <div class="w-10 h-10 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black ${color}">
@@ -155,11 +167,15 @@ window.UI = {
         `;
     },
 
+    /**
+     * Renderiza as estatísticas em tempo real (scout) comparando as duas equipas.
+     * @function renderStats
+     * @param {Object} match - Objeto da partida contendo os resultados estatísticos.
+     */
     renderStats: function(match) {
         const content = document.getElementById('tab-content');
         if (!content) return;
 
-        // Acessando os dados conforme o seu log: match.results['1h'] ou match.results.reg
         const statsData = match.results?.['1h'] || match.results?.reg || match.results?.game;
 
         if (!statsData) {
@@ -173,7 +189,6 @@ window.UI = {
         const home = statsData.home || {};
         const away = statsData.away || {};
 
-        // Mapeamento EXATO dos campos do seu console
         const scouts = [
             { label: 'Chutes no Gol', key: 'shots_onGoal' },
             { label: 'Chutes Totais', key: 'shots' },
@@ -186,12 +201,12 @@ window.UI = {
 
         content.innerHTML = `
             <div class="max-w-3xl mx-auto py-10 px-4 animate-fadeIn">
-                <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Scout Detalhado (1º Tempo)</h3>
+                <h3 class="text-center text-purple-500 font-black uppercase tracking-[0.3em] text-[10px] mb-12">Scout Detalhado</h3>
                 
                 ${scouts.map(s => {
                     const valH = home[s.key] || 0;
                     const valA = away[s.key] || 0;
-                    const total = (valH + valA) || 1; // Evita divisão por zero
+                    const total = (valH + valA) || 1; 
                     const pctH = (valH / total) * 100;
 
                     return `
@@ -217,7 +232,12 @@ window.UI = {
             </div>
         `;
     },
-    // 4. CARDS AO VIVO (Página live.html)
+
+    /**
+     * Renderiza os cards de jogos que estão a decorrer (live.html).
+     * @function renderLiveCards
+     * @param {Array} matches - Lista de objetos de partidas ao vivo.
+     */
     renderLiveCards: (matches) => {
         const container = document.getElementById('live-matches-container');
         if (!container) return;
@@ -233,26 +253,16 @@ window.UI = {
         container.innerHTML = matches.map(m => {
             const home = m.teams?.home;
             const away = m.teams?.away;
-
-            // 1. PLACAR: Prioridade total para o objeto teams que vimos no log
             const scoreH = home?.score ?? m.status?.score?.reg?.home?.points ?? 0;
             const scoreA = away?.score ?? m.status?.score?.reg?.away?.points ?? 0;
-            
             const hLogo = window.getTeamLogo(home?.names?.short, home?.names?.medium);
             const aLogo = window.getTeamLogo(away?.names?.short, away?.names?.medium);
-            
-            // 2. TEMPO: Pega o clock (minutos) ou o estado (1H, HT, 2H)
-            const time = m.status?.clock 
-                ? `${m.status.clock}'` 
-                : (m.status?.state || "LIVE").replace('_', ' ');
-
-            // 3. LIGA: Se leagueName for genérico, tenta o seasonWeek (ex: Premier League 25/26)
+            const time = m.status?.clock ? `${m.status.clock}'` : (m.status?.state || "LIVE").replace('_', ' ');
             const leagueDisplayName = m.info?.seasonWeek || m.leagueName || 'AO VIVO';
 
             return `
             <div onclick="window.location.href='matchdetails.html?id=${m.eventID}'" 
                 class="group relative bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-[2.5rem] hover:border-purple-500/50 transition-all cursor-pointer shadow-2xl">
-                
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
                         <span class="relative flex h-1.5 w-1.5">
@@ -263,7 +273,6 @@ window.UI = {
                     </div>
                     <span class="text-gray-500 text-[9px] font-black uppercase tracking-widest">${leagueDisplayName}</span>
                 </div>
-
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex-1 text-center">
                         <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
@@ -271,7 +280,6 @@ window.UI = {
                         </div>
                         <p class="text-[10px] font-black text-white uppercase truncate px-1">${home?.names?.medium || home?.names?.short}</p>
                     </div>
-
                     <div class="flex flex-col items-center">
                         <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 shadow-inner flex items-center gap-4">
                             <span class="text-4xl font-black italic text-white tabular-nums">${scoreH}</span>
@@ -279,7 +287,6 @@ window.UI = {
                             <span class="text-4xl font-black italic text-white tabular-nums">${scoreA}</span>
                         </div>
                     </div>
-
                     <div class="flex-1 text-center">
                         <div class="w-16 h-16 mx-auto mb-3 bg-white/5 rounded-2xl p-3 flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 transition-all">
                             <img src="${aLogo}" class="max-w-full max-h-full object-contain drop-shadow-lg" onerror="this.src='Images/favi.svg'">
@@ -291,7 +298,12 @@ window.UI = {
         }).join('');
     },
 
-    // 5. RENDERIZAÇÃO DE JOGOS (Página Inicial/Index)
+    /**
+     * Renderiza a grelha de jogos padrão para a página inicial (index.html).
+     * @function renderMatches
+     * @param {string} containerId - ID do elemento onde os cards serão injetados.
+     * @param {Array} matches - Lista de objetos de partidas.
+     */
     renderMatches: (containerId, matches) => {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -348,7 +360,13 @@ window.UI = {
             container.appendChild(card);
         });
     },
-    // 6. HISTÓRICO (Página History)
+    /**
+     * Busca os palpites do usuário logado na MockAPI e renderiza a lista no container de histórico.
+     * Compara os palpites com os dados reais dos jogos para definir o status (GREEN, RED, PENDENTE).
+     * @async
+     * @function renderHistory
+     * @returns {Promise<void>}
+     */
     renderHistory: async () => {
         const container = document.getElementById('history-container');
         if (!container) return;
@@ -367,15 +385,12 @@ window.UI = {
             }
 
             // 2. Busca jogos atuais/recentes para conferir os resultados
-            // Dica: Se quiser conferir ligas específicas, pode fazer múltiplos fetchs ou usar o window.allLoadedMatches
             const leagues = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1'];
             let liveData = [];
             
-            // Vamos tentar pegar os jogos carregados globalmente primeiro
             if (window.allLoadedMatches && window.allLoadedMatches.length > 0) {
                 liveData = window.allLoadedMatches;
             } else if (window.GD_API) {
-                // Fallback: Busca da Premier League como exemplo (ou a liga atual)
                 liveData = await window.GD_API.fetchMatches('EPL');
             }
 
@@ -448,7 +463,11 @@ window.UI = {
         }
     },
 
-    // 7. DASHBOARD (Página Stats)
+    /**
+     * Renderiza a grade de times populares na página de estatísticas.
+     * @function renderPopularTeams
+     * @param {Array<{code: string, name: string}>} teams - Lista de objetos de times.
+     */
     renderPopularTeams: (teams) => {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
@@ -459,6 +478,12 @@ window.UI = {
             </div>`).join('');
     },
 
+    /**
+     * Renderiza o Dashboard completo de um time selecionado, incluindo forma recente, win rate e últimos confrontos.
+     * @function renderTeamDashboard
+     * @param {Object} data - Dados básicos do time (id, name, logo).
+     * @param {Array} endedMatches - Lista de jogos finalizados para cálculo de estatísticas.
+     */
     renderTeamDashboard: (data, endedMatches = []) => {
         const resultsContainer = document.getElementById('search-results');
         const initialView = document.getElementById('initial-view');
@@ -552,7 +577,6 @@ window.UI = {
                         if (myScore > oppScore) statusClass = "card-win border-green-500/20";
                         else if (myScore < oppScore) statusClass = "card-loss border-red-500/20";
 
-                        // --- MUDANÇA AQUI: USA O NOME TRADUZIDO QUE PASSAMOS ---
                         const leagueLabel = match.leagueDisplayName || (match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA");
 
                         return `
@@ -577,7 +601,6 @@ window.UI = {
                 </div>
             </div>`;
     }
-    
 };
 
 window.GD_UI = window.UI;
