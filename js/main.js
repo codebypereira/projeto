@@ -438,7 +438,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     setupAuthListeners();
 });
-
 // ========================================================
 // 3. SISTEMA DE AUTENTICAÇÃO E FORMULÁRIOS
 // ========================================================

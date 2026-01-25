@@ -359,10 +359,14 @@ window.UI = {
                 </div>`;
             container.appendChild(card);
         });
-},
-    // ========================================================
-    // 6. HISTÓRICO (Página History)
-    // ========================================================
+    },
+    /**
+     * Busca os palpites do usuário logado na MockAPI e renderiza a lista no container de histórico.
+     * Compara os palpites com os dados reais dos jogos para definir o status (GREEN, RED, PENDENTE).
+     * @async
+     * @function renderHistory
+     * @returns {Promise<void>}
+     */
     renderHistory: async () => {
         const container = document.getElementById('history-container');
         if (!container) return;
@@ -384,10 +388,14 @@ window.UI = {
                 return;
             }
 
-            // 2. Busca jogos para conferência (Prioriza o que já está em memória)
-            let liveData = window.allLoadedMatches || [];
-            if (liveData.length === 0 && window.GD_API) {
-                liveData = await window.GD_API.fetchMatches(window.currentLeague || 'EPL');
+            // 2. Busca jogos atuais/recentes para conferir os resultados
+            const leagues = ['UEFA_CHAMPIONS_LEAGUE', 'EPL', 'LA_LIGA', 'BUNDESLIGA', 'IT_SERIE_A', 'FR_LIGUE_1'];
+            let liveData = [];
+            
+            if (window.allLoadedMatches && window.allLoadedMatches.length > 0) {
+                liveData = window.allLoadedMatches;
+            } else if (window.GD_API) {
+                liveData = await window.GD_API.fetchMatches('EPL');
             }
 
             container.innerHTML = meusPalpites.reverse().map(p => {
@@ -458,9 +466,11 @@ window.UI = {
         }
     },
 
-    // ========================================================
-    // 7. DASHBOARD (Página Stats)
-    // ========================================================
+    /**
+     * Renderiza a grade de times populares na página de estatísticas.
+     * @function renderPopularTeams
+     * @param {Array<{code: string, name: string}>} teams - Lista de objetos de times.
+     */
     renderPopularTeams: (teams) => {
         const grid = document.getElementById('popular-teams-grid');
         if (!grid) return;
@@ -471,6 +481,12 @@ window.UI = {
             </div>`).join('');
     },
 
+    /**
+     * Renderiza o Dashboard completo de um time selecionado, incluindo forma recente, win rate e últimos confrontos.
+     * @function renderTeamDashboard
+     * @param {Object} data - Dados básicos do time (id, name, logo).
+     * @param {Array} endedMatches - Lista de jogos finalizados para cálculo de estatísticas.
+     */
     renderTeamDashboard: (data, endedMatches = []) => {
         const resultsContainer = document.getElementById('search-results');
         const initialView = document.getElementById('initial-view');
@@ -555,6 +571,16 @@ window.UI = {
                         const homeName = match.teams?.home?.names?.medium || "Time A";
                         const awayName = match.teams?.away?.names?.medium || "Time B";
                         
+                        const isHome = isMyTeam(match.teams?.home?.teamID);
+                        const myScore = isHome ? hScore : aScore;
+                        const oppScore = isHome ? aScore : hScore;
+                        
+                        let statusClass = "card-draw border-yellow-500/20";
+                        if (myScore > oppScore) statusClass = "card-win border-green-500/20";
+                        else if (myScore < oppScore) statusClass = "card-loss border-red-500/20";
+
+                        const leagueLabel = match.leagueDisplayName || (match.leagueID ? match.leagueID.replace(/_/g, ' ').replace('UEFA ', '') : "PARTIDA");
+
                         return `
                             <div class="flex items-center justify-between bg-white/[0.02] border border-white/5 p-5 rounded-2xl hover:bg-white/[0.08] transition-all group">
                                 <div class="flex flex-col gap-1 flex-1">
