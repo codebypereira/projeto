@@ -1,6 +1,5 @@
 /**
  * GoalDash - INTERFACE (ui.js)
- * VERSÃO DEFINITIVA: 2026 - FULL EDITION
  * Stats, Matches, Live, Header, Dashboard, History e Match Details.
  */
 

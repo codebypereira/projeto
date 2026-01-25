@@ -1,6 +1,5 @@
 /**
  * GoalDash - ORQUESTRADOR CENTRAL (main.js)
- * Versão: 3.7.0 - Ultra Full Edition (Sem cortes)
  * Foco: Stats, Auth, Matches, History, Details e Modais.
  */
 
@@ -161,7 +160,6 @@ const SEARCH_DATABASE = {
  */
 window.handleTeamClick = async (teamKey) => {
     // 1. LIMPEZA TOTAL DA CHAVE (Underline para Espaço + Remover Ligas)
-    // Isso garante que "BORUSSIA_MONCHENGLADBACH" vire "BORUSSIA MONCHENGLADBACH"
     const cleanKey = teamKey.toUpperCase()
         .replace(/_/g, " ") 
         .replace(" UEFA CHAMPIONS LEAGUE", "")
@@ -173,7 +171,7 @@ window.handleTeamClick = async (teamKey) => {
         .replace(" FR LIGUE_1", "")
         .trim();
 
-    // 2. BUSCA NO SEU SEARCH_DATABASE
+    // 2. BUSCA NO SEARCH_DATABASE
     const teamEntry = SEARCH_DATABASE[cleanKey];
     
     if (!teamEntry) {
