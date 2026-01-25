@@ -163,7 +163,7 @@ const GD_API = {
 
     /**
      * 4. ESTATÍSTICAS E FORMA RECENTE
-     * Calcula o desempenho (V, E, D) dos últimos 8 jogos de uma equipa.
+     * Calcula o desempenho (V, E, D) dos últimos 5 jogos de uma equipa.
      * * @async
      * @param {string} teamID - Identificador único da equipa.
      * @param {string} leagueID - Liga para contexto da busca.
