@@ -16,7 +16,7 @@
  * @constant {Object}
  */
 window.CONFIG = {
-    API_KEY: 'cc48942721f415ae287937399dd882c7',
+    API_KEY: 'd2516578e17550cf0da78ec8e8a44569',
     MOCK_API_PREDICTIONS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/predictions',
     MOCK_API_USERS: 'https://696278a1d9d64c761907fe9a.mockapi.io/api/dash/users',
     BASE_URL_V2: 'https://api.sportsgameodds.com/v2'
